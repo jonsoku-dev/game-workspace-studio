@@ -46,7 +46,10 @@ an arbitrary Studio game compiler.
 Three.js 0.187.0 is loaded from the enabled installed model-assets plugin (or `MODEL_ASSETS_ROOT`) by
 default; `--three PATH` may select another copy matching `three-lock.json`.
 The lock covers exactly the ES module renderer/core, real GLTFLoader, its two
-utility imports, and the unchanged MIT LICENSE. No dependency tree, unrelated
+utility imports, the bundled Meshopt WASM decoder module, and the unchanged MIT
+LICENSE. `MESHOPT-LICENSE.txt` preserves the decoder notice and MIT terms.
+GLTFLoader uses this local decoder for required `EXT_meshopt_compression` GLBs;
+the decoder embeds its WASM bytes and makes no remote request. No dependency tree, unrelated
 source assets, Blender source, previews, or raw duplicate GLB is distributed.
 `manifest.json` hashes every exported file except itself; `provenance.json`
 retains original artifact URNs and source digests without local absolute paths.
@@ -64,3 +67,9 @@ limits. `window.woodsAlight()` returns read-only render/game telemetry; it does
 not expose mutation or bypass controls. Local telemetry is not a security or
 anti-cheat boundary. No save persistence, audio, enemies or physics collision
 system is included in this sample.
+
+The genuine required-extension compression probe is documented in
+`evidence/meshopt.json`, with the inspected render in `meshopt-probe.jpg`.
+It loaded the local compressed fixture with the exported decoder and rendered
+54 meshes / 46,320 triangles. This separate probe is not a claim of a new
+SSOT-pinned compressed game runtime.

@@ -2,6 +2,7 @@ import copy
 import hashlib
 import importlib.util
 import json
+import os
 from pathlib import Path
 import shutil
 import tempfile
@@ -11,7 +12,7 @@ from unittest.mock import patch
 spec = importlib.util.spec_from_file_location('web_export', Path(__file__).with_name('export.py'))
 web = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(web)
-LOCAL_THREE = web.ROOT / 'assets/plugins/model-assets/three/node_modules/three'
+LOCAL_THREE = Path(os.environ.get('MODEL_ASSETS_ROOT', web.ROOT / 'assets/plugins/model-assets')) / 'three/node_modules/three'
 SOURCES = [(web.ROOT / 'examples/forest-camp', 'builds/lantern-embers-final/scene.runtime.json')]
 
 
@@ -22,6 +23,8 @@ class ExportTests(unittest.TestCase):
             products = web.export(SOURCES, output, LOCAL_THREE)
             self.assertEqual(len(products), 1)
             self.assertTrue((output / 'vendor/three/LICENSE').is_file())
+            self.assertTrue((output / 'vendor/three/examples/jsm/libs/meshopt_decoder.module.js').is_file())
+            self.assertIn('Arseny Kapoulkine', (output / 'MESHOPT-LICENSE.txt').read_text())
             self.assertTrue((output / 'vendor/three/examples/jsm/utils/SkeletonUtils.js').is_file())
             self.assertFalse(list(output.rglob('*.blend')))
             self.assertFalse(list(output.rglob('*.bytes')))

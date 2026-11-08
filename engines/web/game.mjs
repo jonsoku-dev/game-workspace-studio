@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from './vendor/three/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from './vendor/three/examples/jsm/libs/meshopt_decoder.module.js';
 import { createGame, move, attack, CRYSTALS, GOAL } from './game-state.mjs';
 const canvas = document.querySelector('#world');
 const status = document.querySelector('#status');
@@ -70,7 +71,7 @@ try {
   });
   const ring=new THREE.Mesh(new THREE.TorusGeometry(.65,.055,8,40),new THREE.MeshBasicMaterial({color:'#f4c071'})); ring.rotation.x=Math.PI/2; ring.position.set(GOAL[0],.04,GOAL[1]);scene.add(ring);
   const aura=new THREE.PointLight('#ffc35b',0,7,2);aura.position.set(GOAL[0],1,GOAL[1]);scene.add(aura);
-  const loader=new GLTFLoader(), groups=new Map(), particles=[];
+  const loader=new GLTFLoader().setMeshoptDecoder(MeshoptDecoder), groups=new Map(), particles=[];
   const forest=new THREE.Group();forest.scale.setScalar(5);scene.add(forest);
   const modelNode=product.scene.nodes.find(n=> product.assets[n.asset].model && !product.assets[n.asset].effect);
   if (!modelNode) throw Error('The forest has no lantern model.');

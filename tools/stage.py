@@ -12,7 +12,7 @@ FILES = (
     "tools/runtime_inputs.py", "tools/export_game.py", "engines/HTML-ENGINES.md",
     "engines/web/README.md", "engines/web/export.py", "engines/web/index.html",
     "engines/web/game-state.mjs", "engines/web/game.mjs", "engines/web/style.css",
-    "engines/web/three-lock.json", "engines/web/evidence/browser.json", "engines/web/evidence/mobile-win.jpg",
+    "engines/web/three-lock.json", "engines/web/MESHOPT-LICENSE.txt", "engines/web/evidence/meshopt.json", "engines/web/evidence/browser.json", "engines/web/evidence/mobile-win.jpg",
     "engines/web/phaser/README.md", "engines/web/phaser/export.py", "engines/web/phaser/index.html",
     "engines/web/phaser/game.mjs", "engines/web/phaser/timing.mjs", "engines/web/phaser/style.css",
     "engines/web/phaser/package.json", "engines/web/phaser/package-lock.json", "engines/web/phaser/runtime-lock.json",

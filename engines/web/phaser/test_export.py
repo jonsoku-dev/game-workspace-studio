@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -8,6 +9,7 @@ spec = importlib.util.spec_from_file_location('phaser_export', Path(__file__).wi
 adapter = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(adapter)
 ROOT = Path(__file__).resolve().parents[4]
+PHASER_PACKAGE = Path(os.environ.get('STUDIO_ROOT', ROOT / 'studio')) / 'engines/web/phaser/node_modules/phaser'
 PROJECT = ROOT / 'examples/scout-actions'
 RUNTIME = 'builds/attack-contact/scene.runtime.json'
 
@@ -16,7 +18,7 @@ class PhaserExportTests(unittest.TestCase):
     def test_bundle_uses_real_pinned_library_and_graph_products(self):
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / 'game'
-            adapter.export(PROJECT, RUNTIME, out)
+            adapter.export(PROJECT, RUNTIME, out, PHASER_PACKAGE)
             game = json.loads((out / 'game.json').read_text())
             self.assertEqual(game['metadata']['events'][0]['start_ms'], 320)
             for name, pin in json.loads((out / 'provenance.json').read_text()).items():
@@ -27,7 +29,7 @@ class PhaserExportTests(unittest.TestCase):
             self.assertTrue((out / 'vendor/PHASER-LICENSE.txt').exists())
             self.assertTrue(any(out.rglob('*NOTICE')))
             with self.assertRaises(ValueError):
-                adapter.export(PROJECT, RUNTIME, out)
+                adapter.export(PROJECT, RUNTIME, out, PHASER_PACKAGE)
 
     def test_drift_and_missing_dependency_do_not_publish(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -45,7 +47,7 @@ class PhaserExportTests(unittest.TestCase):
 
     def test_bundled_notices_preserve_attribution_and_full_licenses(self):
         lock = json.loads((adapter.HERE / 'runtime-lock.json').read_text())
-        package = adapter.HERE / 'node_modules/phaser'
+        package = PHASER_PACKAGE
         library = {name: (package / name).read_bytes() for name in lock['files']}
         notices = adapter.bundled_notices(library)
         text = notices.decode('utf-8')
@@ -59,7 +61,7 @@ class PhaserExportTests(unittest.TestCase):
         self.assertLess(len(notices), 12000)
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / 'game'
-            adapter.export(PROJECT, RUNTIME, out)
+            adapter.export(PROJECT, RUNTIME, out, PHASER_PACKAGE)
             self.assertEqual((out / 'vendor/PHASER-BUNDLED-NOTICES.txt').read_bytes(), notices)
             provenance = json.loads((out / 'provenance.json').read_text())['vendor/PHASER-BUNDLED-NOTICES.txt']
             self.assertEqual(provenance['sha256'], adapter.hashlib.sha256(notices).hexdigest())
@@ -75,7 +77,7 @@ class PhaserExportTests(unittest.TestCase):
             for name in lock['files']:
                 dest = package / name
                 dest.parent.mkdir(parents=True, exist_ok=True)
-                dest.write_bytes((adapter.HERE / 'node_modules/phaser' / name).read_bytes())
+                dest.write_bytes((PHASER_PACKAGE / name).read_bytes())
             for name in ('dist/phaser.js', 'src/physics/matter-js/lib/license.js'):
                 original = (package / name).read_bytes()
                 (package / name).write_bytes(original + b'changed')

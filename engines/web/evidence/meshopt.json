@@ -1,0 +1,61 @@
+{
+  "date": "2026-11-08",
+  "test": "Genuine required EXT_meshopt_compression GLB in actual Three.js/WebGL",
+  "fixture": "/tmp/studio-meshopt-probe/lantern.meshopt.glb",
+  "fixtureOrigin": "Existing genuine compression probe generated with @gltf-transform EXTMeshoptCompression.setRequired(true); this test does not alter Studio pins or substitute the fixture into a production export.",
+  "export": "studio/engines/web/builds/woods-alight-v5",
+  "renderer": "Three.js 0.187.0 WebGLRenderer",
+  "result": {
+    "proof": {
+      "passed": true,
+      "required": [
+        "EXT_meshopt_compression"
+      ],
+      "meshes": 54,
+      "vertices": 13663,
+      "triangles": 46320,
+      "drawCalls": 108,
+      "decoder": "local Three.js bundled Meshoptimizer 1.1; embedded WASM"
+    },
+    "resources": [
+      {
+        "name": "http://127.0.0.1:8878/woods-alight-v5/vendor/three/build/three.module.js",
+        "status": 200
+      },
+      {
+        "name": "http://127.0.0.1:8878/woods-alight-v5/vendor/three/examples/jsm/libs/meshopt_decoder.module.js",
+        "status": 200
+      },
+      {
+        "name": "http://127.0.0.1:8878/woods-alight-v5/vendor/three/examples/jsm/loaders/GLTFLoader.js",
+        "status": 200
+      },
+      {
+        "name": "http://127.0.0.1:8878/woods-alight-v5/vendor/three/examples/jsm/utils/SkeletonUtils.js",
+        "status": 200
+      },
+      {
+        "name": "http://127.0.0.1:8878/woods-alight-v5/vendor/three/examples/jsm/utils/BufferGeometryUtils.js",
+        "status": 200
+      },
+      {
+        "name": "http://127.0.0.1:8878/woods-alight-v5/vendor/three/build/three.core.js",
+        "status": 200
+      },
+      {
+        "name": "http://127.0.0.1:8878/meshopt-probe/lantern.meshopt.glb",
+        "status": 200
+      },
+      {
+        "name": "http://127.0.0.1:8878/favicon.ico",
+        "status": 404
+      }
+    ]
+  },
+  "screenshot": "meshopt-probe.jpg",
+  "limitations": [
+    "Separate loader/render probe, not full gameplay with a newly SSOT-pinned compressed runtime.",
+    "A harmless local favicon.ico returned 404 on the diagnostic harness; all model/module requests returned 200."
+  ],
+  "fixtureSha256": "407d97d5758eadf65e8b5bc54d59b48d073ed6edcec96f457da475bc6830afd9"
+}

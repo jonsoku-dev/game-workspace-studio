@@ -64,4 +64,4 @@ INSTALL_TEST_WHEELHOUSE="$INPUTS/wheels" INSTALL_TEST_NPM_CACHE="$INPUTS/npm-cac
 
 셸이나 작업 폴더를 바꾸면 `python3`가 다른 버전으로 해석될 수 있다. wheel을 준비한 인터프리터의 절대 경로를 설치에도 사용한다. 예를 들어 `cp313` macOS arm64 Pillow wheel은 CPython 3.15 환경에서 거부된다. 확인 명령은 `"$PYTHON" -c "import sys,sysconfig; print(sys.executable, sys.version, sysconfig.get_platform())"`이다.
 
-0.5.0은 `studio/engines/web/phaser/package.json 및 package-lock.json`의 Phaser 3.90.0과 eventemitter3도 같은 npm 캐시에 준비해야 한다. 임시 폴더에 이 두 파일을 복사하고 Three와 동일한 `npm ci --cache "$INPUTS/npm-cache" --ignore-scripts --no-audit --no-fund`를 실행한다. 런타임은 패키지 무결성과 배포 파일·라이선스의 고정 SHA-256을 검사한다.
+0.5.x는 `studio/engines/web/phaser/package.json 및 package-lock.json`의 Phaser 3.90.0과 eventemitter3도 같은 npm 캐시에 준비해야 한다. 임시 폴더에 이 두 파일을 복사하고 Three와 동일한 `npm ci --cache "$INPUTS/npm-cache" --ignore-scripts --no-audit --no-fund`를 실행한다. 런타임은 패키지 무결성과 배포 파일·라이선스의 고정 SHA-256을 검사한다.
