@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { setLocale } from './i18n.mjs';
+import { renderErrorText, inspectionLabel } from './view-messages.mjs';
 
 // Use the existing local loader for the pure timing checks; browsers use /model/loader.mjs.
 const loader = new URL('../../assets/plugins/model-assets/three/loader.mjs', import.meta.url).href;
-const source = (await readFile(new URL('./scene-view.mjs', import.meta.url), 'utf8')).replace("'/model/loader.mjs'", JSON.stringify(loader));
+const source = (await readFile(new URL('./scene-view.mjs', import.meta.url), 'utf8')).replace("'/model/loader.mjs'", JSON.stringify(loader))
+  .replace("'./view-messages.mjs'", JSON.stringify(new URL('./view-messages.mjs', import.meta.url).href));
 const { effectFrameAt, actionPlaybackAt, showScene, createNodeHierarchy, particleStateAt, validateParticleEffect, inspectionDistance } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 const frames = [{ duration_ms: 30 }, { duration_ms: 70 }, { duration_ms: 200 }];
 for (const [time, expected] of [[0, 0], [29, 0], [30, 1], [99, 1], [100, 2], [299, 2], [300, 0], [330, 1]]) {
@@ -114,7 +117,7 @@ let sequence = 0;
 const scheduled = new Map(), callbacks = new Map();
 globalThis.requestAnimationFrame = fn => { scheduled.set(++sequence, fn); return sequence; };
 globalThis.cancelAnimationFrame = id => scheduled.delete(id);
-globalThis.document = { hidden: false, addEventListener: (name, fn) => callbacks.set(name, fn), removeEventListener: name => callbacks.delete(name) };
+globalThis.document = { documentElement: {}, hidden: false, addEventListener: (name, fn) => callbacks.set(name, fn), removeEventListener: name => callbacks.delete(name) };
 globalThis.ResizeObserver = class { observe() {} disconnect() {} };
 let intersectionCallback;
 globalThis.IntersectionObserver = class {
@@ -127,14 +130,25 @@ globalThis.fetch = async () => ({ ok: true, blob: async () => new Blob(), json: 
   frames: [{ rect: {x: 0, y: 0, w: 1, h: 1}, duration_ms: 100 }, { rect: {x: 1, y: 0, w: 1, h: 1}, duration_ms: 100 }],
   loop: true, pivot_px_from_top_left: [0.5, 1]
 }) });
-const inspectCanvas = { dataset: {}, clientWidth: 320, clientHeight: 480, hasAttribute: () => false,
-  setAttribute() {}, addEventListener: (name, fn) => callbacks.set(name, fn), removeEventListener: name => callbacks.delete(name) };
+const attributes = new Map();
+globalThis.window = { addEventListener: (name, fn) => callbacks.set(name, fn), removeEventListener: name => callbacks.delete(name) };
+const inspectCanvas = { dataset: {}, clientWidth: 320, clientHeight: 480, hasAttribute: name => attributes.has(name),
+  setAttribute: (name, value) => attributes.set(name, value), getAttribute: name => attributes.get(name), removeAttribute: name => attributes.delete(name), addEventListener: (name, fn) => callbacks.set(name, fn), removeEventListener: name => callbacks.delete(name) };
 const view = await inspectScene(inspectCanvas, { status: 'ready', schema_version: 1,
   coordinates: { units: 'meters', up: '+Y', handedness: 'right' },
   assets: [{ id: 'sprite', producer: 'pixel-effect', files: { metadata: 'meta', sheet: 'sheet' } }],
   nodes: [{ ...transform, id: 'sprite-node', asset: 'sprite', size_m: 1, position: [1, 2, 0] }]
 }, file => file);
 const flush = () => { const pending = [...scheduled.values()]; scheduled.clear(); for (const fn of pending) fn(performance.now()); };
+assert.equal(inspectCanvas.getAttribute('aria-label'), inspectionLabel());
+const initialFrames = view.metrics.frame_count;
+setLocale('ja'); callbacks.get('studio:localechange')();
+assert.equal(inspectCanvas.getAttribute('aria-label'), inspectionLabel());
+assert.match(inspectCanvas.getAttribute('aria-label'), /シーン/);
+assert.equal(view.metrics.frame_count, initialFrames, 'locale change preserves renderer and current frame');
+inspectCanvas.setAttribute('aria-label', 'Authored label');
+setLocale('ko'); callbacks.get('studio:localechange')();
+assert.equal(inspectCanvas.getAttribute('aria-label'), 'Authored label', 'renderer respects a replacement authored label');
 assert.equal(view.metrics.state, 'paused');
 assert.equal(scheduled.size, 0, 'reduced motion does not run a continuous loop');
 view.seek(100); flush();
@@ -207,7 +221,9 @@ const authoredRuntime = { status: 'ready', schema_version: 1,
   nodes: [{ ...transform, id: 'actor-node', asset: 'actor', action: 'attack', size_m: 1, position: [1, 2, 0] }]
 };
 const authoredCopy = JSON.stringify(authoredRuntime);
+assert.equal(inspectCanvas.getAttribute('aria-label'), 'Authored label', 'disposal preserves authored label');
 const actionView = await inspectScene(inspectCanvas, authoredRuntime, file => file);
+assert.equal(callbacks.has('studio:localechange'), false, 'authored canvas label needs no renderer locale listener');
 assert.deepEqual(actionView.metrics.inspection.actions, available);
 actionView.seek(150); flush();
 assert.equal(actionView.metrics.effects[0].frame_index, 0, 'authored attack triggers its contact effect');
@@ -232,3 +248,37 @@ actionView.dispose();
 assert.equal(scheduled.size, 0);
 assert.equal(callbacks.size, 0);
 console.log('PASS: metadata-limited six-action inspection, missing action rejection, authored action/provenance preservation, preview time reset, inactive contact suppression and original contact restoration');
+
+// Every explicit renderer and shared GLB loader validation has localized feedback.
+const rendererSource = await readFile(new URL('./scene-view.mjs', import.meta.url), 'utf8');
+const loaderSource = await readFile(new URL(loader), 'utf8');
+const errors = [...(rendererSource + loaderSource).matchAll(/throw new Error\('([^']+)'\)/g)].map(match => match[1]);
+for (const locale of ['ko', 'ja']) {
+  setLocale(locale);
+  const fallback = renderErrorText(new Error('unknown detail')).split('\n')[0];
+  for (const detail of [...errors, 'Unable to load scene asset (404)', 'Error creating WebGL context.']) {
+    const error = new Error(detail);
+    const before = error.message;
+    const translated = renderErrorText(error);
+    assert.notEqual(translated.split('\n')[0], fallback, `${locale}: ${detail}`);
+    assert.ok(translated.endsWith(`\n${detail}`), 'original validation detail is preserved');
+    assert.equal(error.message, before, 'error contract stays unchanged');
+  }
+  const detail = 'EACCES: /project/日本語/name.glb <raw> {value}';
+  assert.equal(renderErrorText(new Error(detail)), `${fallback}\n${detail}`);
+}
+setLocale('ko');
+// A renderer-owned fallback is removed on disposal and recreated in the next locale.
+inspectCanvas.removeAttribute('aria-label');
+const fallbackView = await inspectScene(inspectCanvas, authoredRuntime, file => file);
+assert.equal(callbacks.has('studio:localechange'), true);
+fallbackView.dispose();
+assert.equal(inspectCanvas.hasAttribute('aria-label'), false);
+assert.equal(callbacks.size, 0);
+setLocale('ja');
+const nextView = await inspectScene(inspectCanvas, authoredRuntime, file => file);
+assert.match(inspectCanvas.getAttribute('aria-label'), /シーン/);
+nextView.dispose();
+assert.equal(callbacks.size, 0);
+setLocale('ko');
+console.log('PASS: KO/JA renderer and GLB feedback, unchanged raw diagnostics, fallback label locale refresh, authored label preservation and listener disposal');

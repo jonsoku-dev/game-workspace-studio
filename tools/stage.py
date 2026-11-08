@@ -25,6 +25,7 @@ FILES = (
     "engines/godot/evidence/verification.json", "engines/godot/evidence/pck.json",
     "tools/scene.py", "tools/graph.py", "tools/workspace_graph.py", "tools/visualize.py",
     "visualizer/index.html", "visualizer/app.mjs", "visualizer/scene-view.mjs", "visualizer/style.css",
+    "visualizer/i18n.mjs", "visualizer/shell-i18n.mjs", "visualizer/app-messages.mjs", "visualizer/view-messages.mjs",
     "examples/forest-camp/scene.json",
     "examples/forest-camp/requests/lantern.json", "examples/forest-camp/requests/embers.json",
 )

@@ -73,10 +73,10 @@ python3 tools/graph.py history --project examples/forest-camp
 로컬 Codex에 스튜디오를 설치하는 절차다. 아래는 이 버전의 새 설치 경로 예시다.
 
 ```sh
-python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.5.1"
-codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.5.1"
+python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.6.0"
+codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.6.0"
 codex plugin add game-studio@game-studio
-STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.5.1"
+STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.6.0"
 ```
 
 프로젝트에서 `$game-studio`로 기획·씬 제작을 요청한다. 예를 들어 “Forest Camp의 30cm 등불 통풍구에 입체 불티를 붙이고 제작 과정을 보여 줘”라고 지시한다.
@@ -123,3 +123,14 @@ python3 "$STUDIO_ROOT/tools/export_game.py" --engine phaser --project . --worksp
 ```
 
 `godot`과 `unity` 샘플에는 위의 등불·정찰병 두 `--source`를 순서대로 전달한다. Godot 4.5.1은 PCK까지 실행 검증했다. 웹은 Three.js r187과 Phaser 3.90.0으로 로컬 게임을 재생한다. Unity 6000.0.60f1 타깃은 변환·내보내기를 검증했으며 에디터에서의 컴파일과 플레이는 라이선스가 활성화된 설치에서 별도 확인한다. 입력 요구와 한계는 각 `engines/<target>/README.md` 및 [웹 엔진 비교](engines/HTML-ENGINES.md)에 있다. 웹 결과는 HTTP로 제공해야 한다.
+
+
+### 한국어 · 日本語
+
+상단 언어 선택기로 작업실을 한국어 또는 일본어로 바꾼다. 주소의 `?lang=ja` 또는 `?lang=ko`가 가장 먼저 적용되며, 그다음에는 이 작업실 주소에서 저장한 언어, 브라우저의 지원 언어 순서를 따른다. 어느 쪽도 지정되지 않으면 한국어로 연다. 프로젝트와 함께 공유하려면 `?project=<등록된 ID>&lang=ja`처럼 두 값을 함께 지정한다. 언어 설정은 브라우저에 보관한다. 프로젝트 기획문·에셋 이름·기록된 원문과 JSON-LD는 원본 값을 표시한다.
+
+画面右上の言語切り替えで「日本語」を選べます。日本語の画面を共有するには URL に `?lang=ja` を指定します。言語を切り替えても、表示中のシーン、選択したアセット、グラフの記録は維持されます。
+
+첫 화면에서 프로젝트 그림을 선택해 장면과 에셋을 본다. 썸네일을 누르면 에셋 상세가 열리고, 파일 경로·해시·원문은 기술 정보에서 확인한다. 실행 기록과 기획/제작 단계는 필요할 때 펼친다. 등록된 프로젝트들에 장면이 있지만 현재 프로젝트에 빌드가 없으면 프로젝트 그림을 시작 화면에 보여 준다.
+
+완료된 웹 게임으로 연결하려면 workspace manifest의 `playtests` 배열에 `{"activity":"<엔진 내보내기 ExternalWork ID>","url":"http://127.0.0.1:<게임 서버 포트>/<출력 폴더>/" }`를 추가한다. 별도 포트에서 그 정적 결과를 제공한다. 해당 실행의 runtime을 실제 입력으로 사용한 완료된 Three.js/Phaser 내보내기에만 **게임 열기 / ゲームを開く**가 표시된다. 링크 등록은 서버의 현재 가동 여부를 보장하지 않는다.

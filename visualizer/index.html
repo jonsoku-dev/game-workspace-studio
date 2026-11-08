@@ -4,49 +4,58 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>Game Studio · 장면 검사</title>
+  <title data-i18n="title">Game Studio · 장면 검사</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <!-- THESIS: 제작된 장면을 먼저 보고, 파일과 기록의 근거를 추적하는 읽기 전용 작업실.
   OWN-WORLD: 흑연색 작업대, 미색 시스템 활자, 호박색 선택, 얇은 구획.
   STORY: 실제 실행 선택 → 장면·에셋 관찰 → 연결된 입력·제작·검사 근거 확인.
-  FIRST VIEWPORT: 왼쪽 실행 이력, 넓은 중앙 실시간 장면, 바로 아래 이미지 필름스트립.
+  FIRST VIEWPORT: 왼쪽 프로젝트 이미지, 넓은 중앙 실시간 장면, 바로 아래 실제 에셋.
   FORM: 사용자가 지정한 scene-first inspection workstation. 제작은 Codex 채팅이 소유한다. -->
-  <a class="skip-link" href="#main">장면으로 건너뛰기</a>
+  <a class="skip-link" href="#main" data-i18n="skip">장면으로 건너뛰기</a>
   <header class="masthead">
-    <div class="branding"><a class="identity" href="/" aria-label="Game Studio 작업실"><span class="mark" aria-hidden="true">G<span> / </span>S</span><span>Game Studio</span></a><small id="project-name" class="project-name">제작 관찰실</small><select id="project-picker" aria-label="관찰할 프로젝트" hidden></select></div>
-    <div class="header-note"><span class="live-dot" aria-hidden="true"></span><span id="connection" role="status">연결 중</span><span class="readonly">읽기 전용</span></div>
+    <div class="branding"><a class="identity" href="/" aria-label="Game Studio 작업실" data-i18n-aria-label="identity"><span class="mark" aria-hidden="true">G<span> / </span>S</span><span>Game Studio</span></a><small id="project-name" class="project-name">제작 관찰실</small></div>
+    <div class="header-note"><span class="live-dot" aria-hidden="true"></span><span id="connection" role="status">연결 중</span><span class="readonly" data-i18n="readonly">읽기 전용</span><label class="language-control"><span data-i18n="language">언어</span><select id="language-picker" aria-label="화면 언어" data-i18n-aria-label="languagePicker"><option value="ko" lang="ko">한국어</option><option value="ja" lang="ja">日本語</option></select></label></div>
   </header>
   <div class="workspace">
-    <aside class="sidebar" aria-label="실행 이력">
-      <div class="section-heading"><h1>실행 이력 <span id="run-count" class="count">0</span></h1><button id="toggle-history" type="button" aria-expanded="false" aria-controls="runs activity-section">이력 펼치기</button></div>
-      <div id="runs" class="run-list"></div>
-      <section id="activity-section" class="activity-section" hidden><h2>독립 작업 · 검증</h2><div id="activities"></div></section>
-      <div class="sidebar-foot">제작과 변경은 Codex 채팅에서<small>이 화면은 SSOT 그래프를 관찰합니다.</small></div>
+    <aside class="sidebar" aria-label="프로젝트" data-i18n-aria-label="projects">
+      <div id="project-rail"><h2 class="rail-label" data-i18n="projects">프로젝트</h2>
+      <nav id="project-gallery" class="project-gallery" aria-label="관찰할 프로젝트" data-i18n-aria-label="projectPicker"></nav></div>
+      <details id="history-details" class="history-details">
+        <summary id="toggle-history" data-i18n="historyRecords">실행 기록</summary>
+        <div class="section-heading"><select id="project-picker" aria-label="관찰할 프로젝트" data-i18n-aria-label="projectPicker" hidden></select><h1><span data-i18n="history">실행 이력</span> <span id="run-count" class="count">0</span></h1></div>
+        <div id="runs" class="run-list"></div>
+        <section id="activity-section" class="activity-section" hidden><h2 data-i18n="activities">독립 작업 · 검증</h2><div id="activities"></div></section>
+      </details>
     </aside>
     <main id="main" tabindex="-1">
-      <div class="page-heading"><div><h2 id="run-title">장면을 불러오는 중</h2><p id="run-subtitle" class="muted"></p></div><span id="run-status" class="badge" hidden></span></div>
-      <div class="tabs" role="tablist" aria-label="작업 보기">
-        <button id="tab-scene" role="tab" aria-selected="true" aria-controls="panel-scene" tabindex="0">장면 · 에셋</button>
-        <button id="tab-graph" role="tab" aria-selected="false" aria-controls="panel-graph" tabindex="-1">인과 그래프 <span id="graph-count"></span></button>
+      <div class="page-heading"><div><h2 id="run-title">장면을 불러오는 중</h2></div><div class="scene-actions"><span id="run-status" class="badge" hidden></span><a id="play-game" class="play-game" target="_blank" rel="noopener noreferrer" hidden></a></div></div>
+      <div class="tabs" role="tablist" aria-label="작업 보기" data-i18n-aria-label="views">
+        <button id="tab-scene" role="tab" aria-selected="true" aria-controls="panel-scene" tabindex="0" data-i18n="sceneAssets">장면 · 에셋</button>
+        <button id="tab-graph" role="tab" aria-selected="false" aria-controls="panel-graph" tabindex="-1"><span data-i18n="causalGraph">인과 그래프</span> <span id="graph-count"></span></button>
       </div>
       <section id="panel-scene" role="tabpanel" aria-labelledby="tab-scene">
+        <div id="project-overview" hidden></div>
         <div id="run-message" class="notice" hidden></div>
-        <div class="inspection-layout"><div class="scene-card"><div class="card-heading"><span id="scene-caption">실제 런타임 장면</span><div id="view-controls" class="view-controls" hidden><label id="action-control" hidden>동작 미리보기 <select id="scene-action" aria-label="읽기 전용 동작 미리보기"><option value="">기록된 동작</option></select></label><button id="pause-view" type="button" aria-pressed="false">일시정지</button><button id="step-view" type="button" aria-label="100밀리초 뒤 프레임 관찰">+0.1초</button><button id="rotate-view" type="button">회전</button><button id="zoom-out" type="button" aria-label="장면 축소">−</button><button id="zoom-in" type="button" aria-label="장면 확대">＋</button><button id="reset-view" type="button">시점 초기화</button></div></div><div class="scene-stage"><canvas id="scene" aria-label="실제 에셋과 배치를 사용한 게임 장면"></canvas><div id="scene-placeholder" class="scene-placeholder"><h3>기록을 불러오는 중</h3><p>그래프에 고정된 실제 장면과 에셋을 확인합니다.</p></div></div><div class="scene-footer"><span>런타임 관찰</span><span id="scene-info">미터 · +Y 위 · 오른손 좌표</span></div></div>
-        <aside id="artifact-detail" class="detail-card inspector-dock" aria-label="선택한 에셋 검사" hidden></aside></div>
-        <div class="asset-heading"><h3>에셋 보관함</h3><span id="asset-count" class="muted"></span></div>
-        <div id="assets" class="asset-grid" aria-label="실행 에셋"></div>
-        <section id="game-brief" class="game-brief" aria-label="기록된 게임 기획" hidden></section>
-        <section id="steps" class="steps" aria-label="제작 단계"></section>
+        <div class="inspection-layout"><div class="scene-card"><div class="card-heading"><span id="scene-caption">실제 런타임 장면</span><div id="view-controls" class="view-controls" hidden><label id="action-control" hidden><span data-i18n="actionPreview">동작 미리보기</span> <select id="scene-action" aria-label="읽기 전용 동작 미리보기" data-i18n-aria-label="actionPreviewReadonly"><option value="" data-i18n="recordedAction">기록된 동작</option></select></label><button id="pause-view" type="button" aria-pressed="false">일시정지</button><details id="view-tools" class="view-tools"><summary data-i18n="viewTools">보기 도구</summary><div class="camera-tools"><button id="step-view" type="button" aria-label="100밀리초 뒤 프레임 관찰" data-i18n-aria-label="stepFrame" data-i18n="step">+0.1초</button><button id="rotate-view" type="button" data-i18n="rotate">회전</button><button id="zoom-out" type="button" aria-label="장면 축소" data-i18n-aria-label="zoomOut">−</button><button id="zoom-in" type="button" aria-label="장면 확대" data-i18n-aria-label="zoomIn">＋</button><button id="reset-view" type="button" data-i18n="reset">시점 초기화</button><p id="scene-info" class="muted">미터 · +Y 위 · 오른손 좌표</p></div></details></div></div><div class="scene-stage"><canvas id="scene" aria-label="실제 에셋과 배치를 사용한 게임 장면" data-i18n-aria-label="canvas"></canvas><div id="scene-placeholder" class="scene-placeholder"><h3>기록을 불러오는 중</h3><p>그래프에 고정된 실제 장면과 에셋을 확인합니다.</p></div></div></div>
+        </div>
+        <div class="asset-heading"><h3 data-i18n="assetLibrary">에셋 보관함</h3></div>
+        <div id="assets" class="asset-grid" aria-label="실행 에셋" data-i18n-aria-label="runAssets"></div>
+        <aside id="artifact-detail" tabindex="-1" class="detail-card inspector-dock" aria-label="선택한 에셋 검사" data-i18n-aria-label="assetDetail" hidden></aside>
+        <details id="production-details" class="production-details"><summary data-i18n="productionDetails">기획 · 제작 과정</summary><div class="run-meta"><p id="run-subtitle" class="muted"></p><span id="asset-count" class="muted"></span></div>
+        <section id="game-brief" class="game-brief" aria-label="기록된 게임 기획" data-i18n-aria-label="gameBrief" hidden></section>
+        <section id="steps" class="steps" aria-label="제작 단계" data-i18n-aria-label="steps"></section>
+        </details>
       </section>
       <section id="panel-graph" role="tabpanel" aria-labelledby="tab-graph" hidden>
-        <div class="graph-tools"><label class="search"><input id="graph-search" type="search" placeholder="이름, 파일 경로, ID 검색" aria-label="그래프 항목 검색"></label><select id="graph-type" aria-label="그래프 항목 종류"><option value="">모든 종류</option></select><span id="graph-results" role="status"></span></div>
-        <details id="revision-disclosure" class="revision-disclosure"><summary id="revision-summary">상태 기록 연결</summary><p>상태 리비전은 실행 순서 기록이며 제작 인과와 구분합니다.</p></details>
-        <div id="graph-map" class="graph-map" aria-label="선택한 항목의 연결 그래프"></div>
-        <div class="graph-layout"><nav id="graph-nodes" class="graph-nodes" aria-label="그래프 항목"></nav><div class="graph-focus"><div id="graph-summary"></div><div id="relations" class="relations"></div><details class="raw-details"><summary>원본 JSON-LD 속성</summary><pre id="graph-raw"></pre></details></div></div>
+        <div id="graph-map" class="graph-map" aria-label="선택한 항목의 연결 그래프" data-i18n-aria-label="connectionGraph"></div>
+        <details id="graph-details" class="graph-details"><summary data-i18n="graphDetails">항목 · 근거 살펴보기</summary>
+        <div class="graph-tools"><label class="search"><input id="graph-search" type="search" placeholder="이름, 파일 경로, ID 검색" data-i18n-placeholder="searchPlaceholder" aria-label="그래프 항목 검색" data-i18n-aria-label="searchGraph"></label><select id="graph-type" aria-label="그래프 항목 종류" data-i18n-aria-label="graphType"><option value="" data-i18n="allTypes">모든 종류</option></select><span id="graph-results" role="status"></span></div>
+        <details id="revision-disclosure" class="revision-disclosure"><summary id="revision-summary">상태 기록 연결</summary><p data-i18n="revisionExplanation">상태 리비전은 실행 순서 기록이며 제작 인과와 구분합니다.</p></details>
+        <div class="graph-layout"><nav id="graph-nodes" class="graph-nodes" aria-label="그래프 항목" data-i18n-aria-label="graphNodes"></nav><div class="graph-focus"><div id="graph-summary"></div><div id="relations" class="relations"></div><details class="raw-details"><summary data-i18n="rawProperties">원본 JSON-LD 속성</summary><pre id="graph-raw"></pre></details></div></div>
+        </details>
       </section>
-      <p class="footnote">SSOT 그래프에서 읽은 기록입니다. 파일 제작 완료는 플레이·시각적 품질 검증과 별개입니다.</p>
     </main>
   </div>
   <script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/addons/"}}</script>

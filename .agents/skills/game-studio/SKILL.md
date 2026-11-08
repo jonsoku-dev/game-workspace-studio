@@ -33,3 +33,5 @@ python3 "$PLUGIN_ROOT/tools/scene.py" build --project "$PROJECT" --out build/run
 워크스페이스의 등록된 프로젝트 사이를 이동할 때만 `--browse-workspace`를 지정한다. 화면의 동작·회전·정지 선택은 검수용이며 기록된 입력과 그래프를 수정하지 않는다. Godot 4 샘플은 `$PLUGIN_ROOT/engines/godot/export.py --source <project> <runtime> --source <project> <runtime> --output <new-folder>`로 준비한다. 등불·불티와 scout 동작 세트를 각각 주고, 어댑터 README의 실제 입력 검사를 따른다. 이 샘플의 고정된 게임 규칙을 임의의 사용자 게임에 자동 이식했다고 보고하지 않는다.
 
 정상 엔진 전달 경로는 `"$PLUGIN_ROOT/tools/export_game.py" --engine <godot|three|phaser|unity> --project <등록된 출력 프로젝트> --workspace <workspace.json> --source <등록된 입력 프로젝트> <ready runtime 경로> --out <새 상대경로>`다. 이 경로는 엔진 출력·입력 리비전·실패를 그래프에 남긴다. Three는 네이티브 3D 효과, Phaser는 2D 동작 세트, Godot는 검증된 실제 에디터/PCK 런타임이다. Unity 결과의 변환 검증과 라이선스가 있는 에디터에서의 검증은 구분한다. 설치된 `engines/HTML-ENGINES.md`와 타깃별 README의 제한을 따른다.
+
+작업실 링크에 한국어는 `lang=ko`, 일본어는 `lang=ja`를 사용한다. 프로젝트 선택과 함께라면 기존 project 쿼리를 유지한다. 화면은 로컬에서 언어를 전환하며 사용자 기획문과 SSOT 원문은 보존한다.

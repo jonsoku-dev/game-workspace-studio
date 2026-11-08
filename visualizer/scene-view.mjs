@@ -1,4 +1,5 @@
 import { THREE, loadModel, validateReceipt } from '/model/loader.mjs';
+import { inspectionLabel } from './view-messages.mjs';
 
 const active = new WeakMap();
 const REVIEW_GAP_MS = 1000;
@@ -657,7 +658,18 @@ export async function showScene(canvas, runtime, assetURL) {
       resetView() { if (!disposed) { yaw = Math.atan2(1.2, 2); viewZoom = 1; resize(); } }
     });
     if (!canvas.hasAttribute('tabindex')) canvas.tabIndex = 0;
-    if (!canvas.hasAttribute('aria-label')) canvas.setAttribute('aria-label', 'Scene inspection. Space pauses; left and right rotate; up and down zoom; Home resets; brackets step time.');
+    if (!canvas.hasAttribute('aria-label')) {
+      let label = inspectionLabel();
+      canvas.setAttribute('aria-label', label);
+      listeners.push(() => {
+        if (canvas.getAttribute('aria-label') === label) canvas.removeAttribute('aria-label');
+      });
+      listen(window, 'studio:localechange', () => {
+        if (canvas.getAttribute('aria-label') !== label) return;
+        label = inspectionLabel();
+        canvas.setAttribute('aria-label', label);
+      });
+    }
     listen(canvas, 'keydown', event => {
       const commands = {
         ' ': () => owner.setPaused(!paused), ArrowLeft: () => owner.rotate(-0.12), ArrowRight: () => owner.rotate(0.12),

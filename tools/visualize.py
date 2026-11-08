@@ -18,11 +18,13 @@ from workspace_graph import export_workspace, registered_projects
 
 UI = Path(__file__).resolve().parents[1] / "visualizer"
 PAGES = {"/": "index.html", "/app.mjs": "app.mjs", "/style.css": "style.css",
-         "/scene-view.mjs": "scene-view.mjs"}
+         "/scene-view.mjs": "scene-view.mjs", "/i18n.mjs": "i18n.mjs",
+         "/shell-i18n.mjs": "shell-i18n.mjs", "/app-messages.mjs": "app-messages.mjs",
+         "/view-messages.mjs": "view-messages.mjs"}
 MIME = {".html": "text/html; charset=utf-8", ".mjs": "text/javascript",
         ".js": "text/javascript", ".css": "text/css", ".json": "application/json",
         ".glb": "model/gltf-binary", ".png": "image/png", ".gif": "image/gif"}
-POLICY = ("default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+POLICY = ("default-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; "
           "connect-src 'self' blob:; img-src 'self' blob: data:; font-src 'self'; "
           "base-uri 'none'; frame-ancestors 'none'; form-action 'none'")
 
@@ -52,7 +54,7 @@ def live_process(pid):
         return None
 
 
-def state(project, workspace, browse=False):
+def state(project, workspace, browse=False, viewer_port=None):
     doc = export_workspace(workspace) if workspace else graph.export_graph(project)
     scope = graph.project_id(project) if (project / ".game-studio/project.json").exists() else None
     runs = []
@@ -68,13 +70,128 @@ def state(project, workspace, browse=False):
         elif "ExternalWork" in node["@type"]:
             activities.append({"graph_id": node["@id"], "label": node.get("label"),
                                "status": node.get("status"), "recorded_at": node.get("recordedAt")})
+    if workspace:
+        attach_playtests(runs, doc, json.loads(workspace.read_text(encoding="utf-8")).get("playtests", []), viewer_port)
     choices = []
     if browse:
         _, projects = registered_projects(workspace)
-        choices = [{"id": graph.project_id(member), "name": member.name} for member in projects]
+        choices = project_choices(doc, projects)
     return {"project_id": scope, "project_name": project.name, "projects": choices, "graph": doc,
             "runs": sorted(runs, key=lambda r: (r["started_at"], r["run_id"]), reverse=True),
             "activities": sorted(activities, key=lambda a: a["recorded_at"] or "", reverse=True)}
+
+
+def attach_playtests(runs, document, registrations, viewer_port=None):
+    """Expose operator addresses backed by exact completed engine-export inputs."""
+    if not isinstance(registrations, list):
+        return
+    nodes = {node["@id"]: node for node in document["@graph"]}
+    exported_indexes = {}
+    for node in nodes.values():
+        if "Artifact" in node["@type"] and Path(node.get("path", "")).name == "index.html":
+            for activity in node.get("wasGeneratedBy", []):
+                if node["@id"].startswith(activity + ":artifact:"):
+                    exported_indexes.setdefault(activity, []).append(Path(node["path"]).parent)
+    for link in registrations:
+        if not isinstance(link, dict) or set(link) != {"activity", "url"}:
+            continue
+        address = link["url"]
+        if not isinstance(address, str):
+            continue
+        match = re.fullmatch(r"http://(127\.0\.0\.1|localhost):([0-9]{1,5})(/[A-Za-z0-9_./~-]*)?", address)
+        if not match or not 1 <= int(match[2]) <= 65535 or int(match[2]) == viewer_port:
+            continue
+        path = match[3] or "/"
+        if any(part in {".", ".."} for part in path.split("/")) or "//" in path:
+            continue
+        work = nodes.get(link["activity"], {}) if isinstance(link["activity"], str) else {}
+        if ("ExternalWork" not in work.get("@type", []) or work.get("status") != "complete" or
+                work.get("label") not in {"Export three", "Export phaser"}):
+            continue
+        agent = work["@id"].split(":work:")[0] + ":agent:studio-engine-export"
+        if (agent not in work.get("wasAssociatedWith", []) or
+                "Agent" not in nodes.get(agent, {}).get("@type", []) or
+                nodes[agent].get("label") != "studio-engine-export"):
+            continue
+        directories = exported_indexes.get(work["@id"], [])
+        url_directory = path.removesuffix("index.html").strip("/")
+        if not directories or (url_directory and not any(
+                str(directory).endswith("/" + url_directory) or str(directory) == url_directory
+                for directory in directories)):
+            continue
+        for run in runs:
+            runtime = nodes.get(run["graph_id"] + ":runtime", {})
+            if (run.get("status") == "ready" and "RuntimeProduct" in runtime.get("@type", []) and
+                    runtime.get("wasGeneratedBy") == [run["graph_id"]] and
+                    runtime.get("path") == run.get("runtime") and runtime["@id"] in work.get("used", [])):
+                run.setdefault("playable_url", address)
+
+
+def project_choices(document, projects):
+    """Project cards use only pinned scenes and their actual runtime dependencies."""
+    nodes = {node["@id"]: node for node in document["@graph"]}
+    runs = {}
+    for node in nodes.values():
+        if "Run" in node["@type"]:
+            for scope in node.get("partOf", []):
+                runs.setdefault(scope, []).append(node)
+    choices = []
+    for member in projects:
+        scope = graph.project_id(member)
+        history = runs.get(scope, [])
+        choice = {"id": scope, "name": member.name, "title": member.name,
+                  "kind": None, "preview": None, "run_count": len(history)}
+        for run in sorted(history, key=lambda n: (n["record"].get("started_at", ""),
+                                                  n["record"].get("run_id", "")), reverse=True):
+            record = run["record"]
+            runtime = nodes.get(run["@id"] + ":runtime", {})
+            scene = next((nodes[ident].get("snapshot", {}) for ident in run.get("used", [])
+                          if ident.startswith(scope + ":") and "SceneRevision" in nodes[ident]["@type"]), {})
+            if (record.get("status") != "ready" or not scene or
+                    "RuntimeProduct" not in runtime.get("@type", []) or
+                    runtime.get("path") != record.get("runtime") or
+                    runtime.get("wasGeneratedBy") != [run["@id"]]):
+                continue
+            dependencies = {ident: nodes[ident] for ident in runtime.get("wasDerivedFrom", [])
+                            if ident.startswith(scope + ":") and "Artifact" in nodes[ident]["@type"]}
+            outputs = {asset["id"]: asset for asset in record.get("assets", [])}
+            declarations = {asset["id"]: asset for asset in scene.get("assets", [])}
+            kinds = set()
+            for placement in scene.get("nodes", []):
+                asset_id = placement.get("asset")
+                declaration = declarations.get(asset_id, {})
+                output = outputs.get(asset_id, {})
+                placed = nodes.get(run["@id"] + ":placement:" + placement["id"], {})
+                actual = [ident for ident in placed.get("placementOf", []) if ident in dependencies]
+                if runtime["@id"] not in placed.get("partOf", []) or not actual:
+                    continue
+                producer = declaration.get("producer")
+                if producer == "pixel-action-set":
+                    kinds.add("2d")
+                elif producer == "model-assets" and "effect" not in output.get("files", {}):
+                    kinds.add("3d")
+                else:
+                    continue
+                if choice["preview"] is not None:
+                    continue
+                files = output.get("files", {})
+                source_ids = output.get("reuse", {}).get("artifacts")
+                asset_pins = [node for ident, node in dependencies.items()
+                              if (ident in source_ids if source_ids is not None else
+                                  ident.startswith(run["@id"] + ":artifact:"))]
+                if not any(nodes[ident] in asset_pins for ident in actual):
+                    continue
+                for role in ("preview", "sheet", "atlas"):
+                    pin = next((node for node in asset_pins
+                                if node.get("role") == role and node.get("path") == files.get(role)), None)
+                    if pin and Path(pin["path"]).suffix.lower() in {".png", ".gif"}:
+                        choice["preview"] = {"path": pin["path"], "sha256": pin["sha256"]}
+                        break
+            choice["title"] = scene.get("brief", {}).get("title") or scene.get("id") or member.name
+            choice["kind"] = "mixed" if len(kinds) > 1 else next(iter(kinds), None)
+            break
+        choices.append(choice)
+    return choices
 
 
 def graph_signature(project, workspace):
@@ -112,12 +229,12 @@ class SnapshotCache:
         self.running = {}
         self.snapshot = None
 
-    def get(self):
+    def get(self, viewer_port=None):
         with self.lock:
-            signature = graph_signature(self.project, self.workspace)
+            signature = graph_signature(self.project, self.workspace) + [("viewer_port", viewer_port)]
             if self.signature == signature and all(live_process(pid) == live for pid, live in self.running.items()):
                 return self.snapshot
-            data = state(self.project, self.workspace, self.browse)
+            data = state(self.project, self.workspace, self.browse, viewer_port)
             scope = data["project_id"]
             allowed = set()
             for node in data["graph"]["@graph"]:
@@ -189,7 +306,7 @@ def handler(project, workspace, routes, browse=False):
             try:
                 if url.path == "/api/state":
                     _, cache = select(parse_qs(url.query))
-                    tag, body, _ = cache.get()
+                    tag, body, _ = cache.get(self.server.server_port)
                     tags = {value.strip().removeprefix("W/") for value in self.headers.get("If-None-Match", "").split(",")}
                     if tag in tags or "*" in tags:
                         self.send_response(304)
@@ -202,7 +319,7 @@ def handler(project, workspace, routes, browse=False):
                 elif url.path == "/artifact":
                     query = parse_qs(url.query)
                     selected, cache = select(query)
-                    mime, body = artifact(selected, query.get("path", [""])[0], query.get("sha256", [""])[0], cache.get()[2])
+                    mime, body = artifact(selected, query.get("path", [""])[0], query.get("sha256", [""])[0], cache.get(self.server.server_port)[2])
                 elif url.path in routes:
                     file = routes[url.path]
                     mime, body = MIME[file.suffix], file.read_bytes()
