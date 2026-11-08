@@ -10,6 +10,17 @@
 
 이동·착지, 수집, 사용 거절, 피해, 목표 완료와 재시작까지 피드백을 설계한다. `start.py new --kind 2d --mode courier_trial`은 효과 요청과 게임 규칙을 새 프로젝트에 생성한다. 화면에서 실제 상태를 확인하고 연출과 소리를 별도로 전환한다. [제작 예시와 엔진 적용 범위](FEEDBACK.md)
 
+## 서로 다른 장르의 게임 만들기
+
+벨트스크롤 전투의 공격선과 연계, 플랫폼 RPG의 필드와 성장, 체인 퍼즐의 연결·보충, 슬링샷 RPG의 벽 반사·아군 연계 같은 규칙은 각 게임이 소유한다. 직접 작성한 웹 게임은 프로젝트의 `game/index.html`에서 시작하고 `genre.json`에 제목·장르·목표·조작을 기록한다. 다음 명령이 해당 소스와 설치된 피드백 모듈의 실제 바이트를 새 출력에 담고 프로젝트 그래프에 남긴다.
+
+```sh
+python3 "$STUDIO_ROOT/tools/web_game.py" --project "$PROJECT" --out build/play
+python3 -m http.server 8937 --bind 127.0.0.1 --directory "$PROJECT/build/play"
+```
+
+`genre.json` 형식은 `{"schema_version":1,"title":"혜성 궤도","genre":"슬링샷 RPG","goal":"아군 연계로 보스 격파","controls":"구슬을 뒤로 당겼다가 놓아 발사"}`이다. `game/` 아래에는 납품할 로컬 웹 파일만 둔다. 게임은 상대경로 `./feedback.mjs`를 가져올 수 있다. 게시 성공은 소스와 출력의 일치를 뜻한다. 승리·실패·재시작은 브라우저에서 각 게임의 정상 입력으로 확인한다.
+
 ## 실행
 
 설치된 `pixel-asset` 명령과 활성 `model-assets` 플러그인이 필요하다. Blender·컴파일러 의존성은 3D 제작기가 소유한다.
@@ -81,10 +92,10 @@ python3 tools/graph.py history --project examples/forest-camp
 로컬 Codex에 스튜디오를 설치하는 절차다. 아래는 이 버전의 새 설치 경로 예시다.
 
 ```sh
-python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.9.1"
-codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.9.1"
+python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.10.0"
+codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.10.0"
 codex plugin add game-studio@game-studio
-STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.9.1"
+STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.10.0"
 ```
 
 프로젝트에서 `$game-studio`로 기획·씬 제작을 요청한다. 예를 들어 “Forest Camp의 30cm 등불 통풍구에 입체 불티를 붙이고 제작 과정을 보여 줘”라고 지시한다.
