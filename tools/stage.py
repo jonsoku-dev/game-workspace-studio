@@ -9,7 +9,7 @@ FILES = (
     ".codex-plugin/plugin.json", ".agents/plugins/marketplace.json",
     ".agents/skills/game-studio/SKILL.md", "README.md", "GRAPH.md",
     "INSTALL.md", "tools/install_workspace.py",
-    "tools/start.py", "tools/revise.py", "tools/review.py", "tools/playcheck.py", "tools/playcheck_browser.py",
+    "tools/character.py", "tools/start.py", "tools/revise.py", "tools/review.py", "tools/playcheck.py", "tools/playcheck_browser.py",
     "starter/2d/master.png", "starter/2d/motion.json", "starter/2d/LICENSE.txt", "starter/2d/NOTICE.md",
     "starter/3d/scene.json", "starter/3d/requests/lantern.json", "starter/3d/requests/embers.json",
     "starter/identity/LOGO.md", "starter/identity/a-moon-strike.svg",

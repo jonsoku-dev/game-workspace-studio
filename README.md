@@ -77,10 +77,10 @@ python3 tools/graph.py history --project examples/forest-camp
 로컬 Codex에 스튜디오를 설치하는 절차다. 아래는 이 버전의 새 설치 경로 예시다.
 
 ```sh
-python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.7.1"
-codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.7.1"
+python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.8.0"
+codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.8.0"
 codex plugin add game-studio@game-studio
-STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.7.1"
+STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.8.0"
 ```
 
 프로젝트에서 `$game-studio`로 기획·씬 제작을 요청한다. 예를 들어 “Forest Camp의 30cm 등불 통풍구에 입체 불티를 붙이고 제작 과정을 보여 줘”라고 지시한다.
@@ -138,3 +138,26 @@ python3 "$STUDIO_ROOT/tools/export_game.py" --engine phaser --project . --worksp
 첫 화면에서 프로젝트 그림을 선택해 장면과 에셋을 본다. 썸네일을 누르면 에셋 상세가 열리고, 파일 경로·해시·원문은 기술 정보에서 확인한다. 실행 기록과 기획/제작 단계는 필요할 때 펼친다. 등록된 프로젝트들에 장면이 있지만 현재 프로젝트에 빌드가 없으면 프로젝트 그림을 시작 화면에 보여 준다.
 
 완료된 웹 게임으로 연결하려면 workspace manifest의 `playtests` 배열에 `{"activity":"<엔진 내보내기 ExternalWork ID>","url":"http://127.0.0.1:<게임 서버 포트>/<출력 폴더>/" }`를 추가한다. 별도 포트에서 그 정적 결과를 제공한다. 해당 실행의 runtime을 실제 입력으로 사용한 완료된 Three.js/Phaser 내보내기에만 **게임 열기 / ゲームを開く**가 표시된다. 링크 등록은 서버의 현재 가동 여부를 보장하지 않는다.
+
+## PNG → Rive 캐릭터 (0.8.0)
+
+방향 전환·공격·연기는 **상태별로 그린 PNG 프레임**을 기본으로 사용한다. 원화는 외형 정체성 기준이다. 원하는 방향과 몸의 형태가 달라지면 그 상태를 그린 뒤 원속도로 확인한다. 관절 컷아웃은 사용자가 명시적으로 원할 때만 임시 방법으로 사용한다.
+
+`art/character.request.json`은 아래와 같다. `reference`는 선택적인 원화이며 프레임 자동 생성이나 외형 승인을 뜻하지 않는다.
+
+```json
+{"schema_version":1,"frames":"poses/frames.json","reference":"hero.png","actions":["idle","walk","attack"],"title":"숲의 로봇","language":"ko"}
+```
+
+`poses/frames.json`은 Rive pose manifest다. 예를 들어 `{"schema_version":1,"size":[64,64],"actions":{"idle":{"loop":true,"frames":[{"path":"idle-0.png","duration_ms":100}]}}}`다. 요청한 모든 상태가 manifest에 있어야 한다. PNG 경로는 manifest 폴더 기준이며, actions 순서와 각 프레임 시간·순서를 보존한다. 선택하지 않은 상태의 PNG는 읽거나 복사하지 않는다.
+
+```sh
+python3 tools/character.py --project "$PROJECT" \
+  --request art/character.request.json --out characters/hero-1
+```
+
+`frames`, `source`, `motion_request`는 정확히 하나만 선언한다. `source`는 임시 자동 컷아웃, `motion_request`는 기존 승인된 master·명시적 rig·마스크의 motion 요청이다. `reference`는 frames 모드에서만 사용한다. 경로는 각 요청 폴더 안 상대 경로이며 symlink·hardlink 별칭을 거부한다. 요청과 manifest는 각각 1 MiB 이하, actions는 중복 없는 최대 32개 순서 목록, 선택 프레임은 총 256개, 중복을 제외한 소스 미디어 합계는 32 MiB 이하다.
+
+기존 프로젝트 디렉터리에 그래프 ID가 없으면 정상 record 경로로 만든다. workspace manifest의 projects에 등록해 관찰한다. 새 출력의 `inputs/files/`에는 실행 요청·선택한 manifest·실제 소스 바이트가, `inputs/original-frames-manifest.json`에는 원본 manifest가, `bundle/`에는 `player.html`, `character.riv`와 제작기 진단이 남는다. stdout files의 경로는 프로젝트 기준이다. 입력은 관측 Artifact, 출력은 실제 해시와 used 관계를 가진 생성 Artifact로 기록한다. 제작 전후 원본과 실행 사본의 변경을 검사한다. `.game-studio` 안 출력은 거부한다.
+
+ready는 기술 납품이며 외형 승인은 pending이다. 제작기의 needs_review 종료 코드 1을 정상 검토 상태로 받아 stdout JSON과 Studio 종료 코드 2로 진단을 반환한다. error는 stderr JSON과 종료 코드 2이며 생성된 부분 파일을 그래프에 기록한다. 기존 경로를 덮어쓰지 않는다. 실패나 검토 상태는 산출물을 확인하고 새 --out으로 재시도한다. 자체 포함 player.html의 실제 동작 재생과 사람의 외형 판단은 별도 검수다.

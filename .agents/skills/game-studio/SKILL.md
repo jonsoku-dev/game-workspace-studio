@@ -1,11 +1,32 @@
 ---
 name: game-studio
-description: 게임 아이디어를 첫 플레이로 만들고, 로컬 2D·3D 제작·동작 수정·A/B 비교·검수·엔진 전달을 대화로 진행할 때 사용한다.
+description: 원화 PNG를 원하는 동작의 Rive 캐릭터로 만들거나 게임 아이디어를 첫 플레이로 만들고, 로컬 2D·3D 제작·동작 수정·A/B 비교·검수·엔진 전달을 대화로 진행할 때 사용한다.
 ---
 
 게임 목표·조작·씬·엔진 연결을 소유한다. 이 파일에서 상위 세 폴더가 `$STUDIO_ROOT`다. 픽셀은 설치된 `pixel-asset`, 모델은 `model-assets`의 계약으로 제작한다. 설치·의존성 문제는 [INSTALL](../../../INSTALL.md), 수정·검수 JSON과 증거 관계는 [GRAPH](../../../GRAPH.md)를 해당 단계에서 읽는다.
 
-캐릭터 원화가 흐리거나 격자가 어긋나면 Pixel Asset Pipeline의 `snap`으로 입력·출력의 1× 비교판을 만든다. 팔·다리가 떨어진 정면 인물에는 `rig-draft`로 관절·마스크 초안을 만들고 원본 위에 겹쳐 확인한다. 이미 있는 마법 GIF는 `effect-clip`으로 원본 프레임 번호·단계·피벗·재생 시간을 기록한 뒤 `action-set`에 연결한다. 게임 로고·파비콘 요청은 [SVG 후보와 실제 크기 검수](../../../starter/identity/LOGO.md)를 사용한다.
+캐릭터 원화가 흐리거나 격자가 어긋나면 Pixel Asset Pipeline의 `snap`으로 입력·출력의 1× 비교판을 만든다. 사용자가 관절 컷아웃을 명시적으로 선택한 경우에만, 팔·다리가 떨어진 정면 인물의 `rig-draft` 관절·마스크 초안을 원본 위에 겹쳐 확인한다. 이미 있는 마법 GIF는 `effect-clip`으로 원본 프레임 번호·단계·피벗·재생 시간을 기록한 뒤 `action-set`에 연결한다. 게임 로고·파비콘 요청은 [SVG 후보와 실제 크기 검수](../../../starter/identity/LOGO.md)를 사용한다.
+
+## 원화와 상태별 작화에서 Rive 캐릭터까지
+
+“원화로 걷기·공격 Rive를 만들어 줘”는 첫 플레이 게임 대신 이 경로를 사용한다. **방향 전환·연기·공격 실루엣은 각 상태에 맞춰 그린 PNG 프레임을 기본으로 권한다.** 원화는 캐릭터의 외형 기준으로 사용하고, 필요한 방향·표정·몸의 형태를 실제로 그린다. 사용자에게 거절된 관절 컷아웃을 기본 해결책으로 반복하지 않는다. 설치된 Pixel Asset Pipeline의 `character`·`rive` 계약을 읽고, 프레임의 크기·픽셀 스타일·정체성과 동작의 원속도 연결을 확인한다. 작화 완료와 사용자의 외형 승인을 구분한다.
+
+요청은 `frames`, `source`, `motion_request` 중 정확히 하나를 선택한다. 기본 작화 경로는 `frames`로 Rive pose manifest를 가리킨다. `reference`는 선택적인 원화 PNG이며 외형 정체성 참조일 뿐, 포즈를 자동 생성하거나 승인하는 입력이 아니다. `actions`는 사용할 상태의 순서를 명시하며 선택한 상태의 PNG만 사용한다.
+
+```json
+{"schema_version":1,"frames":"poses/frames.json","reference":"hero.png","actions":["idle","walk","attack"],"title":"숲의 로봇","language":"ko"}
+```
+
+pose manifest는 `schema_version:1`, `size:[폭,높이]`, `actions:{"idle":{"loop":true,"frames":[{"path":"idle-0.png","duration_ms":100}]}}` 형식이다. PNG 경로는 manifest 폴더 기준이다. 요청·manifest는 각각 1 MiB 이하, 사용 상태는 최대 32개, 선택 프레임은 총 256개, 중복을 제외한 소스 미디어는 총 32 MiB 이하다. `source` 자동 컷아웃은 사용자가 그 방식을 명시적으로 원할 때만 임시 리그로 제안한다. 기존 승인된 관절 리그는 `motion_request`로 master·마스크를 포함한 motion 요청을 지정한다.
+
+```sh
+python3 "$STUDIO_ROOT/tools/character.py" --project "$PROJECT" \
+  --request art/character.request.json --out characters/hero-1
+```
+
+프로젝트는 기존 디렉터리이며 필요하면 정상 그래프 기록이 프로젝트 ID를 만든다. workspace에 해당 프로젝트를 등록해 합쳐 읽는다. 출력은 새 프로젝트 상대 폴더만 허용하며 `.game-studio` 안에는 만들지 않는다. `inputs/files/`에 실제 요청·선택한 프레임·선택 manifest·참조 또는 motion과 마스크를 고정하고, `inputs/original-frames-manifest.json`에 원본 manifest를 보존한다. 선택하지 않은 PNG는 읽거나 복사하지 않는다. `bundle/`에 제작기 결과를 보존한다. symlink·hardlink 별칭과 루트 탈출은 거부한다.
+
+stdout의 `files.player`와 `files.character`는 프로젝트 상대 자체 포함 HTML·Rive 경로다. `ready`는 기술 상태이고 외형 승인은 pending이다. 제작기의 `needs_review` 종료 코드 1은 정상 검토 상태로 받아 보존하며 Studio는 stdout JSON·종료 코드 2를 반환한다. error는 stderr JSON·종료 코드 2이며 부분 출력과 실패 그래프를 남긴다. 기존 출력은 보존하고 새 `--out`으로 재실행한다. 실제 전체 동작 재생과 사용자의 판단은 별도 검수다.
 
 ## 대화에서 첫 플레이까지
 
@@ -31,7 +52,7 @@ python3 "$STUDIO_ROOT/tools/playcheck.py" run \
 
 ## 원본과 동작 수정
 
-사용자 원본을 선택하면 설치된 pixel-asset-pipeline 스킬의 `motion` 계약을 읽는다. `approved:true`, 로컬 `master`, 모든 불투명 픽셀의 겹치지 않는 부위·관절·부모 리그가 필요하다. 보이는 원본의 컷아웃 관절 애니메이션이며 숨은 신체나 새 시점을 그리지 않는다. `inspection.json`의 중립 복원·잘림·중복·접촉 오차와 원속도 실루엣·발 접지·루프를 함께 본다.
+기존 관절 컷아웃의 동작 수정을 명시적으로 선택하면 설치된 pixel-asset-pipeline 스킬의 `motion` 계약을 읽는다. `approved:true`, 로컬 `master`, 모든 불투명 픽셀의 겹치지 않는 부위·관절·부모 리그가 필요하다. 보이는 원본의 컷아웃 관절 애니메이션이며 숨은 신체나 새 시점을 그리지 않는다. `inspection.json`의 중립 복원·잘림·중복·접촉 오차와 원속도 실루엣·발 접지·루프를 함께 본다.
 
 ```sh
 pixel-asset motion --request "$PROJECT/requests/motion.json" --out "$PROJECT/requests/motion-new"
