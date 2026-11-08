@@ -178,3 +178,7 @@ ScenePlacement는 런타임이 소비하는 `atlas`, `metadata`, `effect_N_sheet
 ## 워크스페이스 연결
 
 `workspace_graph.py workspace.json`은 명시적으로 등록한 프로젝트만 읽어 단일 JSON-LD 그래프를 만든다. `projects`의 경로는 manifest 디렉터리 안에 있어야 한다. `links`에 등록한 `{"activity":"<외부 작업 ID>","observed":"<관찰 대상 ID>"}`는 서로 다른 프로젝트 사이에서 확인한 관찰을 연결한다. 어느 한쪽 ID가 없으면 내보내기가 실패한다. 원본 실행 샤드는 그대로 보존된다.
+
+엔진 내보내기처럼 다른 프로젝트 산출물을 실제 입력으로 읽은 작업은 `{"activity":"<외부 작업 ID>","used":"<입력 Entity ID>"}`로 연결한다. used와 observed 중 하나만 선언한다. 파일이 존재한다는 사실만으로 used를 추가하지 않는다. 내보내기는 의미가 맞지 않거나 순환하는 연결을 거부한다.
+
+엔진 CLI가 여러 등록 프로젝트의 런타임을 소비하면 `workspace_inputs`에는 실제 내보내기 영수증에 남은 원본 Entity의 ID·SHA-256·바이트 수를 보존한다. 개별 프로젝트에서는 snapshot의 JSON으로 보관하며, workspace 내보내기는 양쪽이 존재하고 해시·크기가 일치할 때 해당 작업의 `used` 관계로 해석한다. 엔진 파일 생성 성공, 브라우저/엔진 실행, 직접 관찰은 각기 다른 증거다.

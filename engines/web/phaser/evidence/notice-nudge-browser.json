@@ -1,0 +1,21 @@
+{
+  "initial": {
+    "x": 210,
+    "hits": 0
+  },
+  "native_click": {
+    "x": 242,
+    "hits": 0
+  },
+  "native_enter": {
+    "x": 274,
+    "hits": 0,
+    "action": "idle"
+  },
+  "notice": {
+    "linked": true,
+    "status": 200,
+    "owners": true,
+    "bsd": true
+  }
+}

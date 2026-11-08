@@ -1,3 +1,4 @@
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -24,7 +25,7 @@ class ExportTests(unittest.TestCase):
             self.assertTrue(any(p.endswith('model.glb.bytes') for p in pins))
             self.assertTrue(any(p.endswith('model.web.glb.bytes') for p in pins))
             for path, pin in pins.items():
-                self.assertEqual(adapter.hashlib.sha256((out / path).read_bytes()).hexdigest(), pin['sha256'])
+                self.assertEqual(hashlib.sha256((out / path).read_bytes()).hexdigest(), pin['sha256'])
             with self.assertRaises(ValueError):
                 adapter.export(sources, out)
 
@@ -82,8 +83,8 @@ class ExportTests(unittest.TestCase):
                 adapter.export([(p, '../outside.json')], p / 'out')
             scene = {'schema_version': 1, 'status': 'ready', 'coordinates': {'units': 'meters', 'up': '+Y', 'handedness': 'right'}, 'assets': [{'id': 'test', 'files': {}}], 'nodes': [{'id': 'n', 'asset': 'test', 'parent': 'n', 'position': [0, 0, 0], 'rotation_degrees': [0, 0, 0], 'scale': [1, 1, 1]}]}
             (p / 'runtime.json').write_text(json.dumps(scene))
-            pin = {'runtime.json': {'sha256': adapter.hashlib.sha256((p / 'runtime.json').read_bytes()).hexdigest(), 'byteCount': (p / 'runtime.json').stat().st_size}}
-            with patch.object(adapter, 'graph_pins', return_value=pin):
+            pin = {'runtime.json': {'sha256': hashlib.sha256((p / 'runtime.json').read_bytes()).hexdigest(), 'byteCount': (p / 'runtime.json').stat().st_size}}
+            with patch('runtime_inputs.graph_pins', return_value=pin):
                 with self.assertRaisesRegex(ValueError, 'Cyclic'):
                     adapter.export([(p, 'runtime.json')], p / 'out')
             self.assertFalse((p / 'out').exists())

@@ -1,0 +1,14 @@
+{
+  "package": "phaser",
+  "version": "3.90.0",
+  "source": "https://registry.npmjs.org/phaser/-/phaser-3.90.0.tgz",
+  "release": "https://phaser.io/download/release/v3.90.0",
+  "license": "MIT",
+  "files": {
+    "dist/phaser.min.js": "e92ddef111ba42e92d316979c732311757093688ea1810591cb7aa2858eba7a7",
+    "LICENSE.md": "080f3d5539e766bb556df5b8e86c4f5d581ece35c692b80956ca352b84d29134",
+    "../eventemitter3/LICENSE": "3aecc12b1cb28832b5f65ab64291de96568c3f236a74d646281b4491f7bcadbf",
+    "dist/phaser.js": "d6e0eb3b99525f01af5adea38747c311a0a48f8af157e6d1f5aa93159bdd0858",
+    "src/physics/matter-js/lib/license.js": "a82f87b8b4abb02dff997984672070d3b73c4022373d530af5a2d9dae033f7bc"
+  }
+}

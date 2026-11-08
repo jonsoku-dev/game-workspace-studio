@@ -1,0 +1,93 @@
+{
+  "date": "2026-11-08",
+  "unity": {
+    "editor_found": false,
+    "hub_found": false,
+    "licence_checked": false,
+    "reason": "No installed Editor/Hub found via /Applications and Spotlight; no activation/installation attempted",
+    "compilation": "not-run",
+    "import": "not-run",
+    "play": "not-run",
+    "batch_harness": "not-run"
+  },
+  "blender": {
+    "version": "5.2.1 LTS",
+    "execution": "actual local headless conversion"
+  },
+  "checks": {
+    "command": "DOTNET=/tmp/studio-unity-dotnet-10.0.403/dotnet python3 -m unittest discover -s studio/engines/unity -p 'test_*.py' -v",
+    "passed": true,
+    "count": 6,
+    "duration_seconds": 8.019,
+    "evidence_type": "Python/Blender exporter checks plus actual standalone C# game state compilation/execution; not Unity Editor runtime",
+    "passed_count": 6,
+    "skipped_count": 0,
+    "game_logic": "Actual standalone StudioGameState compiled/executed successfully with .NET SDK 10.0.403; not Unity API execution"
+  },
+  "conversion": [
+    {
+      "source": "products/0/lantern/model.glb",
+      "source_sha256": "982be0ed983df17ccf4ebfec2d3942d69aa9c107522f8965439d79eae571a425",
+      "output": "products/0/lantern/model.mesh.json",
+      "sha256": "bbfc3486cae948a06214cd265e8ee8149ec4c3e9cb0bd93487e33dd9b945703f",
+      "parts": 54,
+      "triangles": 23160
+    },
+    {
+      "source": "products/0/embers/model.glb",
+      "source_sha256": "0116b22d42e7c84311d949862279ba81940123ea03ec02ba275fb008098c6517",
+      "output": "products/0/embers/model.mesh.json",
+      "sha256": "658a4d58d653316c275aac3ec9c04695f0ce3144b574a0fe7be90ac12d4b4c67",
+      "parts": 1,
+      "triangles": 8
+    }
+  ],
+  "project": "/tmp/studio-unity-playable-verified-state",
+  "integrity_manifest_sha256": "1da7fc872e636fc7396977177a4de995ab7248d054687225a622fc58c3d68653",
+  "limits": [
+    "No Unity C# compiler or licensed Editor execution available",
+    "Static meshes only",
+    "Partial Standard material mapping; transmission/advanced PBR parity unverified",
+    "Sample-specific editor harness supplied, not executed"
+  ],
+  "game": {
+    "source": "implemented opt-in sample",
+    "entry": "Studio > Create Playable Sample",
+    "controls": "WASD movement, Space authored-timing attack, R reset",
+    "transitions": "movement -> attack -> authored contact/range -> collection -> win -> reset",
+    "acceptance": "supplied licensed editor harness exercises same StudioGame.Step methods; not run",
+    "local_state_test": "passed with actual .NET SDK 10.0.403, exact extracted StudioGameState; movement/miss/delayed contact/collection/win/reset",
+    "tested_state_source_sha256": "bf07e32eb75a2a4c846f89e9986f5a6fa245cee3fa891ccbf6f7a1960f4cf57f"
+  },
+  "compiler": {
+    "metadata": "https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/10.0/releases.json",
+    "version": "10.0.403",
+    "architecture": "arm64",
+    "name": "dotnet-sdk-osx-arm64.tar.gz",
+    "rid": "osx-arm64",
+    "url": "https://builds.dotnet.microsoft.com/dotnet/Sdk/10.0.403/dotnet-sdk-10.0.403-osx-arm64.tar.gz",
+    "hash": "5893c66b48ea3674c7da18501059d606e96f3672fabe4d5e41762e692c7c83df3ee0b2b9dc5a0786191da2dc413d7335158101c14c935ab217f31ac2529770f3",
+    "sha512_verified": true,
+    "bytes": 230759804,
+    "download_extract_seconds": 365.936,
+    "sdk": "/tmp/studio-unity-dotnet-10.0.403/dotnet",
+    "isolation": {
+      "root": "/tmp only",
+      "nuget_sources": "cleared via temporary NuGet.Config",
+      "telemetry": "disabled",
+      "aspnet_development_certificate_generation": "disabled",
+      "cli_home_and_cache": "temporary per-test directories",
+      "global_tools_path_mutation": "disabled",
+      "workload_update_notification": "disabled"
+    }
+  },
+  "manifest": {
+    "packages": [
+      "com.unity.modules.imageconversion",
+      "com.unity.modules.imgui",
+      "com.unity.modules.jsonserialize"
+    ],
+    "version": "1.0.0",
+    "legacy_input": "core engine assembly, uses new-project legacy default; no inputlegacy UPM package"
+  }
+}

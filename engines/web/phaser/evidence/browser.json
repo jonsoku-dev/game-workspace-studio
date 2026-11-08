@@ -1,0 +1,22 @@
+{
+  "observed_date": "2026-11-08",
+  "method": "Configured Stagehand MCP run and screenshot, local Python HTTP server",
+  "runtime": "/tmp/studio-phaser-game-v2",
+  "url": "http://127.0.0.1:8938",
+  "phaser_version": "3.90.0",
+  "renderer": {"type": 2, "name": "WebGL"},
+  "checks": {
+    "load": "Scout · Training clearing; actor and effect textures loaded",
+    "miss": {"start_ms": 320, "observed_ms": 335.85333335717513, "point": {"x": 276, "y": 293}, "contact": false},
+    "pointer_move": {"from_x": 210, "to_x": 574.3575999999998, "hold_ms": 1540, "method": "DOM PointerEvent down/up on real right control"},
+    "strikes": {"method": "Real Strike button clicks", "hits": 3, "finished": true, "contact_observed_ms": [333.2199999999998,333.6099999999999,333.3900000000001]},
+    "keyboard": "DOM keyboard down/up ArrowRight moved actor; Space emitted third hit on first export. Native page.keyboard.press Space did not trigger in Stagehand, so this does not certify physical keyboard hardware.",
+    "effect": "Observed live effect count 1 and actor attack:3 shortly after 320ms on first export",
+    "restart": {"method": "Real Restart button click", "hits": 0, "actor_x": 210},
+    "reload_attack_restart_errors": [],
+    "mobile": {"viewport": [390,844], "document_width": 390, "canvas_css_size": [362,203.625], "button_size": [83,62], "visual_screenshot_inspected": true}
+  },
+  "resource_paths": ["style.css","vendor/phaser.min.js","game.mjs","timing.mjs","game.json","products/0/scout/atlas.png","products/0/scout/effect-0.png"],
+  "resource_origins": ["http://127.0.0.1:8938"],
+  "limits": ["Browser evidence preceded adding the EventEmitter3 credit/license and freezing spawned effect facing; final static tests rerun separately.","No physical touch device, audio or browser-family matrix tested.","Threshold320ms is rendered at first scene update at/after threshold, observed333–336ms."]
+}

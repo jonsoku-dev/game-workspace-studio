@@ -116,6 +116,11 @@ globalThis.requestAnimationFrame = fn => { scheduled.set(++sequence, fn); return
 globalThis.cancelAnimationFrame = id => scheduled.delete(id);
 globalThis.document = { hidden: false, addEventListener: (name, fn) => callbacks.set(name, fn), removeEventListener: name => callbacks.delete(name) };
 globalThis.ResizeObserver = class { observe() {} disconnect() {} };
+let intersectionCallback;
+globalThis.IntersectionObserver = class {
+  constructor(callback) { intersectionCallback = callback; }
+  observe() {} disconnect() { intersectionCallback = null; }
+};
 globalThis.matchMedia = () => ({ matches: true, addEventListener() {}, removeEventListener() {} });
 globalThis.createImageBitmap = async () => ({ width: 2, height: 2, close() {} });
 globalThis.fetch = async () => ({ ok: true, blob: async () => new Blob(), json: async () => ({
@@ -140,17 +145,49 @@ view.seek(0); flush();
 assert.equal(view.metrics.effects[0].frame_index, 0);
 view.zoom(1.2); flush();
 assert.deepEqual(view.metrics.positions[0].position, [1, 2, 0], 'inspection leaves authored placement unchanged');
+intersectionCallback([{isIntersecting: false}]);
+const offscreenFrames = view.metrics.frame_count;
+view.seek(100);
+assert.equal(view.metrics.elapsed_ms, 100);
+assert.equal(view.metrics.frame_count, offscreenFrames, 'offscreen paused inspection does not render');
+assert.equal(scheduled.size, 0);
+intersectionCallback([{isIntersecting: true}]);
+assert.equal(view.metrics.rendered_elapsed_ms, 100, 'returning to view draws the requested pose immediately');
+assert.equal(view.metrics.effects[0].frame_index, 1);
 view.setPaused(false); flush();
 assert.equal(scheduled.size, 1);
+view.setPaused(true);
+assert.equal(view.metrics.paused, true, 'pause state is observable without waiting for RAF');
+assert.equal(JSON.parse(inspectCanvas.dataset.sceneMetrics).paused, true);
+assert.equal(scheduled.size, 0, 'pausing cancels the pending animation frame');
+view.seek(0);
+for (let step = 0; step < 2; step++) {
+  const previous = JSON.parse(inspectCanvas.dataset.sceneMetrics).elapsed_ms;
+  view.seek(previous + 100);
+}
+assert.equal(view.metrics.elapsed_ms, 200, 'rapid steps accumulate without intervening RAF');
+assert.equal(JSON.parse(inspectCanvas.dataset.sceneMetrics).elapsed_ms, 200);
+assert.equal(view.metrics.effects[0].frame_index, 0, 'the visible paused pose redraws synchronously');
+assert.equal(scheduled.size, 0, 'paused inspection creates no duplicate RAF');
+view.setPaused(false);
+assert.equal(view.metrics.paused, false, 'resume state is also published immediately');
+assert.equal(scheduled.size, 1, 'normal playback stays asynchronous');
 document.hidden = true; callbacks.get('visibilitychange')();
 assert.equal(scheduled.size, 0, 'hidden scenes stop requesting frames');
+const hiddenFrames = view.metrics.frame_count;
+view.setPaused(true); view.seek(150);
+assert.equal(view.metrics.frame_count, hiddenFrames, 'hidden inspection never renders');
+assert.equal(view.metrics.elapsed_ms, 150, 'hidden inspection still exposes current control state');
+assert.notEqual(view.metrics.rendered_elapsed_ms, 150, 'hidden controls do not claim an unrendered pose as rendered evidence');
+assert.equal(scheduled.size, 0, 'hidden seek does not restart RAF');
+view.setPaused(false);
 document.hidden = false; callbacks.get('visibilitychange')(); flush();
 assert.equal(scheduled.size, 1);
 view.dispose();
 assert.equal(scheduled.size, 0);
 assert.equal(callbacks.size, 0, 'inspection and visibility listeners are released');
 assert.equal(inspectCanvas.dataset.sceneState, 'disposed');
-console.log('PASS: desktop/portrait camera fit, reduced-motion pause, deterministic seek/reseek, read-only zoom, visibility suspension and disposal');
+console.log('PASS: desktop/portrait camera fit, reduced-motion pause, synchronous pause/rapid seek, read-only zoom, hidden/offscreen suspension, rendered-time evidence and disposal');
 
 const actionFrames = [
   { rect: {x: 0, y: 0, w: 1, h: 1}, duration_ms: 100 },

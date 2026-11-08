@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {frameAt,eventPosition} from './timing.mjs';
+const frames=[120,120,80,80,160,240].map(duration_ms=>({duration_ms}));
+assert.equal(frameAt(frames,319.99),2);
+assert.equal(frameAt(frames,320),3);
+assert.equal(frameAt(frames,800),5);
+assert.equal(frameAt(frames,800,true),0);
+assert.deepEqual(eventPosition({x:100,y:200,scale:3,facing:1},[24,46],{at_px:[46,25]}),{x:166,y:137});
+assert.deepEqual(eventPosition({x:100,y:200,scale:3,facing:-1},[24,46],{at_px:[46,25]}),{x:34,y:137});
+console.log('Action frame boundaries and mirrored event anchors passed');

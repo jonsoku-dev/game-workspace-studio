@@ -1,0 +1,254 @@
+{
+  "date": "2026-11-08",
+  "surface": "Stagehand MCP browser",
+  "deliverable": "studio/engines/web/builds/woods-alight-v3",
+  "url": "http://127.0.0.1:8876",
+  "versions": {
+    "python": "3.13.3",
+    "node": "26.7.0",
+    "three": "0.187.0"
+  },
+  "method": "Final full gameplay used trusted native pointer clicks on visible direction and Restore buttons. No direct game-state mutation. Native Enter also activated movement buttons. Earlier sustained movement exercised keyboard event handlers using DOM KeyboardEvents because Stagehand lacks keyboard.down. Native ArrowUp was observed trusted; Space through this facade emitted empty key/code.",
+  "gameplay": {
+    "miss": {
+      "ready": true,
+      "x": 0,
+      "z": 4,
+      "collected": [
+        false,
+        false,
+        false
+      ],
+      "charge": 0,
+      "won": false,
+      "attackAt": 17.6605,
+      "message": "Too far away. Move closer to the lantern.",
+      "modelLoaded": true,
+      "meshParticleCount": 24,
+      "depthWriting": true,
+      "frames": 1050,
+      "drawCalls": 180,
+      "triangles": 73940
+    },
+    "first": {
+      "ready": true,
+      "x": -3.1500000000000004,
+      "z": 2.1999999999999993,
+      "collected": [
+        true,
+        false,
+        false
+      ],
+      "charge": 0,
+      "won": false,
+      "attackAt": 17.6605,
+      "message": "Crystal collected. Find the remaining blue crystals.",
+      "modelLoaded": true,
+      "meshParticleCount": 24,
+      "depthWriting": true,
+      "frames": 1056,
+      "drawCalls": 180,
+      "triangles": 73940
+    },
+    "second": {
+      "ready": true,
+      "x": 3.1499999999999995,
+      "z": 0.8499999999999994,
+      "collected": [
+        true,
+        true,
+        false
+      ],
+      "charge": 0,
+      "won": false,
+      "attackAt": 17.6605,
+      "message": "Crystal collected. Find the remaining blue crystals.",
+      "modelLoaded": true,
+      "meshParticleCount": 24,
+      "depthWriting": true,
+      "frames": 1067,
+      "drawCalls": 174,
+      "triangles": 73892
+    },
+    "third": {
+      "ready": true,
+      "x": -1.8000000000000005,
+      "z": -3.2,
+      "collected": [
+        true,
+        true,
+        true
+      ],
+      "charge": 0,
+      "won": false,
+      "attackAt": 17.6605,
+      "message": "Return to the lantern. Attack three times to restore its light.",
+      "modelLoaded": true,
+      "meshParticleCount": 24,
+      "depthWriting": true,
+      "frames": 1078,
+      "drawCalls": 171,
+      "triangles": 73868
+    },
+    "goal": {
+      "ready": true,
+      "x": 0.8999999999999992,
+      "z": -1.8499999999999999,
+      "collected": [
+        true,
+        true,
+        true
+      ],
+      "charge": 0,
+      "won": false,
+      "attackAt": 17.6605,
+      "message": "Return to the lantern. Attack three times to restore its light.",
+      "modelLoaded": true,
+      "meshParticleCount": 24,
+      "depthWriting": true,
+      "frames": 1083,
+      "drawCalls": 171,
+      "triangles": 73868
+    },
+    "win": {
+      "ready": true,
+      "x": 0.8999999999999992,
+      "z": -1.8499999999999999,
+      "collected": [
+        true,
+        true,
+        true
+      ],
+      "charge": 3,
+      "won": true,
+      "attackAt": 19.179899999976158,
+      "message": "The woods are alight again. You restored the lantern!",
+      "modelLoaded": true,
+      "meshParticleCount": 24,
+      "depthWriting": true,
+      "frames": 1141,
+      "drawCalls": 173,
+      "triangles": 74252
+    }
+  },
+  "pointerTap": {
+    "game": {
+      "ready": true,
+      "x": 0.44999999999999996,
+      "z": 4,
+      "collected": [
+        false,
+        false,
+        false
+      ],
+      "charge": 0,
+      "won": false,
+      "attackAt": null,
+      "message": "Collect the three blue crystals.",
+      "modelLoaded": true,
+      "meshParticleCount": 24,
+      "depthWriting": true,
+      "frames": 276,
+      "drawCalls": 180,
+      "triangles": 73940
+    },
+    "error": "",
+    "overflow": false
+  },
+  "resetAndNetwork": {
+    "game": {
+      "ready": true,
+      "x": 0,
+      "z": 4,
+      "collected": [
+        false,
+        false,
+        false
+      ],
+      "charge": 0,
+      "won": false,
+      "attackAt": null,
+      "message": "Collect the three blue crystals.",
+      "modelLoaded": true,
+      "meshParticleCount": 24,
+      "depthWriting": true,
+      "frames": 1751,
+      "drawCalls": 173,
+      "triangles": 74252
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "overflow": false
+    },
+    "resources": [
+      {
+        "name": "http://127.0.0.1:8876/style.css",
+        "status": 200
+      },
+      {
+        "name": "http://127.0.0.1:8876/game.mjs",
+        "status": 200
+      },
+      {
+        "name": "http://127.0.0.1:8876/game-state.mjs",
+        "status": 200
+      },
+      {
+        "name": "http://127.0.0.1:8876/vendor/three/examples/jsm/loaders/GLTFLoader.js",
+        "status": 200
+      },
+      {
+        "name": "http://127.0.0.1:8876/vendor/three/build/three.module.js",
+        "status": 200
+      },
+      {
+        "name": "http://127.0.0.1:8876/vendor/three/examples/jsm/utils/BufferGeometryUtils.js",
+        "status": 200
+      },
+      {
+        "name": "http://127.0.0.1:8876/vendor/three/examples/jsm/utils/SkeletonUtils.js",
+        "status": 200
+      },
+      {
+        "name": "http://127.0.0.1:8876/vendor/three/build/three.core.js",
+        "status": 200
+      },
+      {
+        "name": "http://127.0.0.1:8876/products.json",
+        "status": 200
+      },
+      {
+        "name": "http://127.0.0.1:8876/products/0/lantern/model.web.glb",
+        "status": 200
+      },
+      {
+        "name": "http://127.0.0.1:8876/products/0/embers/model.web.glb",
+        "status": 200
+      },
+      {
+        "name": "http://127.0.0.1:8876/products/0/embers/effect.json",
+        "status": 200
+      }
+    ],
+    "error": ""
+  },
+  "screenshot": "mobile-win.jpg",
+  "checks": {
+    "exporterTests": 4,
+    "stateAssertions": "movement bounds, collection, out-of-range miss, missing-crystal block, cooldown, win freeze, reset",
+    "screenshotsInspected": [
+      "desktop initial/win",
+      "390x844 mobile initial/win"
+    ],
+    "network": "All 12 observed resource requests used localhost and returned HTTP 200.",
+    "errorPanel": "empty",
+    "runtimeErrors": "Earlier keyboard-route error/unhandledrejection listeners observed none; final v3 error panel empty."
+  },
+  "limitations": [
+    "Physical phone and multitouch holds unverified. Native pointer taps and Enter activation passed.",
+    "Native sustained keyboard movement and Space unverified through Stagehand compatibility facade.",
+    "No audio, enemies, collision physics, or persistence.",
+    "Depth telemetry checks real mesh material depth flags, not a pixel occlusion comparison."
+  ]
+}

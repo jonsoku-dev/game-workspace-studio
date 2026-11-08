@@ -73,10 +73,10 @@ python3 tools/graph.py history --project examples/forest-camp
 로컬 Codex에 스튜디오를 설치하는 절차다. 아래는 이 버전의 새 설치 경로 예시다.
 
 ```sh
-python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.4.0"
-codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.4.0"
+python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.5.0"
+codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.5.0"
 codex plugin add game-studio@game-studio
-STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.4.0"
+STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.5.0"
 ```
 
 프로젝트에서 `$game-studio`로 기획·씬 제작을 요청한다. 예를 들어 “Forest Camp의 30cm 등불 통풍구에 입체 불티를 붙이고 제작 과정을 보여 줘”라고 지시한다.
@@ -110,3 +110,16 @@ python3 "$STUDIO_ROOT/tools/visualize.py" --project "$PROJECT"
 [Godot 예제와 내보내기](engines/godot/)는 읽기 전용 visualizer와 분리된다. Studio에서 고정한 에셋을 사용해 실제 입력·공격 접촉·수집·완료·재시작을 실행한다. 엔진 버전과 검증 조건은 어댑터 문서에서 확인한다.
 
 등록한 프로젝트를 한 화면에서 전환하려면 `--workspace /path/to/workspace.json --browse-workspace`를 함께 지정한다. 이 옵션은 해당 manifest에 명시한 모든 프로젝트의 고정된 에셋 열람을 허용한다. 옵션을 생략하면 실행할 때 선택한 프로젝트의 파일만 열린다.
+
+### 게임 엔진에 전달하기
+
+`tools/export_game.py`가 등록된 프로젝트의 성공한 런타임을 읽어 엔진별 폴더와 `engine-export.json`을 새 위치에 게시한다. 사용한 런타임·산출물 ID와 출력 파일 해시를 그래프에 기록한다. 예를 들어 워크스페이스 루트를 출력 소유자로 정하고 다음처럼 실행한다.
+
+```sh
+python3 "$STUDIO_ROOT/tools/export_game.py" --engine three --project . --workspace workspace.json \
+  --source examples/forest-camp builds/lantern-embers-final/scene.runtime.json --out output/web-3d
+python3 "$STUDIO_ROOT/tools/export_game.py" --engine phaser --project . --workspace workspace.json \
+  --source examples/scout-actions builds/six-actions/scene.runtime.json --out output/web-2d
+```
+
+`godot`과 `unity` 샘플에는 위의 등불·정찰병 두 `--source`를 순서대로 전달한다. Godot 4.5.1은 PCK까지 실행 검증했다. 웹은 Three.js r187과 Phaser 3.90.0으로 로컬 게임을 재생한다. Unity 6000.0.60f1 타깃은 변환·내보내기를 검증했으며 에디터에서의 컴파일과 플레이는 라이선스가 활성화된 설치에서 별도 확인한다. 입력 요구와 한계는 각 `engines/<target>/README.md` 및 [웹 엔진 비교](engines/HTML-ENGINES.md)에 있다. 웹 결과는 HTTP로 제공해야 한다.

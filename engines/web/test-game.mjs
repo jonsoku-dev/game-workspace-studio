@@ -1,0 +1,28 @@
+import assert from 'node:assert/strict';
+import { createGame, move, attack, CRYSTALS, GOAL } from './game-state.mjs';
+let game = createGame();
+assert.equal(attack(game, 0), false);
+assert.equal(game.charge, 0);
+[game.x, game.z] = GOAL;
+assert.equal(attack(game, 1), false);
+for (const [x, z] of CRYSTALS) {
+  [game.x, game.z] = [x, z];
+  move(game, 0, 0, 0);
+}
+assert.equal(game.collected.filter(Boolean).length, 3);
+[game.x, game.z] = GOAL;
+assert.equal(attack(game, 2), true);
+assert.equal(attack(game, 2.1), false);
+assert.equal(game.charge, 1);
+assert.equal(attack(game, 3), true);
+assert.equal(attack(game, 4), true);
+assert.equal(game.won, true);
+move(game, 1, 1, 100);
+assert.deepEqual([game.x, game.z], GOAL);
+game = createGame();
+assert.equal(game.won, false);
+assert.equal(game.charge, 0);
+assert.equal(game.collected.some(Boolean), false);
+move(game, 1, 0, 100);
+assert.equal(game.x, 5);
+console.log('Movement bounds, collection, misses, cooldown, win and reset passed.');

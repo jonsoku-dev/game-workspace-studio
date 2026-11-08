@@ -597,6 +597,7 @@ export async function showScene(canvas, runtime, assetURL) {
       if (!paused && previousTime !== null) elapsed += now - previousTime;
       previousTime = now;
       metrics.elapsed_ms = Math.round(elapsed);
+      metrics.rendered_elapsed_ms = metrics.elapsed_ms;
       metrics.paused = paused;
       metrics.state = paused ? 'paused' : 'playing';
       for (const effect of playback) setFrame(effect, effectFrameAt(effect.metadata.frames, effect.metadata.loop, elapsed));
@@ -609,7 +610,21 @@ export async function showScene(canvas, runtime, assetURL) {
       publish();
       if (animated && !paused && inViewport && !document.hidden) animation = requestAnimationFrame(draw);
     };
-    requestDraw = () => { if (!disposed && !animation) animation = requestAnimationFrame(draw); };
+    requestDraw = () => {
+      if (disposed) return;
+      metrics.elapsed_ms = Math.round(elapsed);
+      metrics.paused = paused;
+      metrics.state = paused ? 'paused' : 'playing';
+      if (paused || document.hidden || !inViewport) {
+        cancelAnimationFrame(animation); animation = 0;
+      }
+      if (document.hidden || !inViewport) { publish(); return; }
+      if (paused) draw(performance.now());
+      else {
+        publish();
+        if (!animation) animation = requestAnimationFrame(draw);
+      }
+    };
     Object.assign(owner, {
       setAction(name) {
         if (disposed) return false;

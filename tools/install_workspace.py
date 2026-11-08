@@ -98,8 +98,10 @@ def install(workspace, destination, wheelhouse, npm_cache):
                              f"(Python {sys.version.split()[0]}, {sysconfig.get_platform()}). "
                              "Use the same interpreter that prepared the wheelhouse, or prepare "
                              "wheels for this interpreter and platform.\n" + str(exc)) from exc
-        run([executables["npm"], "ci", "--cache", npm_cache, "--offline",
-             "--ignore-scripts", "--no-audit", "--no-fund"], env, prepared / "model-assets/three")
+        npm_install = [executables["npm"], "ci", "--cache", npm_cache, "--offline",
+                       "--ignore-scripts", "--no-audit", "--no-fund"]
+        for folder in ("model-assets/three", "game-studio/engines/web/phaser"):
+            run(npm_install, env, prepared / folder)
         destination.mkdir(parents=True, exist_ok=True)
         marker = destination / "install-source.json"
         lock_fd = os.open(destination / ".install.lock", os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
@@ -152,8 +154,13 @@ def install(workspace, destination, wheelhouse, npm_cache):
             run([python, "-m", "pip", "install", "--no-index", "--no-deps", "--no-build-isolation",
                  prepared / "pixel-asset-pipeline"], env)
             model = installed["model-assets"]
-            run([executables["npm"], "ci", "--cache", npm_cache, "--offline",
-                 "--ignore-scripts", "--no-audit", "--no-fund"], env, model / "three")
+            run(npm_install, env, model / "three")
+            phaser = installed["game-studio"] / "engines/web/phaser"
+            run(npm_install, env, phaser)
+            phaser_lock = json.loads((phaser / "runtime-lock.json").read_text())
+            for name, digest in phaser_lock["files"].items():
+                if hashlib.sha256((phaser / "node_modules/phaser" / name).read_bytes()).hexdigest() != digest:
+                    raise ValueError(f"Phaser runtime/notice mismatch: {name}")
             env["PATH"] = str(venv / "bin") + os.pathsep + env.get("PATH", "")
             run([venv / "bin/pixel-asset", "--help"], env)
             three = json.loads((model / "three/package.json").read_text())["dependencies"]["three"]
@@ -168,7 +175,7 @@ def install(workspace, destination, wheelhouse, npm_cache):
                 f"export {key}={shlex.quote(value)}" + (':"$PATH"' if key == "PATH" else "")
                 for key, value in exports.items()) + "\n")
             result = {"status": "ready", "destination": str(destination), "plugins":
-                      {name: str(path) for name, path in installed.items()}, "three": three}
+                      {name: str(path) for name, path in installed.items()}, "three": three, "phaser": phaser_lock["version"]}
             write_atomic(destination / "install-result.json", json.dumps(result, indent=2) + "\n")
             return result
 

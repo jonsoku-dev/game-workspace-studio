@@ -475,7 +475,7 @@ def query(project, subject=None, kind=None):
 
 def record_work(project, record):
     """Admit one immutable, scoped external work record; never execute its content."""
-    allowed = {"id", "label", "agent", "status", "used", "observed", "files", "generated", "verification", "references"}
+    allowed = {"id", "label", "agent", "status", "used", "observed", "files", "generated", "verification", "references", "workspace_inputs"}
     if not isinstance(record, dict) or set(record) - allowed:
         raise ValueError("unknown external-work fields")
     key = _slug(record["id"])
@@ -500,6 +500,17 @@ def record_work(project, record):
         if len(targets) != len(set(targets)):
             raise ValueError("duplicate external work references")
         work[relation] = list(targets)
+    workspace_inputs = record.get("workspace_inputs", [])
+    if (not isinstance(workspace_inputs, list) or any(not isinstance(pin, dict)
+            or set(pin) != {"@id", "sha256", "byteCount"}
+            or not isinstance(pin["@id"], str) or not pin["@id"].startswith("urn:game-studio:")
+            or pin["@id"] in ids or not isinstance(pin["sha256"], str)
+            or not re.fullmatch(r"[0-9a-f]{64}", pin["sha256"])
+            or type(pin["byteCount"]) is not int or pin["byteCount"] < 0 for pin in workspace_inputs)
+            or len({pin["@id"] for pin in workspace_inputs}) != len(workspace_inputs)):
+        raise ValueError("workspace inputs require unique foreign entity hash/size pins")
+    if workspace_inputs:
+        work["snapshot"] = {"workspace_inputs": json.loads(_json(workspace_inputs))}
     references = record.get("references", [])
     if not isinstance(references, list) or any(not isinstance(r, str) or not r.startswith("https://") for r in references):
         raise ValueError("references require HTTPS citations")

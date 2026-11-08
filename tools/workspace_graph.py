@@ -8,10 +8,11 @@ import uuid
 import graph
 
 
-def registered_projects(manifest):
+def registered_projects(manifest, config=None):
     manifest = Path(manifest).resolve(strict=True)
     root = manifest.parent
-    config = json.loads(manifest.read_text(encoding="utf-8"))
+    if config is None:
+        config = json.loads(manifest.read_text(encoding="utf-8"))
     if config.get("schema_version") != 1:
         raise ValueError("unsupported workspace schema_version")
     workspace = "urn:game-studio:workspace:" + str(uuid.UUID(config["workspace_id"]))
@@ -29,7 +30,8 @@ def registered_projects(manifest):
 
 
 def export_workspace(manifest):
-    workspace, projects = registered_projects(manifest)
+    config = json.loads(Path(manifest).read_text(encoding="utf-8"))
+    workspace, projects = registered_projects(manifest, config)
     merged = {}
     members = []
     for project in projects:
@@ -45,14 +47,38 @@ def export_workspace(manifest):
             if ident in merged and node != merged[ident]:
                 raise ValueError(f"conflicting graph subject: {ident}")
             merged[ident] = node
-    # Cross-project observations belong to the workspace, with both endpoints checked.
-    for link in json.loads(Path(manifest).read_text(encoding="utf-8")).get("links", []):
-        activity, subject = link["activity"], link["observed"]
-        if activity not in merged or subject not in merged or "ExternalWork" not in merged[activity]["@type"]:
-            raise ValueError("workspace observation requires an admitted activity and subject")
-        observed = merged[activity].setdefault("observed", [])
-        if subject not in observed:
-            observed.append(subject)
+    for node in merged.values():
+        if "ExternalWork" not in node["@type"]:
+            continue
+        pins = node.get("snapshot", {}).get("workspace_inputs", [])
+        if not isinstance(pins, list):
+            raise ValueError("invalid workspace input pins")
+        for pin in pins:
+            if not isinstance(pin, dict) or set(pin) != {"@id", "sha256", "byteCount"}:
+                raise ValueError("invalid workspace input pin")
+            target = merged.get(pin["@id"], {})
+            if ("Entity" not in target.get("@type", []) or
+                    any(target.get(key) != pin[key] for key in ("sha256", "byteCount"))):
+                raise ValueError("workspace input entity missing or pin mismatch")
+            used = node.setdefault("used", [])
+            if pin["@id"] not in used:
+                used.append(pin["@id"])
+    # Workspace links resolve against the unified graph; project shards stay independently readable.
+    links = config.get("links", [])
+    if not isinstance(links, list):
+        raise ValueError("workspace links must be a list")
+    for link in links:
+        if not isinstance(link, dict) or set(link) not in ({"activity", "observed"}, {"activity", "used"}):
+            raise ValueError("workspace link requires an activity and exactly one observed/used target")
+        relation = "used" if "used" in link else "observed"
+        activity, target = link["activity"], link[relation]
+        if activity not in merged or target not in merged or "ExternalWork" not in merged[activity]["@type"]:
+            raise ValueError("workspace link requires an admitted external activity and target")
+        if relation == "used" and "Entity" not in merged[target]["@type"]:
+            raise ValueError("a used workspace input must be an entity")
+        targets = merged[activity].setdefault(relation, [])
+        if target not in targets:
+            targets.append(target)
     merged[workspace] = {"@id": workspace, "@type": ["Entity", "Workspace"], "includesProject": members}
     result = {"schema_version": 1, "@context": graph.CONTEXT,
               "@graph": [merged[ident] for ident in sorted(merged)]}
