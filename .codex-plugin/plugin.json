@@ -1,6 +1,6 @@
 {
   "name": "game-studio",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Plan game scenes, integrate local 2D/3D producers and review causal history.",
   "skills": "./.agents/skills/",
   "interface": {"displayName": "Game Studio", "shortDescription": "Plan scenes and place generated assets", "category": "Productivity", "capabilities": ["Read", "Write"], "defaultPrompt": ["게임 기획과 씬 배치를 만들고 설치된 에셋 제작기로 통합해 줘."]}

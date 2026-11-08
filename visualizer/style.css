@@ -1263,6 +1263,11 @@ pre {
 }
 .workspace-overview .workspace {
   grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+}
+.overview-help {
+  margin: 0 0 16px;
+  color: var(--muted);
 }
 .workspace-overview .sidebar {
   padding: 0 30px;

@@ -8,6 +8,7 @@ const copy = {
   readonly: ['읽기 전용', '読み取り専用'],
   history: ['실행 이력', '実行履歴'],
   projects: ['프로젝트', 'プロジェクト'],
+  overviewHelp: ['Codex 채팅에서 제작을 지시하고, 여기서 결과를 확인하세요.', 'Codex のチャットで制作を依頼し、この画面で結果を確認できます。'],
   historyRecords: ['실행 기록', '実行記録'],
   viewTools: ['보기 도구', '表示ツール'],
   productionDetails: ['기획 · 제작 과정', '企画 · 制作工程'],
