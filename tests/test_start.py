@@ -12,6 +12,21 @@ import start
 
 
 class StartTests(unittest.TestCase):
+    def test_courier_slice_binds_feedback_to_real_world_and_ui_events(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / 'post'
+            result = start.create(project, '배달 게임', '정원 우편소', mode='courier_trial')
+            scene = json.loads((project / 'scene.json').read_text())
+            self.assertEqual(result['goal'], scene['brief']['goal'])
+            effects = start.runtime_inputs.feedback_effects(scene)
+            self.assertTrue({'step','land','pickup','interact','denied','hit'} <= effects.keys())
+            for event, asset_id in effects.items():
+                request = next(a['request'] for a in scene['assets'] if a['id'] == asset_id)
+                self.assertTrue(start.pinned(project, project/request), event)
+            effects['land'] = 'hero'
+            with self.assertRaisesRegex(ValueError, 'pixel-effect'):
+                start.runtime_inputs.feedback_effects(scene)
+
     def test_new_pins_idea_rules_original_inputs_and_japanese_guidance(self):
         with tempfile.TemporaryDirectory() as temp:
             project = Path(temp) / 'my game'

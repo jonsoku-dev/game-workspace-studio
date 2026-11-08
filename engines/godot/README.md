@@ -6,6 +6,14 @@
 
 Ember Run is a small integration sample: WASD movement within the arena, Space to strike crystals within 0.85m, three crystals to complete, R to reset. It binds `camp-lantern`, `camp-embers`, `scout`, the `idle`/`walk`/`attack` actions, and the first attack effect. Its three target meshes and game rules are sample code, not generated producer output. The reusable importer is separate from those fixed sample bindings. Only the first forest-camp product and second scout-actions product drive this sample.
 
+## Native interaction feedback
+
+The sample keeps WASD / Space / R controls and adds **P** pause, **F** optional accents A/B, **M** sound (muted until explicitly enabled), and **V** reduced motion. `--no-accents` and `--reduced-motion` after `--` set the initial accessibility/comparison state. Sound also follows the F accents switch; muting either switch stops the current cue.
+
+The HUD always reports strike acceptance, out-of-reach misses, attempts during a swing or after completion, crystal collection, completion, restart, and pause/resume. Optional accents add a small scout pulse on collection/completion/restart, walking bob only during actual movement, and quiet native synthesized tones for footsteps and those events. Reduced motion removes the added bob/pulse; the original authored sprite/attack animation and imported ember particles remain. There are no screen flashes, added assets, dependencies, or invented restore mechanics. Pause freezes gameplay, attack timing and imported particles; press P to resume before restarting.
+
+Headless `--verify` also checks actual event dispatch, pause, A/B, reduced motion, default mute, native audio dispatch and stopping audio on mute. These checks prove engine state and routing; listening quality, visual comfort and physical keyboard acceptance require a windowed playtest.
+
 ## Run locally
 
 From the workspace root, using Python 3.10+ and Godot **4.5.1**:
@@ -81,6 +89,10 @@ Actual distributable test: `/tmp/studio-ember-pck/ember-run.pck` launched with `
 - Headless and visible input loops passed. A separate actual Studio `builds/reuse-smoke/scene.runtime.json` referencing original forest-camp artifacts exported and passed both loops. Five Python checks cover copies/pins/licenses, drift rejection with no output, escaping paths/cycles, and a linked-artifact reuse fixture.
 - The source scene transforms and authored textures/GLBs are imported. This is not material-equivalence certification: Godot/glTF transmission/emissive appearance can differ from Three/Blender.
 
-This is a useful engine integration sample, not a production game or a 5/5 art/gameplay acceptance result. It has no audio, enemy AI, physics collisions, controller/touch support, save system, self-contained executable export, cross-platform or physical-input certification.
+This is a useful engine integration sample, not a production game or a 5/5 art/gameplay acceptance result. It has no authored soundtrack, enemy AI, physics collisions, controller/touch support, save system, self-contained executable export, cross-platform or physical-input certification.
 
 Engine sources: [Godot 4.5.1 official release](https://github.com/godotengine/godot/releases/tag/4.5.1-stable), [official build assets and digest](https://api.github.com/repos/godotengine/godot-builds/releases/tags/4.5.1-stable), [Godot GLTFDocument API](https://docs.godotengine.org/en/4.5/classes/class_gltfdocument.html). Compression probe follows [glTF Transform EXTMeshoptCompression](https://gltf-transform.dev/modules/extensions/classes/EXTMeshoptCompression). Godot is MIT licensed; no engine binary is vendored. Imported local pixelfx material retains its own copied attribution/license files.
+
+## Feedback validation (2026-11-09)
+
+The updated adapter passed the five Python export regressions and Godot 4.5.1 headless gameplay/feedback verification, including imported geometry and 14 packaged byte pins. The normal exported project's independent `probe.gd` and exported PCK were also exercised headlessly. Current-run artifacts live under `/tmp/ember-feedback-proof`, `/tmp/ember-feedback-native`, and `/tmp/ember-feedback-dist`; they are local evidence, not checked-in release artifacts. No new windowed visual/listening acceptance is claimed.

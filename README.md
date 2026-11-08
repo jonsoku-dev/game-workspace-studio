@@ -6,6 +6,10 @@
 
 예시 요청은 “달빛 아래 로봇이 표적을 세 번 맞히면 끝나는 게임을 만들고, 준비 동작을 조금 늘린 버전도 비교해 줘”다. 새 프로젝트의 `start.py new/build`가 원본 기획과 목표·조작·완료 조건을 기록하고 첫 Phaser 게임을 만든다. `revise.py`는 원본 실행을 고정하고 바꿀 동작만 새 후보로 만든다. `playcheck.py run`은 실제 게임을 열어 거리·방향·접촉·승리·재시작을 검사한다. 작업실의 A/B 탭에서 같은 시각으로 움직이거나 두 게임을 각각 열 수 있다. `?view=compare&lang=ja`로 일본어 비교 화면을 공유한다. 사람의 선택은 채팅에서 검수 기록으로 남긴다. [시작·설치 명령](INSTALL.md) · [수정과 채택 예시](GRAPH.md#동작-수정과-ab-검수)
 
+## 행동과 상태의 피드백
+
+이동·착지, 수집, 사용 거절, 피해, 목표 완료와 재시작까지 피드백을 설계한다. `start.py new --kind 2d --mode courier_trial`은 효과 요청과 게임 규칙을 새 프로젝트에 생성한다. 화면에서 실제 상태를 확인하고 연출과 소리를 별도로 전환한다. [제작 예시와 엔진 적용 범위](FEEDBACK.md)
+
 ## 실행
 
 설치된 `pixel-asset` 명령과 활성 `model-assets` 플러그인이 필요하다. Blender·컴파일러 의존성은 3D 제작기가 소유한다.
@@ -77,10 +81,10 @@ python3 tools/graph.py history --project examples/forest-camp
 로컬 Codex에 스튜디오를 설치하는 절차다. 아래는 이 버전의 새 설치 경로 예시다.
 
 ```sh
-python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.8.1"
-codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.8.1"
+python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.9.1"
+codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.9.1"
 codex plugin add game-studio@game-studio
-STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.8.1"
+STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.9.1"
 ```
 
 프로젝트에서 `$game-studio`로 기획·씬 제작을 요청한다. 예를 들어 “Forest Camp의 30cm 등불 통풍구에 입체 불티를 붙이고 제작 과정을 보여 줘”라고 지시한다.
@@ -139,7 +143,7 @@ python3 "$STUDIO_ROOT/tools/export_game.py" --engine phaser --project . --worksp
 
 완료된 웹 게임으로 연결하려면 workspace manifest의 `playtests` 배열에 `{"activity":"<엔진 내보내기 ExternalWork ID>","url":"http://127.0.0.1:<게임 서버 포트>/<출력 폴더>/" }`를 추가한다. 별도 포트에서 그 정적 결과를 제공한다. 해당 실행의 runtime을 실제 입력으로 사용한 완료된 Three.js/Phaser 내보내기에만 **게임 열기 / ゲームを開く**가 표시된다. 링크 등록은 서버의 현재 가동 여부를 보장하지 않는다.
 
-## PNG → Rive 캐릭터 (0.8.1)
+## PNG → Rive 캐릭터 (0.9.1)
 
 방향 전환·공격·연기는 **상태별로 그린 PNG 프레임**을 기본으로 사용한다. 원화는 외형 정체성 기준이다. 원하는 방향과 몸의 형태가 달라지면 그 상태를 그린 뒤 원속도로 확인한다. 관절 컷아웃은 사용자가 명시적으로 원할 때만 임시 방법으로 사용한다.
 

@@ -86,7 +86,45 @@ bpy.ops.export_scene.gltf(filepath=str(p/'fixture.glb'),export_format='GLB')
         state = source.read_text().split('public class StudioGame : MonoBehaviour')[0].replace('using UnityEngine;', '')
         program = r'''public static class Check {
     static void Require(bool value) { if (!value) throw new System.Exception("Game state check failed"); }
+    static string FeedbackStep(StudioGameState game, StudioGameFeedback feedback, float x, float z, bool attack, bool reset, float seconds) {
+        bool started = attack && !game.Attacking && !game.Won && !reset;
+        game.Step(x,z,attack,reset,seconds);
+        return feedback.Observe(game,started,reset);
+    }
+    static void CheckFeedback() {
+        var game = new StudioGameState(0.32f, 0.8f);
+        var feedback = new StudioGameFeedback(0.32f);
+        Require(FeedbackStep(game,feedback,0,0,false,true,0) == "restart");
+        Require(FeedbackStep(game,feedback,1,0,false,false,1) == "move");
+        Require(FeedbackStep(game,feedback,1,0,false,false,0.1f) == "stop");
+        Require(FeedbackStep(game,feedback,0,0,true,false,0) == "attack");
+        Require(FeedbackStep(game,feedback,0,0,true,false,0.319f) == "");
+        Require(FeedbackStep(game,feedback,0,0,false,false,0.001f) == "miss");
+        Require(FeedbackStep(game,feedback,0,0,false,false,0.481f) == "");
+        Require(FeedbackStep(game,feedback,0,0,false,true,0) == "restart");
+        Require(FeedbackStep(game,feedback,0,0,false,false,0) == "");
+        FeedbackStep(game,feedback,-1,0,false,false,0.5f);
+        FeedbackStep(game,feedback,0,1,false,false,0.25f);
+        Require(FeedbackStep(game,feedback,0,0,true,false,0) == "attack");
+        Require(FeedbackStep(game,feedback,0,0,false,false,0.319f) == "");
+        Require(FeedbackStep(game,feedback,0,0,false,false,0.001f) == "pickup");
+        Require(FeedbackStep(game,feedback,0,0,false,false,0.481f) == "");
+        FeedbackStep(game,feedback,1,0,false,false,0.5f);
+        FeedbackStep(game,feedback,0,1,false,false,0.5f);
+        Require(FeedbackStep(game,feedback,0,0,true,false,0.801f) == "pickup");
+        FeedbackStep(game,feedback,1,0,false,false,0.5f);
+        FeedbackStep(game,feedback,0,-1,false,false,0.5f);
+        Require(FeedbackStep(game,feedback,0,0,true,false,0.32f) == "win");
+        Require(FeedbackStep(game,feedback,0,0,false,false,0.481f) == "");
+        Require(FeedbackStep(game,feedback,0,0,true,false,0) == "");
+        Require(FeedbackStep(game,feedback,0,0,false,true,0) == "restart");
+        Require(FeedbackStep(game,feedback,0,0,false,false,0) == "");
+        Require(FeedbackStep(game,feedback,0,0,true,false,0.1f) == "attack");
+        Require(FeedbackStep(game,feedback,0,0,false,true,0) == "restart");
+        Require(FeedbackStep(game,feedback,0,0,false,false,0.8f) == "");
+    }
     public static void Main() {
+        CheckFeedback();
         var game = new StudioGameState(0.32f, 0.8f);
         game.Step(1,0,false,false,1); Require(game.X == 2);
         game.Step(0,0,true,false,0); game.Step(0,0,false,false,0.8f);

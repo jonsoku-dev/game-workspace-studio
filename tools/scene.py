@@ -17,6 +17,7 @@ import tempfile
 import uuid
 
 import graph
+from runtime_inputs import feedback_effects
 
 
 PRODUCERS = {
@@ -239,6 +240,7 @@ def load_scene(project, scene_name="scene.json"):
                 raise ValueError("node parent hierarchy cannot contain cycles")
             visited.add(name)
             name = parents[name]
+    feedback_effects(scene)
     return scene
 
 
@@ -503,6 +505,8 @@ def build(project, output, timeout, scene_name="scene.json", source_artifact=Non
                    "input_scene": record["input_scene"]}
         if "playtest" in scene:
             runtime["playtest"] = scene["playtest"]
+        if "feedback" in scene:
+            runtime["feedback"] = scene["feedback"]
         write_json(output / "scene.runtime.json", runtime)
         record["status"] = "ready"
         record["runtime"] = str((output / "scene.runtime.json").relative_to(project))

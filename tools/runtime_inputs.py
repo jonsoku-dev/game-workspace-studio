@@ -14,6 +14,22 @@ import tempfile
 import graph
 
 
+def feedback_effects(scene):
+    """Resolve authored event names to declared pixel sheets. Other feedback stays engine-native."""
+    if 'feedback' not in scene:
+        return {}
+    spec = scene['feedback']
+    if (not isinstance(spec, dict) or set(spec) != {'schema_version', 'effects'}
+            or type(spec['schema_version']) is not int or spec['schema_version'] != 1
+            or not isinstance(spec['effects'], dict) or len(spec['effects']) > 64):
+        raise ValueError('feedback requires schema_version 1 and up to 64 event-to-effect bindings')
+    available = {asset['id'] for asset in scene['assets'] if asset.get('producer') == 'pixel-effect'}
+    for event, asset_id in spec['effects'].items():
+        if not re.fullmatch('[a-z][a-z0-9_-]{0,47}', event) or not isinstance(asset_id, str) or asset_id not in available:
+            raise ValueError('feedback events must name a declared pixel-effect asset')
+    return spec['effects']
+
+
 def glb_json(path):
     data = path.read_bytes()
     if len(data) < 20 or data[:4] != b'glTF' or struct.unpack_from('<I', data, 4)[0] != 2:

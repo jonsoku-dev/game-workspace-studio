@@ -18,8 +18,14 @@ python3 -m http.server 8765 --bind 127.0.0.1 --directory /tmp/woods-alight
 
 Open `http://127.0.0.1:8765`. Use WASD or arrows, Space to attack, R to restart.
 The labelled direction buttons support pointer holds and keyboard activation;
-Restore and Restart are ordinary accessible buttons. Progress and goals use a
-live status region. `file://` is unsupported because ES modules and GLB fetches
+Restore, Restart and Pause / Resume are ordinary accessible buttons.
+Feel switches between baseline (A) and enhanced feedback (B); Sound is a separate,
+explicit opt-in and starts off. Enhanced feedback uses distance-throttled steps,
+local light/color confirmations and a fixed pool of real 3D crystal shards for
+collection, restoration and the final celebration. Rejected restoration is throttled.
+Reduced-motion preferences remove crystal bobbing and shard spin, shorten bursts
+and hold the authored ember recipe at a still pose. Pause freezes world animation.
+Progress and goals use a live status region. `file://` is unsupported because ES modules and GLB fetches
 require an HTTP origin. A local HTTP server suffices; no API or internet is used.
 WebGL2 is required. There is no install or package download in the exporter.
 
@@ -65,8 +71,11 @@ node --check studio/engines/web/game.mjs
 `evidence/browser.json` records the actual Stagehand browser exercise and its
 limits. `window.woodsAlight()` returns read-only render/game telemetry; it does
 not expose mutation or bypass controls. Local telemetry is not a security or
-anti-cheat boundary. No save persistence, audio, enemies or physics collision
-system is included in this sample.
+anti-cheat boundary. No save persistence, enemies or physics collision system is
+included in this sample.
+Audio is synthesized locally through the shared feedback module, with no media
+files or network requests. Read-only telemetry includes feedback mode, reduced
+motion, semantic cue counts and active shard count for browser verification.
 
 The genuine required-extension compression probe is documented in
 `evidence/meshopt.json`, with the inspected render in `meshopt-probe.jpg`.

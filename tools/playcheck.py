@@ -18,6 +18,14 @@ def assess(export, run_id, observations):
     export = Path(export)
     bundle = json.loads((export / 'game.json').read_text())
     rules = bundle.get('playtest', {})
+    if rules.get('mode') == 'courier_trial':
+        import courier_playcheck
+        checks = courier_playcheck.assess_checks(bundle, observations)
+        return {'schema_version': 1, 'run_id': run_id,
+                'runtime_sha256': bundle['runtime_pin']['sha256'],
+                'export_dir': str(export.resolve()), 'export_hashes': hashes(export), 'driver': 'observation-import',
+                'criteria': {key: {'pass': bool(value)} for key, value in checks.items()},
+                'observations': observations, 'passed': all(checks.values())}
     required = rules.get('hits_to_win', 3)
     metadata = bundle['metadata']
     effects = [e for e in metadata.get('events', []) if e['action'] == 'attack']

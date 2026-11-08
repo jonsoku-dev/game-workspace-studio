@@ -120,3 +120,69 @@ class PlaycheckTests(unittest.TestCase):
                 thread.join(timeout=3)
             with self.assertRaises(ValueError):
                 playcheck_browser.inventory_server(root, pins)
+
+
+class CourierPlaycheckTests(unittest.TestCase):
+    def fixture(self, required=3):
+        import copy
+        bundle = {'runtime_pin': {'sha256': 'courier'},
+                  'metadata': {'pivot_px_from_top_left': [20, 40], 'actions': {'attack': {'frames': [{'duration_ms': 100}], 'contact_frame': 0, 'at_px': [40, 20]}}},
+                  'playtest': {'mode': 'courier_trial', 'hits_to_win': required}}
+        start = {'x': 150, 'y': 356, 'hp': 3, 'targetMaxHP': required*10, 'targetHP': required*10, 'package': False, 'hits': 0, 'finished': False, 'lost': False, 'paused': False, 'clock': 0, 'cueEvents': [], 'contactEvents': []}
+        def snapshot(**kw):
+            return {**copy.deepcopy(start), **kw}
+        def cues(*names):
+            return [{'event': name} for name in names]
+        o = {'start': start, 'move': snapshot(x=310), 'stop': snapshot(x=310, cueEvents=cues('move', 'stop')),
+             'jump': snapshot(y=300, cueEvents=cues('jump')), 'land': snapshot(cueEvents=cues('jump', 'land')),
+             'collect': snapshot(package=True), 'denied': snapshot(cueEvents=cues('denied')),
+             'miss': snapshot(contactEvents=[{'contact': False, 'start_ms': 0, 'observed_ms': 16}]),
+             'pause': snapshot(paused=True, clock=100), 'paused_later': snapshot(paused=True, clock=100), 'resumed': snapshot(), 'reset': snapshot()}
+        hp, hits = required*10, []
+        while hp:
+            combo = len(hits)+1
+            damage = min(hp, 15 if combo == 2 else 10)
+            hp -= damage
+            hits.append(snapshot(hits=len(hits)+1, targetHP=hp, combo=combo, lastDamage=damage))
+        contacts = o['miss']['contactEvents'] + [{'contact': True, 'start_ms': 0, 'observed_ms': 16}] * len(hits)
+        o.update(hits=hits, finisher=snapshot(hits=len(hits), targetHP=0, cueEvents=cues('collect', 'finisher'), contactEvents=contacts),
+                 win=snapshot(hits=len(hits), x=840, package=True, targetHP=0, finished=True, cueEvents=cues('collect', 'finisher', 'interact', 'win')))
+        return bundle, o
+
+    def test_courier_reassesses_actual_hp_delivery_and_noncombat_evidence(self):
+        import copy
+        import sys
+        sys.path.insert(0, str(Path(__file__).parents[1] / 'tools'))
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            bundle, observations = self.fixture()
+            (root/'game.json').write_text(json.dumps(bundle))
+            observations['reset']['cueEvents'] = [{'event': 'restart'}]
+            report = playcheck.assess(root, 'run', observations)
+            self.assertTrue(playcheck.verify(report, root)['passed'])
+            stale = copy.deepcopy(observations)
+            stale['reset']['cueEvents'].append({'event': 'collect'})
+            self.assertFalse(playcheck.assess(root, 'run', stale)['passed'])
+            for key, field, value in [('win', 'finished', False), ('finisher', 'targetHP', 5), ('jump', 'y', 356), ('collect', 'package', False), ('paused_later', 'clock', 101), ('reset', 'targetHP', 0)]:
+                bad = copy.deepcopy(observations)
+                bad[key][field] = value
+                self.assertFalse(playcheck.assess(root, 'run', bad)['passed'], (key, field))
+            bad = copy.deepcopy(observations)
+            bad['hits'][1]['targetHP'] = 10  # Counts alone cannot certify the combo's HP delta.
+            self.assertFalse(playcheck.assess(root, 'run', bad)['passed'])
+            report['observations']['win']['cueEvents'].append({'event': 'collect'})
+            with self.assertRaises(ValueError):
+                playcheck.verify(report, root)
+
+    def test_courier_accepts_full_rule_range_and_rejects_invalid_rules(self):
+        import sys
+        sys.path.insert(0, str(Path(__file__).parents[1] / 'tools'))
+        import courier_playcheck
+        for required in (1, 2, 3, 20):
+            bundle, o = self.fixture(required)
+            self.assertTrue(all(courier_playcheck.assess_checks(bundle, o).values()), required)
+        for required in (0, 21, True, 1.5):
+            bundle, o = self.fixture()
+            bundle['playtest']['hits_to_win'] = required
+            with self.assertRaises(ValueError):
+                courier_playcheck.assess_checks(bundle, o)

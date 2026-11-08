@@ -148,3 +148,7 @@ judgment.
 The configured MCP browser and Python 3.11+ must be available; failures do not
 imply acceptance. Configuration comes from `CODEX_HOME/config.toml`, falling back
 to `~/.codex/config.toml`.
+
+## 배달 시련의 피드백
+
+`playtest.mode = "courier_trial"`은 이동, 점프, 위험 지형, 소포 획득, 장벽, 우편함 배달, 결과와 재시작을 제공한다. 장벽은 (650,300)에 있다. `hits_to_win` 1..20이 장벽 기본 타격 수와 HP 기준을 정하고, 실제 명중 횟수·피해량·잔여 HP를 별도로 계산한다. 추가 효과와 합성음은 게임에서 각각 켜고 끌 수 있다. 충돌·인벤토리·체력·결말은 연출을 꺼도 그대로 동작한다. 데스크톱 키와 화면 버튼을 함께 제공한다. [게임 전반의 피드백 계약](../../../FEEDBACK.md)

@@ -50,11 +50,44 @@ def record(project, label, paths, used=()):
         'generated': [{'path': p.relative_to(project).as_posix(), 'sha256': digest(p)} for p in paths]})
 
 
-def create(output, idea, title, language='ko', hits=3, kind='2d'):
+COURIER = {
+    'ko': {
+        'goal': '소포를 찾아 장애물을 넘고 봉인을 깨뜨린 뒤 우편함에 배달하세요.',
+        'controls': '←/→ 또는 A/D 이동 · ↑ 또는 W 점프 · Space 공격 · E 배달 · P 일시정지 · R 재시작',
+        'criteria': ['빈손으로 배달하면 이유를 표시하고 완료하지 않는다.', '소포를 한 번만 획득하고 착지할 때 먼지가 나타난다.',
+                     '장애물에 닿으면 체력이 줄고, 소진되면 재시작할 수 있다.', '봉인을 열고 우편함에 배달하면 완료된다.',
+                     '피드백을 꺼도 획득·체력·배달 규칙은 같다.'],
+    },
+    'ja': {
+        'goal': '荷物を拾い、障害物を越えて封印を壊し、ポストに届けてください。',
+        'controls': '←/→ または A/D 移動 · ↑ または W ジャンプ · Space 攻撃 · E 配達 · P 一時停止 · R やり直し',
+        'criteria': ['荷物がないときは配達を完了せず理由を表示する。','荷物を一度だけ取得し、着地時に砂ぼこりが出る。',
+                     '障害物で体力が減り、尽きたらやり直せる。','封印を開きポストに配達すると完了する。',
+                     'フィードバックを切っても取得・体力・配達のルールは同じ。'],
+    },
+}
+
+
+def courier_effects(stage, scene):
+    palette = ['#543748', '#b65c69', '#ffcf87', '#fff3c2']
+    events = {'step':'step', 'land':'land', 'pickup':'pickup', 'hit':'impact',
+              'attack':'slash', 'interact':'confirm', 'denied':'deny'}
+    scene['feedback'] = {'schema_version': 1, 'effects': {}}
+    for event, preset in events.items():
+        asset = 'cue-' + preset
+        path = 'requests/' + asset + '.json'
+        write(stage / path, {'schema_version':1, 'preset':preset, 'size':32, 'palette':palette, 'seed':17})
+        scene['assets'].append({'id':asset, 'producer':'pixel-effect', 'request':path})
+        scene['feedback']['effects'][event] = asset
+
+
+def create(output, idea, title, language='ko', hits=3, kind='2d', mode='land_hits'):
     if not idea.strip() or not title.strip() or len(idea) > 4000 or len(title) > 120:
         raise ValueError('Provide a concrete idea (1..4000 characters) and title (1..120 characters)')
     if type(hits) is not int or not 1 <= hits <= 20:
         raise ValueError('hits must be in 1..20')
+    if mode not in ('land_hits','courier_trial') or mode == 'courier_trial' and kind != '2d':
+        raise ValueError('Courier trial is a 2D first slice')
     text = TEXT[language]
     with runtime_inputs.output_stage(output) as stage:
         for name in FILES[kind]:
@@ -67,25 +100,33 @@ def create(output, idea, title, language='ko', hits=3, kind='2d'):
         brief = {'title': title, 'idea': idea, 'goal': text['goal'].format(hits=hits) if kind == '2d' else text['observe'],
                  'controls': text['controls'] if kind == '2d' else text['observe']}
         criteria = [c.format(hits=hits) for c in text['criteria']] if kind == '2d' else [text['observe']]
+        if mode == 'courier_trial':
+            brief.update(goal=COURIER[language]['goal'], controls=COURIER[language]['controls'])
+            criteria = COURIER[language]['criteria']
         plan = {'schema_version': 1, 'language': language, 'kind': kind, 'brief': brief,
                 'constraints': {'offline': True, 'engine': 'phaser' if kind == '2d' else 'scene-preview',
-                                'rule': 'land_hits' if kind == '2d' else 'observation_only', 'hits_to_win': hits if kind == '2d' else None},
+                                'rule': mode if kind == '2d' else 'observation_only', 'hits_to_win': hits if kind == '2d' else None},
                 'acceptance_criteria': criteria}
         write(stage / 'first-slice.json', plan)
         if kind == '2d':
             spec = {'schema_version': 1, 'id': 'first-slice', 'brief': brief,
                 'coordinates': {'units': 'meters', 'up': '+Y', 'handedness': 'right'},
-                'playtest': {'mode': 'land_hits', 'hits_to_win': hits, 'target_x': 650, 'target_y': 300,
+                'playtest': {'mode': mode, 'hits_to_win': hits, 'target_x': 650, 'target_y': 300,
                              'contact_frame': 2, 'at_px': [32, 20]},
                 'assets': [{'id': 'hero', 'producer': 'pixel-action-set', 'request': 'requests/motion/action-set.request.json'}],
                 'nodes': [{'id': 'hero', 'asset': 'hero', 'action': 'attack', 'position': [0, 0, 0],
                            'rotation_degrees': [0, 0, 0], 'scale': [1, 1, 1], 'size_m': 1}]}
+            if mode == 'courier_trial':
+                courier_effects(stage, spec)
         else:
             spec = json.loads((stage / 'scene.json').read_text())
             spec['brief'] = brief
         write(stage / 'scene.json', spec)
         write(stage / 'workspace.json', {'schema_version': 1, 'workspace_id': str(uuid.uuid4()), 'projects': ['.']})
-        (stage / 'README.md').write_text(f"# {title}\n\n{idea}\n\n{brief['goal']}\n\n{brief['controls']}\n\n{text['scope'] if kind == '2d' else text['observe']}\n\n" + '\n'.join('- ' + c for c in criteria) + '\n', encoding='utf-8')
+        scope = text['scope'] if kind == '2d' else text['observe']
+        if mode == 'courier_trial':
+            scope = 'Courier trial · Phaser'
+        (stage / 'README.md').write_text(f"# {title}\n\n{idea}\n\n{brief['goal']}\n\n{brief['controls']}\n\n{scope}\n\n" + '\n'.join('- ' + c for c in criteria) + '\n', encoding='utf-8')
         record(stage, 'Pin first-slice idea, constraints and original starter inputs', sorted(p for p in stage.rglob('*') if p.is_file()))
     return status(Path(output))
 
@@ -139,6 +180,8 @@ def status(project):
         state = 'blocked_source' if blocked_source else 'blocked_motion' if blocked_motion else 'build_required'
         command = [sys.executable, str(ROOT / 'tools/graph.py'), 'history', '--project', str(project)] if blocked else base + ['build', str(project)]
         guidance = text['blocked'] if blocked else text['scope'] if plan['kind'] == '2d' else text['observe']
+        if not blocked and plan['constraints']['rule'] == 'courier_trial':
+            guidance = plan['brief']['goal']
     return {'state': state, 'title': plan['brief']['title'], 'goal': plan['brief']['goal'],
             'controls': plan['brief']['controls'], 'acceptance_criteria': plan['acceptance_criteria'],
             'guidance': guidance, 'next_label': text['next'], 'next_command': shlex.join(command),
@@ -197,6 +240,7 @@ def main(argv=None):
     new.add_argument('--language', choices=TEXT, default='ko')
     new.add_argument('--hits', type=int, default=3)
     new.add_argument('--kind', choices=FILES, default='2d')
+    new.add_argument('--mode', choices=('land_hits','courier_trial'), default='land_hits')
     for name in ('status', 'inspect', 'resume', 'build'):
         command = sub.add_parser(name)
         command.add_argument('project', type=Path)
@@ -205,7 +249,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         if args.command == 'new':
-            result = create(args.project, args.idea, args.title, args.language, args.hits, args.kind)
+            result = create(args.project, args.idea, args.title, args.language, args.hits, args.kind, args.mode)
         elif args.command == 'build':
             result = build(args.project, args.phaser_package)
         else:

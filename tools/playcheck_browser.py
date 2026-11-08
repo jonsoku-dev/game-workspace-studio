@@ -19,6 +19,7 @@ import uuid
 
 import graph
 import playcheck
+import courier_playcheck
 
 
 class MCP:
@@ -186,57 +187,60 @@ def run(project, export):
             raise ValueError('Served bytes differ from admitted export')
         def click(name):
             client.run('await page.locator(' + json.dumps('#'+name) + ').click();return true;')
-        click('attack')
-        effects = [e for e in bundle['metadata'].get('events', []) if e['action'] == 'attack']
-        explicit = 'contact_frame' in bundle.get('playtest', {}) or 'contact_frame' in bundle['metadata']['actions']['attack']
-        contact_index = bundle.get('playtest', {}).get('contact_frame', bundle['metadata']['actions']['attack'].get('contact_frame'))
-        contact_ms = sum(f['duration_ms'] for f in bundle['metadata']['actions']['attack']['frames'][:contact_index]) if explicit else 0
-        fx_onset = wait(lambda s: bool(s['effects'])) if effects and explicit and min(e['start_ms'] for e in effects) < contact_ms else None
-        miss = wait(lambda s: bool(s['contactEvents']))
-        duration = bundle['metadata']['actions']['attack']['duration_ms'] / 1000
-        time.sleep(duration + .05)
-        target = bundle.get('playtest', {}).get('target_x', 650)
-        meta = bundle['metadata']
-        event = next((e for e in meta.get('events', []) if e['action'] == 'attack'), None)
-        explicit = 'contact_frame' in bundle.get('playtest', {}) or 'contact_frame' in meta['actions']['attack']
-        at = bundle.get('playtest', {}).get('at_px', meta['actions']['attack'].get('at_px', event['at_px'] if event else None)) if explicit or not event else event['at_px']
-        offset = (at[0] - meta['pivot_px_from_top_left'][0]) * 3
-        desired = target - offset
-        for _ in range(min(26, round(abs(desired-210)/32))):
-            click('right' if desired >= 210 else 'left')
-        # Face away using normal movement, observe a rejected attack, then reset.
-        away = None
-        position = state()['x']
-        if target > position:
-            click('right')
-            click('left')
+        if bundle.get('playtest', {}).get('mode') == 'courier_trial':
+            observations = courier_playcheck.collect(client, bundle)
         else:
-            click('left')
-            click('right')
-        old = len(state()['contactEvents'])
-        click('attack')
-        away = wait(lambda s: len(s['contactEvents']) > old)
-        time.sleep(duration + .05)
-        click('restart')
-        wait(lambda s: not s['contactEvents'])
-        for _ in range(min(26, round(abs(desired-210)/32))):
-            click('right' if desired >= 210 else 'left')
-        required = bundle.get('playtest', {}).get('hits_to_win', 3)
-        before_win = None
-        impact = None
-        for index in range(required):
+            click('attack')
+            effects = [e for e in bundle['metadata'].get('events', []) if e['action'] == 'attack']
+            explicit = 'contact_frame' in bundle.get('playtest', {}) or 'contact_frame' in bundle['metadata']['actions']['attack']
+            contact_index = bundle.get('playtest', {}).get('contact_frame', bundle['metadata']['actions']['attack'].get('contact_frame'))
+            contact_ms = sum(f['duration_ms'] for f in bundle['metadata']['actions']['attack']['frames'][:contact_index]) if explicit else 0
+            fx_onset = wait(lambda s: bool(s['effects'])) if effects and explicit and min(e['start_ms'] for e in effects) < contact_ms else None
+            miss = wait(lambda s: bool(s['contactEvents']))
+            duration = bundle['metadata']['actions']['attack']['duration_ms'] / 1000
+            time.sleep(duration + .05)
+            target = bundle.get('playtest', {}).get('target_x', 650)
+            meta = bundle['metadata']
+            event = next((e for e in meta.get('events', []) if e['action'] == 'attack'), None)
+            explicit = 'contact_frame' in bundle.get('playtest', {}) or 'contact_frame' in meta['actions']['attack']
+            at = bundle.get('playtest', {}).get('at_px', meta['actions']['attack'].get('at_px', event['at_px'] if event else None)) if explicit or not event else event['at_px']
+            offset = (at[0] - meta['pivot_px_from_top_left'][0]) * 3
+            desired = target - offset
+            for _ in range(min(26, round(abs(desired-210)/32))):
+                click('right' if desired >= 210 else 'left')
+            # Face away using normal movement, observe a rejected attack, then reset.
+            away = None
+            position = state()['x']
+            if target > position:
+                click('right')
+                click('left')
+            else:
+                click('left')
+                click('right')
             old = len(state()['contactEvents'])
             click('attack')
-            current = wait(lambda s: len(s['contactEvents']) > old)
-            if index == 0:
-                impact = current
-            if index == required-2:
-                before_win = current
+            away = wait(lambda s: len(s['contactEvents']) > old)
             time.sleep(duration + .05)
-        win = state()
-        click('restart')
-        reset = wait(lambda s: s['hits'] == 0 and not s['contactEvents'])
-        observations = {'miss': miss, 'win': win, 'reset': reset, 'before_win': before_win, 'facing_away': away, 'fx_onset': fx_onset, 'impact': impact}
+            click('restart')
+            wait(lambda s: not s['contactEvents'])
+            for _ in range(min(26, round(abs(desired-210)/32))):
+                click('right' if desired >= 210 else 'left')
+            required = bundle.get('playtest', {}).get('hits_to_win', 3)
+            before_win = None
+            impact = None
+            for index in range(required):
+                old = len(state()['contactEvents'])
+                click('attack')
+                current = wait(lambda s: len(s['contactEvents']) > old)
+                if index == 0:
+                    impact = current
+                if index == required-2:
+                    before_win = current
+                time.sleep(duration + .05)
+            win = state()
+            click('restart')
+            reset = wait(lambda s: s['hits'] == 0 and not s['contactEvents'])
+            observations = {'miss': miss, 'win': win, 'reset': reset, 'before_win': before_win, 'facing_away': away, 'fx_onset': fx_onset, 'impact': impact}
         report = playcheck.assess(export, bundle['runtime_pin']['wasGeneratedBy'][0], observations)
         report.update(browser_observed_hashes=served, export_dir=relative, export_activity=export_activity, browser_activity=activity, driver='stagehand-mcp')
         if playcheck.hashes(export) != before:
@@ -259,8 +263,8 @@ def run(project, export):
                        'runtime_sha256': bundle['runtime_pin']['sha256'], 'export_dir': relative,
                        'export_activity': export_activity, 'browser_activity': activity,
                        'driver': 'stagehand-mcp', 'passed': False,
-                       'error': type(error).__name__, 'criteria': {name: {'pass': False, 'status': 'unverified'}
-                       for name in ('out_of_range_miss', 'contact_timing', 'win', 'reset', 'facing_away', 'before_win')}}
+                       'error': type(error).__name__, 'detail': str(error), 'criteria': {name: {'pass': False, 'status': 'unverified'}
+                       for name in (courier_playcheck.CRITERIA if bundle.get('playtest', {}).get('mode') == 'courier_trial' else ('out_of_range_miss', 'contact_timing', 'win', 'reset', 'facing_away', 'before_win'))}}
             with output.open('x') as file:
                 json.dump(failure, file, indent=2)
             graph.record_work(project, {'id': key, 'agent': 'stagehand-browser', 'label': 'Failed normal-controls browser playcheck',

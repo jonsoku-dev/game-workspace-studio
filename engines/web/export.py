@@ -76,7 +76,7 @@ def export(sources, output, three=None):
             path = stage / 'vendor/three' / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(data)
-        for name in ('index.html', 'style.css', 'game.mjs', 'game-state.mjs', 'MESHOPT-LICENSE.txt'):
+        for name in ('index.html', 'style.css', 'game.mjs', 'game-state.mjs', 'feedback.mjs', 'MESHOPT-LICENSE.txt'):
             (stage / name).write_bytes((HERE / name).read_bytes())
         (stage / 'products.json').write_text(json.dumps(selected, indent=2))
         (stage / 'provenance.json').write_text(json.dumps(provenance, indent=2))
