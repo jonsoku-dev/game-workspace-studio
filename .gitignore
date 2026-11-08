@@ -1,0 +1,5 @@
+__pycache__/
+examples/*/build/
+examples/*/.game-studio/
+.godot/
+*.gd.uid

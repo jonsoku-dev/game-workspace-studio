@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "id": "forest-camp",
+  "brief": {
+    "title": "Lantern Embers",
+    "goal": "Observe a 3D camp lantern with gently rising embers above its cap.",
+    "controls": "Automatically observe the lantern and rising embers; no interactive controls."
+  },
+  "coordinates": {
+    "units": "meters",
+    "up": "+Y",
+    "handedness": "right"
+  },
+  "assets": [
+    {
+      "id": "lantern",
+      "producer": "model-assets",
+      "request": "requests/lantern.json"
+    },
+    {
+      "id": "embers",
+      "producer": "model-assets",
+      "request": "requests/embers.json"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "camp-lantern",
+      "asset": "lantern",
+      "position": [
+        1,
+        0,
+        -2
+      ],
+      "rotation_degrees": [
+        0,
+        30,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "camp-embers",
+      "asset": "embers",
+      "parent": "camp-lantern",
+      "position": [
+        0,
+        0.239,
+        0
+      ],
+      "rotation_degrees": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    }
+  ]
+}

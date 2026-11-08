@@ -1,0 +1,128 @@
+{
+  "pck_path": "/tmp/studio-ember-pck/ember-run.pck",
+  "pck_sha256": "d9f7f246a26a98c9714ac5f2e5f46e159dbf443649ef4c0efaae0f49eb6b1131",
+  "pck_bytes": 1129212,
+  "engine": "4.5.1.stable.official.f62fdbde1",
+  "source_directory_absent_during_both_runs": true,
+  "working_directory": "/tmp/studio-ember-pck",
+  "working_directory_contains_project": false,
+  "headless_exit_code": 0,
+  "visible_exit_code": 0,
+  "command_headless": [
+    "/tmp/studio-godot-4.5.1/Godot.app/Contents/MacOS/Godot",
+    "--headless",
+    "--main-pack",
+    "/tmp/studio-ember-pck/ember-run.pck",
+    "--",
+    "--verify",
+    "--evidence-dir=/tmp/studio-pck-headless"
+  ],
+  "command_visible": [
+    "/tmp/studio-godot-4.5.1/Godot.app/Contents/MacOS/Godot",
+    "--main-pack",
+    "/tmp/studio-ember-pck/ember-run.pck",
+    "--",
+    "--verify",
+    "--evidence-dir=/tmp/studio-pck-visible"
+  ],
+  "headless_report": {
+    "collected": 3,
+    "completed": true,
+    "distant_miss": true,
+    "engine": {
+      "build": "official",
+      "hash": "f62fdbde15035c5576dad93e586201f4d41ef0cb",
+      "hex": 263425,
+      "major": 4,
+      "minor": 5,
+      "patch": 1,
+      "status": "stable",
+      "string": "4.5.1-stable (official)",
+      "timestamp": 0
+    },
+    "imports": [
+      {
+        "asset": "lantern",
+        "compiled": true,
+        "compiled_geometry": {
+          "meshes": 9,
+          "triangles": 23160
+        },
+        "raw": true,
+        "raw_geometry": {
+          "meshes": 54,
+          "triangles": 23160
+        }
+      },
+      {
+        "asset": "embers",
+        "compiled": true,
+        "compiled_geometry": {
+          "meshes": 1,
+          "triangles": 8
+        },
+        "raw": true,
+        "raw_geometry": {
+          "meshes": 1,
+          "triangles": 8
+        }
+      }
+    ],
+    "movement": true,
+    "native_mesh_particles": 24,
+    "packaged_byte_pins": 14,
+    "reset": true,
+    "trigger_320ms": true
+  },
+  "visible_report": {
+    "collected": 3,
+    "completed": true,
+    "distant_miss": true,
+    "engine": {
+      "build": "official",
+      "hash": "f62fdbde15035c5576dad93e586201f4d41ef0cb",
+      "hex": 263425,
+      "major": 4,
+      "minor": 5,
+      "patch": 1,
+      "status": "stable",
+      "string": "4.5.1-stable (official)",
+      "timestamp": 0
+    },
+    "imports": [
+      {
+        "asset": "lantern",
+        "compiled": true,
+        "compiled_geometry": {
+          "meshes": 9,
+          "triangles": 23160
+        },
+        "raw": true,
+        "raw_geometry": {
+          "meshes": 54,
+          "triangles": 23160
+        }
+      },
+      {
+        "asset": "embers",
+        "compiled": true,
+        "compiled_geometry": {
+          "meshes": 1,
+          "triangles": 8
+        },
+        "raw": true,
+        "raw_geometry": {
+          "meshes": 1,
+          "triangles": 8
+        }
+      }
+    ],
+    "movement": true,
+    "native_mesh_particles": 24,
+    "packaged_byte_pins": 14,
+    "reset": true,
+    "trigger_320ms": true
+  },
+  "self_contained_executable": false,
+  "engine_binary_required": true
+}

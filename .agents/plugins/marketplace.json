@@ -1,0 +1,1 @@
+{"name":"game-studio","interface":{"displayName":"Game Studio"},"plugins":[{"name":"game-studio","source":{"source":"local","path":"./"},"policy":{"installation":"AVAILABLE","authentication":"ON_INSTALL"},"category":"Productivity"}]}

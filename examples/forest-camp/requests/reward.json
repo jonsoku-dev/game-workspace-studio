@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "preset": "pickup",
+  "size": 32,
+  "palette": ["#44624a", "#dcad50", "#fff0b9"],
+  "seed": 23
+}

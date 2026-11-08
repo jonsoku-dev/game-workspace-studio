@@ -1,0 +1,5 @@
+Godot Engine v4.5.1.stable.official.f62fdbde1 - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M4 Pro
+
+STUDIO_IMPORT [{"asset":"lantern","compiled":true,"compiled_geometry":{"meshes":9,"triangles":23160},"raw":true,"raw_geometry":{"meshes":54,"triangles":23160}},{"asset":"embers","compiled":true,"compiled_geometry":{"meshes":1,"triangles":8},"raw":true,"raw_geometry":{"meshes":1,"triangles":8}}]
+STUDIO_PLAYABLE_PASS {"collected":3,"completed":true,"distant_miss":true,"engine":{"build":"official","hash":"f62fdbde15035c5576dad93e586201f4d41ef0cb","hex":263425,"major":4,"minor":5,"patch":1,"status":"stable","string":"4.5.1-stable (official)","timestamp":0},"imports":[{"asset":"lantern","compiled":true,"compiled_geometry":{"meshes":9,"triangles":23160},"raw":true,"raw_geometry":{"meshes":54,"triangles":23160}},{"asset":"embers","compiled":true,"compiled_geometry":{"meshes":1,"triangles":8},"raw":true,"raw_geometry":{"meshes":1,"triangles":8}}],"movement":true,"native_mesh_particles":24,"reset":true,"trigger_320ms":true}
