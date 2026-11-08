@@ -10,6 +10,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import sysconfig
 import tempfile
 
 
@@ -89,8 +90,14 @@ def install(workspace, destination, wheelhouse, npm_cache):
         probe = prepared / "probe"
         run([sys.executable, "-m", "venv", probe], env)
         probe_python = probe / "bin/python"
-        run([probe_python, "-m", "pip", "install", "--no-index", "--only-binary=:all:",
-             "--find-links", wheelhouse, *PYTHON_PACKAGES], env)
+        try:
+            run([probe_python, "-m", "pip", "install", "--no-index", "--only-binary=:all:",
+                 "--find-links", wheelhouse, *PYTHON_PACKAGES], env)
+        except ValueError as exc:
+            raise ValueError(f"Offline wheel preflight failed for {sys.executable} "
+                             f"(Python {sys.version.split()[0]}, {sysconfig.get_platform()}). "
+                             "Use the same interpreter that prepared the wheelhouse, or prepare "
+                             "wheels for this interpreter and platform.\n" + str(exc)) from exc
         run([executables["npm"], "ci", "--cache", npm_cache, "--offline",
              "--ignore-scripts", "--no-audit", "--no-fund"], env, prepared / "model-assets/three")
         destination.mkdir(parents=True, exist_ok=True)

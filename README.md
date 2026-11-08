@@ -43,7 +43,7 @@ python3 tools/stage.py --out /tmp/game-studio-stage-1
 
 새 로컬 폴더에 manifest, skill, tools, 예시, README를 복사한다. 생성물·이력·원래 2D 데모·Git 저장소는 제외한다. 실제 Codex 홈에 설치하거나 배포하지 않는다. [플러그인 manifest](.codex-plugin/plugin.json)와 [마켓플레이스 manifest](.agents/plugins/marketplace.json)를 포함한다.
 
-기존 [2D 보상 효과 납품](assets/generated/reward/sheet.json)은 보존했다. 게임 조작 구현과 엔진별 임포터는 소비 프로젝트가 소유한다.
+기존 2D 보상 효과 납품(소스 저장소의 `assets/generated/reward/sheet.json`)은 보존했다. 게임 조작 구현과 엔진별 임포터는 소비 프로젝트가 소유한다.
 
 ## 실행 이력과 입력 보존
 

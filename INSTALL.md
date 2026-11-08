@@ -16,7 +16,8 @@ macOS/Linux, Python 3.10+ (`venv`, `ensurepip` 포함), Codex CLI (`plugin marke
 WORKSPACE="/absolute/path/to/game-workspace"
 INPUTS="/absolute/path/to/prepared-inputs"
 mkdir -p "$INPUTS/wheels" "$INPUTS/npm-cache"
-python3 -m pip download --only-binary=:all: --dest "$INPUTS/wheels" \
+PYTHON=/absolute/path/to/python3.13
+"$PYTHON" -m pip download --only-binary=:all: --dest "$INPUTS/wheels" \
   'Pillow==12.0.0' 'setuptools==80.9.0' 'wheel==0.45.1'
 PREPARE=$(mktemp -d)
 cp "$WORKSPACE/assets/plugins/model-assets/three/package.json" "$PREPARE/"
@@ -33,7 +34,7 @@ cp "$WORKSPACE/assets/plugins/model-assets/three/package-lock.json" "$PREPARE/"
 
 ```sh
 DESTINATION="/absolute/path/to/game-environment"
-python3 "$WORKSPACE/studio/tools/install_workspace.py" \
+"$PYTHON" "$WORKSPACE/studio/tools/install_workspace.py" \
   --workspace "$WORKSPACE" --destination "$DESTINATION" \
   --wheelhouse "$INPUTS/wheels" --npm-cache "$INPUTS/npm-cache"
 . "$DESTINATION/env.sh"
@@ -60,3 +61,5 @@ INSTALL_TEST_WHEELHOUSE="$INPUTS/wheels" INSTALL_TEST_NPM_CACHE="$INPUTS/npm-cac
 ```
 
 두 번째 명령은 실제 호스트 CLI를 사용해 임시 목적지에 등록하고 재설치·부분 설치 재시도와 무관한 CODEX_HOME 보존을 검사한다. 첫 번째 명령만 실행했으면 실제 설치 검증은 skipped다. 준비 wheel의 Python/플랫폼이 다르면 올바른 준비 환경에서 다시 취득한다.
+
+셸이나 작업 폴더를 바꾸면 `python3`가 다른 버전으로 해석될 수 있다. wheel을 준비한 인터프리터의 절대 경로를 설치에도 사용한다. 예를 들어 `cp313` macOS arm64 Pillow wheel은 CPython 3.15 환경에서 거부된다. 확인 명령은 `"$PYTHON" -c "import sys,sysconfig; print(sys.executable, sys.version, sysconfig.get_platform())"`이다.
