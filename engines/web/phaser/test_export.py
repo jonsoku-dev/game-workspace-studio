@@ -42,7 +42,7 @@ class PhaserExportTests(unittest.TestCase):
             atlas = project / 'builds/attack-contact/assets/scout/atlas.png'
             atlas.write_bytes(atlas.read_bytes() + b'drift')
             with self.assertRaisesRegex(ValueError, 'drift'):
-                adapter.export(project, RUNTIME, out)
+                adapter.export(project, RUNTIME, out, PHASER_PACKAGE)
             self.assertFalse(out.exists())
 
     def test_bundled_notices_preserve_attribution_and_full_licenses(self):
