@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {frameAt,eventPosition} from './timing.mjs';
+import {frameAt,eventPosition,targetContact} from './timing.mjs';
 const frames=[120,120,80,80,160,240].map(duration_ms=>({duration_ms}));
 assert.equal(frameAt(frames,319.99),2);
 assert.equal(frameAt(frames,320),3);
@@ -8,3 +8,34 @@ assert.equal(frameAt(frames,800,true),0);
 assert.deepEqual(eventPosition({x:100,y:200,scale:3,facing:1},[24,46],{at_px:[46,25]}),{x:166,y:137});
 assert.deepEqual(eventPosition({x:100,y:200,scale:3,facing:-1},[24,46],{at_px:[46,25]}),{x:34,y:137});
 console.log('Action frame boundaries and mirrored event anchors passed');
+
+assert.equal(targetContact({x:630,facing:-1},{x:620,y:300},{target_x:650,target_y:300}),false);
+assert.equal(targetContact({x:630,facing:1},{x:660,y:300},{target_x:650,target_y:300}),true);
+assert.equal(targetContact({x:210,facing:1},{x:276,y:300},{target_x:650,target_y:300}),false);
+
+// Exercise the actual actor adapter with a minimal renderer; scoring must not follow early FX.
+const {readFileSync} = await import('node:fs');
+const {attackContact} = await import('./timing.mjs');
+const source = readFileSync(new URL('./game.mjs',import.meta.url),'utf8');
+const actorSource = source.slice(source.indexOf('export class ActionActor'),source.indexOf('class Clearing')).replace('export class','class');
+const Actor = new Function('frameAt','eventPosition',actorSource+'; return ActionActor;')(frameAt,eventPosition);
+const f = {rect:{x:0,y:0,w:40,h:40},duration_ms:100};
+const effect = {action:'attack',start_ms:50,at_px:[32,20],pivot_px_from_top_left:[20,20],frames:[f,f,f],duration_ms:300};
+const metadata = {pivot_px_from_top_left:[20,34],actions:{idle:{frames:[f],duration_ms:100,loop:true},attack:{frames:[f,f,f],duration_ms:300,loop:false}},events:[effect]};
+assert.equal(attackContact(metadata),null);
+assert.deepEqual(attackContact(metadata,{contact_frame:2}),{action:'attack',start_ms:200,at_px:[32,20]});
+const noFx = {...metadata,events:[]};
+assert.equal(attackContact(noFx,{contact_frame:2,at_px:[30,22]}).start_ms,200);
+const image=()=>{const out={};for(const method of ['setScale','setFrame','setPosition','setFlipX','setOrigin','destroy'])out[method]=(...args)=>{if(method==='setFrame')out.frame=args[0];return out;};return out;};
+const scene={textures:{get:()=>({add(){}})},add:{image}};
+const explicit = {...metadata,contact:attackContact(metadata,{contact_frame:2,at_px:[34,21]})};
+const actor=new Actor(scene,explicit,'actor',100,200);
+const scores=[];actor.play('attack');actor.update(60,(...args)=>scores.push(args));
+assert.equal(actor.effects.length,1);assert.equal(actor.effects[0].elapsed,10);assert.equal(actor.effects[0].image.frame,'0');assert.equal(scores.length,0);
+actor.update(139,(...args)=>scores.push(args));assert.equal(scores.length,0);
+actor.update(1,(...args)=>scores.push(args));assert.equal(scores.length,1);
+assert.equal(actor.effects[0].elapsed,150);assert.equal(actor.effects[0].image.frame,'1');assert.equal(scores[0][0].start_ms,200);assert.deepEqual(scores[0][1],{x:142,y:161});
+actor.update(10,(...args)=>scores.push(args));assert.equal(scores.length,1);
+const legacy=new Actor(scene,metadata,'actor',100,200);legacy.play('attack');
+const legacyScores=[];legacy.update(60,(...args)=>legacyScores.push(args));
+assert.equal(legacyScores.length,1);assert.equal(legacyScores[0][0].start_ms,50);

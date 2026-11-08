@@ -17,6 +17,26 @@ import visualize
 
 
 class StateEndpointTests(unittest.TestCase):
+    def test_review_serves_only_the_exact_pinned_evidence(self):
+        with tempfile.TemporaryDirectory() as folder:
+            project = Path(folder).resolve()
+            data = b'{"passed": true}'
+            digest = hashlib.sha256(data).hexdigest()
+            (project / 'check.json').write_bytes(data)
+            (project / 'other.json').write_bytes(data)
+            scope = 'urn:game-studio:test'
+            node = {'@id': scope + ':review:test', '@type': ['Entity', 'ReviewEvidence'],
+                    'snapshot': {'results': [{'evidence': [{'path': 'check.json', 'sha256': digest}]}]}}
+            with patch.object(visualize, 'state', return_value={'project_id': scope, 'runs': [],
+                                                                'graph': {'@graph': [node]}}):
+                _, _, allowed = visualize.SnapshotCache(project, None).get()
+            self.assertEqual(visualize.artifact(project, 'check.json', digest, allowed)[1], data)
+            with self.assertRaises(FileNotFoundError):
+                visualize.artifact(project, 'other.json', digest, allowed)
+            (project / 'check.json').write_bytes(b'{}')
+            with self.assertRaises(RuntimeError):
+                visualize.artifact(project, 'check.json', digest, allowed)
+
     def test_conditional_requests_invalidate_and_reject_foreign_files(self):
         with tempfile.TemporaryDirectory() as folder:
             project = Path(folder).resolve()

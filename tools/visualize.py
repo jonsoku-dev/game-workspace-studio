@@ -20,10 +20,12 @@ UI = Path(__file__).resolve().parents[1] / "visualizer"
 PAGES = {"/": "index.html", "/app.mjs": "app.mjs", "/style.css": "style.css",
          "/scene-view.mjs": "scene-view.mjs", "/i18n.mjs": "i18n.mjs",
          "/shell-i18n.mjs": "shell-i18n.mjs", "/app-messages.mjs": "app-messages.mjs",
-         "/view-messages.mjs": "view-messages.mjs"}
+         "/view-messages.mjs": "view-messages.mjs",
+         "/compare.mjs": "compare.mjs", "/compare-messages.mjs": "compare-messages.mjs"}
 MIME = {".html": "text/html; charset=utf-8", ".mjs": "text/javascript",
         ".js": "text/javascript", ".css": "text/css", ".json": "application/json",
-        ".glb": "model/gltf-binary", ".png": "image/png", ".gif": "image/gif"}
+        ".glb": "model/gltf-binary", ".png": "image/png", ".gif": "image/gif",
+        ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp"}
 POLICY = ("default-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; "
           "connect-src 'self' blob:; img-src 'self' blob: data:; font-src 'self'; "
           "base-uri 'none'; frame-ancestors 'none'; form-action 'none'")
@@ -216,6 +218,7 @@ def graph_signature(project, workspace):
 
 
 VIEW_ROLES = {"model", "preview", "review", "sheet", "atlas", "metadata", "receipt", "validation", "effect", "credits"}
+REVIEW_FORMATS = {".json", ".png", ".gif", ".jpg", ".jpeg", ".webp"}
 
 
 class SnapshotCache:
@@ -241,6 +244,11 @@ class SnapshotCache:
                 if not scope or not node["@id"].startswith(scope + ":"):
                     continue
                 role = node.get("role", "")
+                if "ReviewEvidence" in node["@type"]:
+                    for result in node.get("snapshot", {}).get("results", []):
+                        for pin in result.get("evidence", []):
+                            if Path(pin["path"]).suffix.lower() in REVIEW_FORMATS:
+                                allowed.add((pin["path"], pin["sha256"]))
                 if ("RuntimeProduct" in node["@type"] or ("Artifact" in node["@type"] and
                     (role in VIEW_ROLES or re.fullmatch(r"effect_\d+_(sheet|metadata)", role)))):
                     allowed.add((node.get("path"), node.get("sha256")))
@@ -258,12 +266,13 @@ def artifact(project, path, digest, allowed):
     if (path, digest) not in allowed:
         raise FileNotFoundError("unknown graph artifact")
     target = (project / path).resolve(strict=True)
-    if not target.is_relative_to(project) or target.suffix not in {".json", ".glb", ".png", ".gif"}:
+    suffix = target.suffix.lower()
+    if not target.is_relative_to(project) or suffix not in REVIEW_FORMATS | {".glb"}:
         raise FileNotFoundError("file is outside the viewer scope")
     body = target.read_bytes()
     if hashlib.sha256(body).hexdigest() != digest:
         raise RuntimeError("파일이 기록된 리비전과 다릅니다.")
-    return MIME[target.suffix], body
+    return MIME[suffix], body
 
 
 def handler(project, workspace, routes, browse=False):

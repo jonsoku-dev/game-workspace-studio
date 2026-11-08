@@ -1,8 +1,14 @@
-import {frameAt, eventPosition} from './timing.mjs';
+import {frameAt, eventPosition, targetContact, attackContact} from './timing.mjs';
 
 const status = document.querySelector('#status');
 const bundle = await fetch('game.json').then(r => {if (!r.ok) throw Error('Bundle unavailable'); return r.json();});
 const meta = bundle.metadata;
+const rules = {hits_to_win:3,target_x:650,target_y:300,...bundle.playtest};
+const brief = bundle.brief || {};
+document.querySelector('h1').textContent = brief.title || 'Training clearing';
+document.querySelector('header p').textContent = brief.goal || `Land ${rules.hits_to_win} strikes on the amber target.`;
+document.querySelector('.hint').textContent = brief.controls || 'Arrow keys / A D to move · Space to strike · R to restart';
+meta.contact = attackContact(meta,rules);
 const held = {left:false, right:false};
 const setStatus = text => {if (status.textContent !== text) status.textContent = text;};
 
@@ -30,15 +36,20 @@ export class ActionActor {
       this.fired.add(i);
       const point = eventPosition(this,pivot,event);
       const image = this.scene.add.image(point.x,point.y,`effect-${i}`, '0').setScale(this.scale).setFlipX(this.facing < 0);
-      this.effects.push({image,event,index:i,facing:this.facing,elapsed:this.elapsed-event.start_ms});
-      onEvent(event, point, this.elapsed);
+      this.effects.push({image,event,index:i,facing:this.facing,elapsed:this.elapsed-event.start_ms-delta});
+      if (!(this.metadata.contact && event.action === 'attack')) onEvent(event, point, this.elapsed);
     });
+    const contact = this.metadata.contact;
+    if (contact && this.action === 'attack' && this.elapsed >= contact.start_ms && !this.fired.has('contact')) {
+      this.fired.add('contact');
+      onEvent(contact,eventPosition(this,pivot,contact),this.elapsed);
+    }
     this.effects = this.effects.filter(fx => {
+      fx.elapsed += delta;
       const i = frameAt(fx.event.frames,fx.elapsed);
       const rect = fx.event.frames[i].rect;
       const anchor = fx.event.effect_anchor_px || fx.event.pivot_px_from_top_left;
       fx.image.setFrame(String(i)).setOrigin(fx.facing < 0 ? 1-anchor[0]/rect.w : anchor[0]/rect.w,anchor[1]/rect.h);
-      fx.elapsed += delta;
       if (fx.elapsed >= fx.event.duration_ms) {fx.image.destroy(); return false;}
       return true;
     });
@@ -58,8 +69,8 @@ class Clearing extends Phaser.Scene {
     this.add.rectangle(480,447,960,186,0x2b4843);
     this.add.rectangle(480,357,960,4,0x7c9870);
     this.shadow = this.add.ellipse(210,360,104,18,0x142b2d);
-    this.target = this.add.rectangle(650,300,40,100,0xd5a45f).setStrokeStyle(4,0x6b4b2d);
-    this.add.rectangle(650,354,90,8,0x6b4b2d);
+    this.target = this.add.rectangle(rules.target_x,rules.target_y,40,100,0xd5a45f).setStrokeStyle(4,0x6b4b2d);
+    this.add.rectangle(rules.target_x,354,90,8,0x6b4b2d);
     this.actor = new ActionActor(this,meta,'actor',210,356);
     (meta.events || []).forEach((event,i) => {
       const texture=this.textures.get(`effect-${i}`);
@@ -85,7 +96,7 @@ class Clearing extends Phaser.Scene {
     window.onblur=()=>{held.left=false;held.right=false;};
     document.getElementById('attack').onclick=()=>this.strike();
     document.getElementById('restart').onclick=()=>{held.left=false;held.right=false;this.scene.restart();};
-    setStatus('0 / 3 · Move right to the amber marker.');
+    setStatus(`0 / ${rules.hits_to_win} · Move to the amber marker.`);
     this.game.canvas.setAttribute('aria-hidden','true');
   }
   strike() {if (!this.finished && this.actor.action !== 'attack') this.actor.play('attack');}
@@ -99,11 +110,12 @@ class Clearing extends Phaser.Scene {
     }
     this.shadow.x=a.x;
     a.update(delta,(event,point,elapsed)=>{
-      const contact=Math.abs(point.x-650)<56 && Math.abs(point.y-300)<64;
+      if(event.action!=='attack')return;
+      const contact=targetContact(a,point,rules);
       this.contactEvents.push({start_ms:event.start_ms,observed_ms:elapsed,point,contact});
-      if(contact&&!this.finished){this.hits++;this.target.setFillStyle(this.hits===3?0x6cb39b:0xf6d695);this.finished=this.hits===3;
-        setStatus(this.finished?'Clearing complete · Three clean strikes. Restart to play again.':`${this.hits} / 3 · Hit! Keep your stance and strike again.`);
-      }else if(!this.finished)setStatus(`${this.hits} / 3 · Miss. Face the marker and move closer.`);
+      if(contact&&!this.finished){this.hits++;this.target.setFillStyle(this.hits===rules.hits_to_win?0x6cb39b:0xf6d695);this.finished=this.hits===rules.hits_to_win;
+        setStatus(this.finished?`Clearing complete · ${rules.hits_to_win} clean strikes. Restart to play again.`:`${this.hits} / ${rules.hits_to_win} · Hit! Keep your stance and strike again.`);
+      }else if(!this.finished)setStatus(`${this.hits} / ${rules.hits_to_win} · Miss. Face the marker and move closer.`);
     });
   }
 }

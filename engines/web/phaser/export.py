@@ -36,7 +36,7 @@ def bundled_notices(library):
             + '\n\n'.join(notices)).encode('utf-8')
 
 
-def validate(metadata, files, root):
+def validate(metadata, files, root, rules=None):
     def frames(items, image):
         data = (root / image).read_bytes()
         if data[:8] != b'\x89PNG\r\n\x1a\n':
@@ -77,7 +77,27 @@ def validate(metadata, files, root):
         point(event.get('effect_anchor_px', event['pivot_px_from_top_left']))
         if event['action'] == 'attack':
             attack_events.append(event)
-    if len(attack_events) != 1:
+    rules = {} if rules is None else rules
+    if not isinstance(rules, dict):
+        raise ValueError('playtest must be an object')
+    if set(rules) - {'mode', 'hits_to_win', 'target_x', 'target_y', 'contact_frame', 'at_px'}:
+        raise ValueError('Unsupported playtest fields')
+    if rules.get('mode', 'land_hits') != 'land_hits':
+        raise ValueError('Unsupported playtest mode')
+    if type(rules.get('hits_to_win', 3)) is not int or not 1 <= rules.get('hits_to_win', 3) <= 100:
+        raise ValueError('hits_to_win must be an integer from 1 to 100')
+    for key, default, low, high in [('target_x', 650, 100, 860), ('target_y', 300, 100, 400)]:
+        value = rules.get(key, default)
+        if type(value) not in (int, float) or not math.isfinite(value) or not low <= value <= high:
+            raise ValueError('Invalid ' + key)
+    attack = metadata['actions']['attack']
+    if not attack_events or 'contact_frame' in rules or 'contact_frame' in attack:
+        attack = metadata['actions']['attack']
+        frame = rules.get('contact_frame', attack.get('contact_frame'))
+        if type(frame) is not int or not 0 <= frame < len(attack['frames']) or attack['loop']:
+            raise ValueError('Attack requires contact_frame or one contact effect')
+        point(rules.get('at_px', attack.get('at_px', attack_events[0]['at_px'] if attack_events else None)))
+    if len(attack_events) > 1:
         raise ValueError('Training game requires exactly one attack contact event')
 
 
@@ -104,7 +124,8 @@ def export(project, runtime, output, phaser_package=None):
         provenance = inputs.copy_verified(hashes, stage)
         files = actors[0]
         metadata = json.loads((stage / files['metadata']).read_text())
-        validate(metadata, files, stage)
+        rules = products[0]['scene'].get('playtest', {})
+        validate(metadata, files, stage, rules)
         for name in ('index.html', 'style.css', 'game.mjs', 'timing.mjs'):
             shutil.copyfile(HERE / name, stage / name)
         vendor = stage / 'vendor'
@@ -118,7 +139,7 @@ def export(project, runtime, output, phaser_package=None):
         for destination, source in [('vendor/phaser.min.js', 'dist/phaser.min.js'), ('vendor/PHASER-LICENSE.txt', 'LICENSE.md'), ('vendor/EVENTEMITTER3-LICENSE.txt', '../eventemitter3/LICENSE')]:
             provenance[destination] = {'package':'phaser', 'version':lock['version'], 'source':lock['source'], 'sha256':lock['files'][source], 'license':'MIT'}
         (stage / 'provenance.json').write_text(json.dumps(provenance, indent=2))
-        (stage / 'game.json').write_text(json.dumps({'schema_version':1, 'files':files, 'metadata':metadata, 'runtime_pin':products[0]['runtime_pin']}, indent=2))
+        (stage / 'game.json').write_text(json.dumps({'schema_version':1, 'files':files, 'metadata':metadata, 'playtest':rules, 'brief':products[0]['scene'].get('brief', {}), 'runtime_pin':products[0]['runtime_pin']}, indent=2))
     return output
 
 

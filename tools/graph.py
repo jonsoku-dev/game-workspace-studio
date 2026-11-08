@@ -199,7 +199,11 @@ def compile_run(project, record, scene):
                                  "sha256": _digest(b"{}"), "snapshot": {}}, "requests": {}}
         record["_graph_inputs"] = inputs
     pinned_scene = inputs["scene"]["snapshot"]
-    scene_id = scope + ":scene:" + inputs["scene"]["sha256"]
+    scene_key = inputs["scene"]["sha256"]
+    source_artifact = record.get("scene_source")
+    if source_artifact or inputs["scene"]["path"] != "scene.json":
+        scene_key = _digest(_json([inputs["scene"]["path"], scene_key, source_artifact]).encode())
+    scene_id = scope + ":scene:" + scene_key
     game = scope + ":game:" + _slug(pinned_scene.get("id", "unadmitted"))
     nodes = {scope: _node(scope, "Project"), game: _node(game, "Game", partOf=[scope]),
              scene_id: _node(scene_id, "SceneRevision" if pinned_scene else "UnadmittedInput", partOf=[game], **inputs["scene"])}
@@ -226,6 +230,12 @@ def compile_run(project, record, scene):
     asset_outputs = {}
     output_ids = {}
     admitted = None
+    if source_artifact:
+        admitted = {node["@id"]: node for node in export_graph(project)["@graph"]}
+        if source_artifact not in admitted or "Artifact" not in admitted[source_artifact]["@type"]:
+            raise ValueError("Unadmitted scene source")
+        nodes[scene_id]["wasDerivedFrom"] = [source_artifact]
+        run_node["used"].append(source_artifact)
     for asset in record.get("assets", []):
         if asset["id"] not in {a["id"] for a in pinned_scene.get("assets", [])}:
             raise ValueError("artifact belongs to unknown input asset")

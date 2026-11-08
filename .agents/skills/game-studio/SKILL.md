@@ -1,37 +1,62 @@
 ---
 name: game-studio
-description: 게임 목표와 조작을 기획하고 씬의 소품·효과 배치를 작성하거나 설치된 2D·3D 제작기를 게임 프로젝트에 통합할 때 사용한다.
+description: 게임 아이디어를 첫 플레이로 만들고, 로컬 2D·3D 제작·동작 수정·A/B 비교·검수·엔진 전달을 대화로 진행할 때 사용한다.
 ---
 
-게임 목표·조작·씬 배치·엔진 연결을 소유한다. 픽셀 제작은 설치된 pixel-asset-pipeline에, 모델 제작은 설치된 model-assets에 맡긴다. 제작기 코드를 복사하거나 별도 API·외부 서버·공급자 폴백을 추가하지 않는다.
+게임 목표·조작·씬·엔진 연결을 소유한다. 이 파일에서 상위 세 폴더가 `$STUDIO_ROOT`다. 픽셀은 설치된 `pixel-asset`, 모델은 `model-assets`의 계약으로 제작한다. 설치·의존성 문제는 [INSTALL](../../../INSTALL.md), 수정·검수 JSON과 증거 관계는 [GRAPH](../../../GRAPH.md)를 해당 단계에서 읽는다.
 
-1. 사용자가 지정한 게임 프로젝트의 기획과 엔진을 읽는다. `scene.json`에 목표·조작과 이름 있는 소품·효과를 배치한다. 새 프로젝트는 [예시](../../../examples/forest-camp/scene.json)의 구조로 시작한다.
-2. 각 에셋의 프로젝트 상대 요청 JSON을 작성한다. `pixel-effect`는 설치된 `pixel-asset effect`를, `model-assets`는 활성 설치본의 `tools/build.py`를 호출한다. 다른 제작 행동은 설치된 해당 스킬의 계약을 먼저 읽는다.
-3. 이 스킬 파일에서 상위 세 폴더가 플러그인 루트다. 아래 경로를 실제 값으로 바꿔 실행한다.
+캐릭터 원화가 흐리거나 격자가 어긋나면 Pixel Asset Pipeline의 `snap`으로 입력·출력의 1× 비교판을 만든다. 팔·다리가 떨어진 정면 인물에는 `rig-draft`로 관절·마스크 초안을 만들고 원본 위에 겹쳐 확인한다. 이미 있는 마법 GIF는 `effect-clip`으로 원본 프레임 번호·단계·피벗·재생 시간을 기록한 뒤 `action-set`에 연결한다. 게임 로고·파비콘 요청은 [SVG 후보와 실제 크기 검수](../../../starter/identity/LOGO.md)를 사용한다.
+
+## 대화에서 첫 플레이까지
+
+1. 사용자의 아이디어 원문·제목·목표·플레이어 행동·완료 기준을 정한다. 이미 정해진 내용은 다시 묻지 않는다. 기본 첫 슬라이스는 **이동 → 표적을 향한 유효 공격 N회 → 완료 → 재시작**이며 N은 1..20이다. 아이디어를 임의 게임 규칙으로 자동 해석하지 않는다. 지원 범위와 선택한 제약을 짧게 밝히고 새 프로젝트에 고정한다. 한국어는 `ko`, 일본어는 `ja`를 선택한다.
 
 ```sh
-python3 "$PLUGIN_ROOT/tools/scene.py" validate --project "$PROJECT"
-python3 "$PLUGIN_ROOT/tools/scene.py" build --project "$PROJECT" --out build/run-1
+python3 "$STUDIO_ROOT/tools/start.py" new "$PROJECT" \
+  --idea "숲의 로봇이 표적을 향해 이동해 세 번 명중하는 훈련" \
+  --title "숲 로봇 도장" --language ko --hits 3
+python3 "$STUDIO_ROOT/tools/start.py" build "$PROJECT"
 ```
 
-4. 실패 원인을 고친 뒤 새 `--out`으로 재실행한다. 기존 출력 덮어쓰기나 자동 재시도를 하지 않는다. 성공한 `scene.runtime.json`의 모든 파일 경로는 프로젝트 루트 기준이다.
-5. 엔진에는 3D `model` GLB와 메타데이터를, 2D `sheet` PNG와 `metadata`의 프레임·시간·피벗을 연결한다. 씬은 미터 단위·+Y 위쪽·오른손 좌표다. 회전은 도 단위 XYZ Euler다. 픽셀 노드의 `size_m`는 scale 적용 전 정사각형 폭이다. 엔진 좌표가 다르면 어댑터에서 변환한다.
-6. 실제 엔진에서 모델 배치와 효과 재생을 확인한다. 구조 검증, 제작기 통과, 시각 검토, 실제 플레이 검증을 구분해 보고한다. ready는 파일 납품 상태다.
+2. `new`는 새 폴더에만 원자적으로 작성한다. 포함된 원본 CC0 로봇·명시적 리그를 사용하므로 첫 사용에 이미지 파일을 따로 만들 필요가 없다. `build`는 로컬 `pixel-asset motion` → `action-set` → Studio → 그래프에 등록된 Phaser 납품을 실행한다. 설치된 CLI에 `motion`이 있고 고정 Phaser 의존성이 준비돼 있어야 한다. 출력의 실제 서버 명령을 실행하고 주소를 연다. `playable_export`는 파일 준비 상태다.
+3. 재개할 때 `start.py inspect "$PROJECT"` 또는 `resume`/`status`를 실행하고 실제 다음 명령을 따른다. 변경·부분 산출물은 먼저 검사한다. 기존 출력을 덮어쓰거나 실패를 숨겨 자동 재시도하지 않는다. 첫 3D 장면은 `new ... --kind 3d`와 `build`로 등불·불티를 만들고 출력된 visualizer 명령을 실행한다. 이 경로는 관찰용 장면이다.
+4. 새 Phaser 납품을 정상 조작으로 검증한다. 아래 `play/run-...`은 출력에서 확인한 프로젝트 상대 경로로 바꾼다. 명령은 임시 로컬 서버와 설정된 Stagehand MCP를 사용하고 검사 후 서버를 닫는다.
 
-경로·실패·스테이징 계약은 [README](../../../README.md)를 읽는다. 사용자 승인 없는 설치·배포·구매·기존 파일 삭제는 이 스킬의 범위가 아니다.
+```sh
+python3 "$STUDIO_ROOT/tools/playcheck.py" run \
+  --project "$PROJECT" --export play/run-...
+```
 
-모든 제작 작업을 프로젝트 SSOT 그래프에 연결한다. 일반 씬 제작은 자동 기록된다. 독립 모델 제작·기획 결정·외관 검토·검증처럼 씬 빌드를 거치지 않는 작업은 [그래프 계약](../../../GRAPH.md)의 `record` 명령으로 등록한다. 입력으로 사용, 직접 관찰, 생성, 실패의 관계를 실제 근거에 맞게 선택한다. 실행 순서만으로 원인을 추정하지 않는다.
+브라우저를 실행하지 못하면 그 범위를 미검증으로 남긴다. `playcheck.py --observations ...`는 기존 관측의 검산 도구이며 `run`의 독립 브라우저 실행을 대신하지 않는다. 파일 생성, 기술 검사, 실제 플레이, 사람의 외형 승인을 구분해 보고한다.
 
-사용자가 히스토리·에셋·씬을 보고 싶으면 `python3 "$PLUGIN_ROOT/tools/visualize.py" --project "$PROJECT"`를 실행하고 출력 주소를 제공한다. 등록된 workspace가 있으면 `--workspace "$WORKSPACE/workspace.json"`를 추가한다. visualizer는 읽기 전용이며 새 제작·수정은 이 채팅의 명령으로 실행한다.
+## 원본과 동작 수정
 
-3D 소품의 효과는 기본적으로 `model-assets`의 실제 메시 효과를 사용한다. Forest Camp의 불티는 등불을 `parent`로 참조한다. 2D 시트는 2D 씬 또는 브리프에서 혼합 표현을 선택했을 때 배치한다. 물체와 효과가 함께 움직이는지, 앞·뒤의 불티가 같은 깊이에서 올바르게 가려지는지 실제 씬에서 확인한다.
+사용자 원본을 선택하면 설치된 pixel-asset-pipeline 스킬의 `motion` 계약을 읽는다. `approved:true`, 로컬 `master`, 모든 불투명 픽셀의 겹치지 않는 부위·관절·부모 리그가 필요하다. 보이는 원본의 컷아웃 관절 애니메이션이며 숨은 신체나 새 시점을 그리지 않는다. `inspection.json`의 중립 복원·잘림·중복·접촉 오차와 원속도 실루엣·발 접지·루프를 함께 본다.
 
-로컬 캐릭터 6동작과 pixelfx 접촉 효과는 `pixel-action-set`으로 요청한다. 노드에는 `action`과 `size_m`를 기록한다. 프레임·효과 시트·고지의 출처는 요청 폴더 아래에 보존하고 SSOT 그래프의 입력 리비전과 실제 제작 산출물을 확인한다.
+```sh
+pixel-asset motion --request "$PROJECT/requests/motion.json" --out "$PROJECT/requests/motion-new"
+```
 
-배치만 변경할 때는 앞선 성공 실행의 모델이나 시트를 `{"id":"prop","producer":"model-assets","reuse":{"run_id":"<기존 run_id>","asset":"<기존 asset id>"}}`로 선택한다. 요청과 reuse 중 한 가지만 둔다. 제작기는 호출하지 않으며 원본 파일 해시가 달라지면 재사용이 실패한다. 외부 작업이 만든 산출물은 원본 SHA-256과 실제 사용한 입력을 generated 필드로 등록하고, 단순 관찰과 구분한다. 엔진 통합 후 실제 입력·판정·재시작과 엔진 영수증을 해당 그래프에 남긴다.
+독립 제작은 실제 사용한 입력과 생성 파일을 `graph.py record`로 연결한다. 나온 `action-set.request.json`을 `pixel-action-set` 씬 에셋 요청으로 선택하고 노드에 `action`, `size_m`를 둔다. 외부 효과는 선택 사항이며 no-FX Phaser는 `scene.playtest.contact_frame`과 `at_px`로 접촉을 고정한다.
 
-워크스페이스의 등록된 프로젝트 사이를 이동할 때만 `--browse-workspace`를 지정한다. 화면의 동작·회전·정지 선택은 검수용이며 기록된 입력과 그래프를 수정하지 않는다. Godot 4 샘플은 `$PLUGIN_ROOT/engines/godot/export.py --source <project> <runtime> --source <project> <runtime> --output <new-folder>`로 준비한다. 등불·불티와 scout 동작 세트를 각각 주고, 어댑터 README의 실제 입력 검사를 따른다. 이 샘플의 고정된 게임 규칙을 임의의 사용자 게임에 자동 이식했다고 보고하지 않는다.
+기존 ready A의 동작 수정은 같은 프로젝트에서 새 B로 만든다. [GRAPH의 수정 계약](../../../GRAPH.md#동작-수정과-ab-검수)을 읽고 패치를 작성한다. 프레임 순서·시간·교체 PNG·앵커 및 효과/접촉 프레임 매핑을 명시한다. 결함이 있는 동작만 바꾸고 A를 보존한다.
 
-정상 엔진 전달 경로는 `"$PLUGIN_ROOT/tools/export_game.py" --engine <godot|three|phaser|unity> --project <등록된 출력 프로젝트> --workspace <workspace.json> --source <등록된 입력 프로젝트> <ready runtime 경로> --out <새 상대경로>`다. 이 경로는 엔진 출력·입력 리비전·실패를 그래프에 남긴다. Three는 네이티브 3D 효과, Phaser는 2D 동작 세트, Godot는 검증된 실제 에디터/PCK 런타임이다. Unity 결과의 변환 검증과 라이선스가 있는 에디터에서의 검증은 구분한다. 설치된 `engines/HTML-ENGINES.md`와 타깃별 README의 제한을 따른다.
+```sh
+python3 "$STUDIO_ROOT/tools/revise.py" --project "$PROJECT" \
+  --base "$RUN_A" --asset hero --patch "$PATCH" --out revisions/b-1 --build
+```
 
-작업실 링크에 한국어는 `lang=ko`, 일본어는 `lang=ja`를 사용한다. 프로젝트 선택과 함께라면 기존 project 쿼리를 유지한다. 화면은 로컬에서 언어를 전환하며 사용자 기획문과 SSOT 원문은 보존한다.
+출력의 B run ID·실제 diff·원속도 GIF·접촉 시트를 확인한다. 새 B를 엔진에 납품하고 브라우저 검사를 다시 실행한다. A/B를 비교할 때 `review.py compare/check/choose --project ... --record ...`를 사용한다. 기술 통과만 있으면 `technical-pass`; 사람의 실제 시각 판단과 필수 gameplay 근거가 모두 통과해야 `adopt`다. 사용자 판단을 대신 작성하지 않는다. 수정 요청은 `request-changes`; 활성 채택은 `review.py resolve`로 읽는다. 실패·pending을 해결할 때 새 증거와 명시적 supersession 사유를 남긴다.
+
+## 기존 씬과 관찰
+
+기존 프로젝트는 기획·씬·엔진 제한을 먼저 읽고 정상 진입점으로 검증·제작한다.
+
+```sh
+python3 "$STUDIO_ROOT/tools/scene.py" validate --project "$PROJECT"
+python3 "$STUDIO_ROOT/tools/scene.py" build --project "$PROJECT" --out build/run-new
+```
+
+씬은 미터·+Y 위·오른손 좌표, 회전은 XYZ 도 단위다. 픽셀 `size_m`는 scale 전 정사각형 폭이다. 3D 소품 효과는 model-assets의 메시 효과를 사용하며 Forest Camp 불티는 등불의 `parent`로 부착한다. 배치만 바꿀 때는 성공 실행의 `reuse:{run_id,asset}`를 선택한다. 일반 납품은 `export_game.py --engine <godot|three|phaser|unity> --project <등록된 프로젝트> --workspace <workspace.json> --source <등록된 프로젝트> <ready runtime> --out <새 상대경로>`다. 타깃별 지원 범위는 [엔진 문서](../../../engines/HTML-ENGINES.md)를 따른다.
+
+이력·에셋·씬·A/B 비교는 `visualize.py --project "$PROJECT"`로 읽는다. 등록 workspace를 볼 때만 `--workspace ... --browse-workspace`를 추가한다. 화면은 읽기 전용이며 제작·수정·판정은 이 채팅에서 수행한다. 한국어 링크는 `lang=ko`, 일본어는 `lang=ja`; 기존 project 쿼리는 유지한다. 모든 제작·개발·검증은 프로젝트 그래프에 실제 사용·생성·관찰 관계로 연결한다. 배포·구매·기존 파일 삭제 등은 사용자의 명시적 권한 범위를 따른다.

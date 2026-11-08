@@ -86,6 +86,28 @@ class PhaserExportTests(unittest.TestCase):
                 self.assertFalse((Path(tmp) / 'output').exists())
                 (package / name).write_bytes(original)
 
+    def test_local_contact_without_external_effect(self):
+        metadata = json.loads((PROJECT / 'builds/attack-contact/assets/scout/action-set.json').read_text())
+        runtime = json.loads((PROJECT / RUNTIME).read_text())
+        metadata['events'] = []
+        rules = {'mode': 'land_hits', 'hits_to_win': 5, 'contact_frame': 3, 'at_px': [46, 25]}
+        adapter.validate(metadata, runtime['assets'][0]['files'], PROJECT, rules)
+        for invalid in ({**rules, 'hits_to_win': 0}, {**rules, 'contact_frame': 100}, {**rules, 'at_px': None}, {**rules, 'mode': 'unknown'}):
+            with self.assertRaises(ValueError):
+                adapter.validate(metadata, runtime['assets'][0]['files'], PROJECT, invalid)
+
+    def test_explicit_contact_with_effect_is_validated_independently(self):
+        metadata = json.loads((PROJECT / 'builds/attack-contact/assets/scout/action-set.json').read_text())
+        runtime = json.loads((PROJECT / RUNTIME).read_text())
+        files = runtime['assets'][0]['files']
+        adapter.validate(metadata, files, PROJECT, {'contact_frame': 4})
+        for invalid in ({'contact_frame': 999}, {'contact_frame': True}, {'contact_frame': 4, 'at_px': None}):
+            with self.assertRaises(ValueError):
+                adapter.validate(metadata, files, PROJECT, invalid)
+        metadata['events'][0]['start_ms'] = 99999
+        with self.assertRaises(ValueError):
+            adapter.validate(metadata, files, PROJECT, {'contact_frame': 4})
+
     def test_invalid_atlas_rect_rejected(self):
         metadata = json.loads((PROJECT / 'builds/attack-contact/assets/scout/action-set.json').read_text())
         runtime = json.loads((PROJECT / RUNTIME).read_text())

@@ -608,8 +608,8 @@ class SceneTests(unittest.TestCase):
         barrier = Barrier(2)
         original = scene.load_scene
 
-        def synchronized(project):
-            value = original(project)
+        def synchronized(project, scene_name):
+            value = original(project, scene_name)
             barrier.wait(timeout=5)
             return value
 

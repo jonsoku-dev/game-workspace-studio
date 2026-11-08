@@ -1,0 +1,194 @@
+{
+  "schema_version": 1,
+  "master": "master.png",
+  "approved": true,
+  "pivot_px_from_top_left": [
+    20,
+    34
+  ],
+  "rig": {
+    "parts": [
+      {
+        "id": "torso",
+        "role": "torso",
+        "parent": null,
+        "anchor_px": [
+          20,
+          21
+        ],
+        "rect": [
+          16,
+          17,
+          8,
+          9
+        ]
+      },
+      {
+        "id": "head",
+        "role": "head",
+        "parent": "torso",
+        "anchor_px": [
+          20,
+          17
+        ],
+        "rect": [
+          15,
+          9,
+          10,
+          8
+        ]
+      },
+      {
+        "id": "arm_left",
+        "role": "arm_left",
+        "parent": "torso",
+        "anchor_px": [
+          16,
+          19
+        ],
+        "rect": [
+          12,
+          18,
+          4,
+          9
+        ]
+      },
+      {
+        "id": "arm_right",
+        "role": "arm_right",
+        "parent": "torso",
+        "anchor_px": [
+          24,
+          19
+        ],
+        "rect": [
+          24,
+          18,
+          4,
+          9
+        ]
+      },
+      {
+        "id": "leg_left",
+        "role": "leg_left",
+        "parent": "torso",
+        "anchor_px": [
+          18,
+          26
+        ],
+        "rect": [
+          16,
+          26,
+          4,
+          8
+        ]
+      },
+      {
+        "id": "leg_right",
+        "role": "leg_right",
+        "parent": "torso",
+        "anchor_px": [
+          22,
+          26
+        ],
+        "rect": [
+          20,
+          26,
+          4,
+          8
+        ]
+      }
+    ]
+  },
+  "actions": {
+    "attack": {
+      "frames": [
+        {
+          "duration_ms": 120,
+          "parts": {
+            "torso": {
+              "angle_deg": -10
+            },
+            "head": {
+              "angle_deg": 5.0
+            },
+            "arm_left": {
+              "angle_deg": 20
+            },
+            "arm_right": {
+              "angle_deg": 45
+            }
+          }
+        },
+        {
+          "duration_ms": 120,
+          "parts": {
+            "torso": {
+              "angle_deg": -16
+            },
+            "head": {
+              "angle_deg": 8.0
+            },
+            "arm_left": {
+              "angle_deg": 45
+            },
+            "arm_right": {
+              "angle_deg": 75
+            }
+          }
+        },
+        {
+          "duration_ms": 120,
+          "parts": {
+            "torso": {
+              "angle_deg": 18
+            },
+            "head": {
+              "angle_deg": -9.0
+            },
+            "arm_left": {
+              "angle_deg": -35
+            },
+            "arm_right": {
+              "angle_deg": -95
+            }
+          }
+        },
+        {
+          "duration_ms": 120,
+          "parts": {
+            "torso": {
+              "angle_deg": 8
+            },
+            "head": {
+              "angle_deg": -4.0
+            },
+            "arm_left": {
+              "angle_deg": -15
+            },
+            "arm_right": {
+              "angle_deg": -55
+            }
+          }
+        },
+        {
+          "duration_ms": 120,
+          "parts": {
+            "torso": {
+              "angle_deg": 0
+            },
+            "head": {
+              "angle_deg": 0.0
+            },
+            "arm_left": {
+              "angle_deg": 0
+            },
+            "arm_right": {
+              "angle_deg": 0
+            }
+          }
+        }
+      ]
+    }
+  }
+}

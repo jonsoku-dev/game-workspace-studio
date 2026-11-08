@@ -1327,3 +1327,117 @@ html:lang(ja) {
     -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", Meiryo,
     sans-serif;
 }
+
+/* Comparison stays behind its tab; both canvases share one inspection clock. */
+.compare-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+  margin-bottom: 18px;
+}
+.compare-heading label,
+.compare-controls label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.compare-heading select {
+  max-width: min(45vw, 340px);
+}
+.compare-heading p,
+.compare-note {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.compare-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 0;
+  border-block: 1px solid var(--line);
+  margin-bottom: 16px;
+}
+.compare-controls[hidden] { display: none; }
+.compare-controls button,
+.compare-controls select,
+.compare-heading select {
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--text);
+}
+.compare-controls .compare-timeline {
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 11px;
+}
+.compare-timeline input {
+  flex: 1;
+  min-width: 120px;
+  accent-color: var(--amber);
+}
+.compare-timeline output {
+  min-width: 125px;
+  font-variant-numeric: tabular-nums;
+}
+.compare-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.compare-side { min-width: 0; }
+.compare-side .card-heading { gap: 12px; }
+.compare-side .card-heading h3 { font-size: 15px; }
+.compare-side .card-heading span {
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+.compare-side .scene-stage {
+  height: clamp(240px, 35vw, 420px);
+}
+.compare-side canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.compare-export { padding: 12px; font-size: 12px; }
+.compare-export a,
+.compare-file a { color: var(--amber); }
+.compare-evidence { margin-top: 28px; }
+.compare-evidence > h3,
+.compare-decision h3 { margin-bottom: 14px; font-size: 15px; }
+.compare-criteria {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 20px;
+}
+.compare-criterion {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  overflow-wrap: anywhere;
+}
+.compare-criterion h4 { margin: 5px 0 8px; font-size: 14px; }
+.compare-criterion p,
+.compare-decision p { margin-block: 8px; font-size: 12px; line-height: 1.7; }
+.compare-criterion .compare-result { color: var(--amber); font-weight: 600; }
+.compare-criterion .compare-result.fail { color: var(--error); }
+.compare-criterion .compare-result.pending { color: var(--muted); }
+.compare-file small { display: block; font-size: 10px; }
+.compare-decision {
+  padding: 18px 0;
+  margin-top: 20px;
+  border-top: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+  .compare-heading { align-items: stretch; gap: 8px; }
+  .compare-heading label { width: 100%; }
+  .compare-heading select { flex: 1; min-width: 0; max-width: none; }
+  .compare-pair { grid-template-columns: 1fr; gap: 14px; }
+  .compare-side .scene-stage { height: 260px; }
+  .compare-timeline output { min-width: 110px; }
+  .compare-controls { gap: 8px; }
+}

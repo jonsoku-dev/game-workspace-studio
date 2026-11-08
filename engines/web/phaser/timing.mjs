@@ -14,3 +14,16 @@ export function eventPosition(actor, pivot, event) {
     y: actor.y + (event.at_px[1] - pivot[1]) * actor.scale,
   };
 }
+
+export function targetContact(actor, point, target) {
+  return (target.target_x-actor.x)*actor.facing>0 && Math.abs(point.x-target.target_x)<56 && Math.abs(point.y-target.target_y)<64;
+}
+
+export function attackContact(metadata, rules = {}) {
+  const attack = metadata.actions.attack;
+  const effect = (metadata.events || []).find(e => e.action === 'attack');
+  const index = rules.contact_frame ?? attack.contact_frame;
+  if (index === undefined && effect) return null;
+  return {action:'attack',start_ms:attack.frames.slice(0,index).reduce((n,f)=>n+f.duration_ms,0),
+    at_px:rules.at_px ?? attack.at_px ?? effect?.at_px};
+}

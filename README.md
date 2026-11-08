@@ -2,6 +2,10 @@
 
 게임 기획과 씬 배치, 설치된 에셋 제작기의 엔진 통합을 담당하는 로컬 Codex 플러그인이다. Python 3.10+ stdlib CLI가 실제 제작기를 호출해 프로젝트 상대 경로를 담은 런타임 씬을 만든다. 모델·픽셀 제작 코드는 포함하지 않는다.
 
+## 채팅에서 첫 게임 만들기
+
+예시 요청은 “달빛 아래 로봇이 표적을 세 번 맞히면 끝나는 게임을 만들고, 준비 동작을 조금 늘린 버전도 비교해 줘”다. 새 프로젝트의 `start.py new/build`가 원본 기획과 목표·조작·완료 조건을 기록하고 첫 Phaser 게임을 만든다. `revise.py`는 원본 실행을 고정하고 바꿀 동작만 새 후보로 만든다. `playcheck.py run`은 실제 게임을 열어 거리·방향·접촉·승리·재시작을 검사한다. 작업실의 A/B 탭에서 같은 시각으로 움직이거나 두 게임을 각각 열 수 있다. `?view=compare&lang=ja`로 일본어 비교 화면을 공유한다. 사람의 선택은 채팅에서 검수 기록으로 남긴다. [시작·설치 명령](INSTALL.md) · [수정과 채택 예시](GRAPH.md#동작-수정과-ab-검수)
+
 ## 실행
 
 설치된 `pixel-asset` 명령과 활성 `model-assets` 플러그인이 필요하다. Blender·컴파일러 의존성은 3D 제작기가 소유한다.
@@ -73,10 +77,10 @@ python3 tools/graph.py history --project examples/forest-camp
 로컬 Codex에 스튜디오를 설치하는 절차다. 아래는 이 버전의 새 설치 경로 예시다.
 
 ```sh
-python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.6.1"
-codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.6.1"
+python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.7.1"
+codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.7.1"
 codex plugin add game-studio@game-studio
-STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.6.1"
+STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.7.1"
 ```
 
 프로젝트에서 `$game-studio`로 기획·씬 제작을 요청한다. 예를 들어 “Forest Camp의 30cm 등불 통풍구에 입체 불티를 붙이고 제작 과정을 보여 줘”라고 지시한다.

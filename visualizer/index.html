@@ -33,6 +33,7 @@
       <div class="page-heading"><div><h2 id="run-title">장면을 불러오는 중</h2></div><div class="scene-actions"><span id="run-status" class="badge" hidden></span><a id="play-game" class="play-game" target="_blank" rel="noopener noreferrer" hidden></a></div></div>
       <div class="tabs" role="tablist" aria-label="작업 보기" data-i18n-aria-label="views">
         <button id="tab-scene" role="tab" aria-selected="true" aria-controls="panel-scene" tabindex="0" data-i18n="sceneAssets">장면 · 에셋</button>
+        <button id="tab-compare" role="tab" aria-selected="false" aria-controls="panel-compare" tabindex="-1">A/B 비교</button>
         <button id="tab-graph" role="tab" aria-selected="false" aria-controls="panel-graph" tabindex="-1"><span data-i18n="causalGraph">인과 그래프</span> <span id="graph-count"></span></button>
       </div>
       <section id="panel-scene" role="tabpanel" aria-labelledby="tab-scene">
@@ -48,6 +49,7 @@
         <section id="steps" class="steps" aria-label="제작 단계" data-i18n-aria-label="steps"></section>
         </details>
       </section>
+      <section id="panel-compare" role="tabpanel" aria-labelledby="tab-compare" hidden><div id="compare-root"></div></section>
       <section id="panel-graph" role="tabpanel" aria-labelledby="tab-graph" hidden>
         <div id="graph-map" class="graph-map" aria-label="선택한 항목의 연결 그래프" data-i18n-aria-label="connectionGraph"></div>
         <details id="graph-details" class="graph-details"><summary data-i18n="graphDetails">항목 · 근거 살펴보기</summary>

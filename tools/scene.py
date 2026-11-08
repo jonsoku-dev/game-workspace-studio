@@ -167,8 +167,8 @@ def stage_action_inputs(project, source_request, request, specification, pins):
             copied[source] = target
 
 
-def load_scene(project):
-    scene = read_json(local_path(project, "scene.json"))
+def load_scene(project, scene_name="scene.json"):
+    scene = read_json(local_path(project, scene_name))
     if not isinstance(scene, dict) or scene.get("schema_version") != 1:
         raise SceneError("invalid_schema", "Use scene schema_version 1.")
     identifier(scene.get("id"))
@@ -377,7 +377,7 @@ def verify_bundle(bundle, result, producer, *, require_effect=False):
     return files
 
 
-def build(project, output, timeout):
+def build(project, output, timeout, scene_name="scene.json", source_artifact=None):
     project = project.resolve()
     output_name = output
     if not project.is_dir():
@@ -394,7 +394,17 @@ def build(project, output, timeout):
     try:
         output = local_path(project, output_name)
         record["output"] = str(output.relative_to(project))
-        scene = load_scene(project)
+        input_path = local_path(project, scene_name)
+        record["scene"] = str(input_path.relative_to(project))
+        scene = load_scene(project, scene_name)
+        if source_artifact:
+            nodes = graph.query(project, subject=source_artifact, kind="Artifact")
+            raw = input_path.read_bytes()
+            if (len(nodes) != 1 or not nodes[0].get("wasGeneratedBy") or nodes[0].get("path") != record["scene"]
+                    or nodes[0].get("sha256") != hashlib.sha256(raw).hexdigest()
+                    or nodes[0].get("byteCount") != len(raw) or json.loads(raw) != scene):
+                raise SceneError("missing_input", "Restore the exact prepared scene revision before rebuilding.")
+            record["scene_source"] = source_artifact
         if output.exists() or output.is_symlink():
             output_conflict = True
             raise ValueError("output exists; retry with a fresh --out path")
@@ -491,6 +501,8 @@ def build(project, output, timeout):
         runtime = {"schema_version": 1, "status": "ready", "id": scene["id"], "brief": scene["brief"],
                    "coordinates": scene["coordinates"], "assets": record["assets"], "nodes": scene["nodes"],
                    "input_scene": record["input_scene"]}
+        if "playtest" in scene:
+            runtime["playtest"] = scene["playtest"]
         write_json(output / "scene.runtime.json", runtime)
         record["status"] = "ready"
         record["runtime"] = str((output / "scene.runtime.json").relative_to(project))
@@ -540,16 +552,18 @@ def main(argv=None):
     parser.add_argument("--project", required=True, type=Path)
     parser.add_argument("--out", default="build/run-1")
     parser.add_argument("--timeout", default=300, type=int)
+    parser.add_argument("--scene", default="scene.json", help="Project-relative scene input")
+    parser.add_argument("--source-artifact", help="Explicit graph Artifact ID of a prepared scene revision")
     args = parser.parse_args(argv)
     try:
         project = args.project.resolve()
         if args.timeout <= 0:
             raise ValueError("timeout must be positive")
         if args.command == "validate":
-            load_scene(project)
+            load_scene(project, args.scene)
             result = {"schema_version": 1, "status": "valid"}
         else:
-            result = build(project, args.out, args.timeout)
+            result = build(project, args.out, args.timeout, args.scene, args.source_artifact)
         print(json.dumps(result))
         return 0
     except (OSError, ValueError, subprocess.SubprocessError, TypeError, KeyError) as exc:

@@ -25,6 +25,19 @@ def _adapter(engine):
     return module
 
 
+def selected_runtime(project, name):
+    if name != '@adopted':
+        return name
+    import review
+    chosen = review.resolve(project)['run']
+    if not chosen:
+        raise ValueError('No explicitly adopted run in the source project')
+    nodes = graph.query(project, subject=chosen + ':runtime', kind='RuntimeProduct')
+    if len(nodes) != 1:
+        raise ValueError('Adopted runtime is unavailable')
+    return nodes[0]['path']
+
+
 def export_game(engine, project, workspace, sources, out, *, three_package=None,
                 phaser_package=None, blender=None):
     manifest = Path(workspace).resolve(strict=True)
@@ -51,7 +64,7 @@ def export_game(engine, project, workspace, sources, out, *, three_package=None,
                 phaser_package is not None and engine != 'phaser' or
                 blender is not None and engine != 'unity'):
             raise ValueError('Package/converter option does not match engine')
-        sources = [(member(p), r) for p, r in sources]
+        sources = [(member(p), selected_runtime(member(p), r)) for p, r in sources]
         if not sources or len(set(sources)) != len(sources):
             raise ValueError('Provide distinct registered runtime sources')
         if engine == 'phaser' and len(sources) != 1:

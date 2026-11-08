@@ -1,3 +1,4 @@
+import {updateCompare} from './compare.mjs';
 import './shell-i18n.mjs';
 import {t, localeTag, formatNumber, localizedUrl} from './i18n.mjs';
 import {appMessages} from './app-messages.mjs';
@@ -136,13 +137,50 @@ function fields(container, entries) {
   });
   container.append(dl);
 }
-function switchTab(name) {
-  for (const value of ['scene','graph']) { const selected = name === value; $(`tab-${value}`).setAttribute('aria-selected', String(selected)); $(`tab-${value}`).tabIndex = selected ? 0 : -1; $(`panel-${value}`).hidden = !selected; }
-  if (name === 'graph') renderGraph();
+function comparisonFileURL(file) {
+  return scopedURL(`/artifact?path=${encodeURIComponent(file.path)}&sha256=${encodeURIComponent(file.sha256)}`);
 }
-for (const [index, name] of ['scene','graph'].entries()) {
-  $(`tab-${name}`).addEventListener('click', () => switchTab(name));
-  $(`tab-${name}`).addEventListener('keydown', event => { if (['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) { event.preventDefault(); const next = event.key === 'Home' ? 'scene' : event.key === 'End' ? 'graph' : ['scene','graph'][1-index]; switchTab(next); $(`tab-${next}`).focus(); } });
+async function loadComparisonRuntime(side) {
+  const runtimePin = side.runtime;
+  const response = await fetch(comparisonFileURL(runtimePin));
+  if (!response.ok) throw Error('Comparison runtime is unavailable');
+  const bytes = await response.arrayBuffer();
+  const hash = await crypto.subtle.digest('SHA-256', bytes);
+  if (bytes.byteLength !== runtimePin.byteCount ||
+      Array.from(new Uint8Array(hash), n => n.toString(16).padStart(2,'0')).join('') !== runtimePin.sha256) {
+    throw Error('Comparison runtime pin changed');
+  }
+  const files = new Map(side.artifacts.map(file => [file.path,file]));
+  const assetURL = path => {
+    if (!files.has(path)) throw Error('File is outside the pinned comparison');
+    return comparisonFileURL(files.get(path));
+  };
+  const run = state.runs.find(candidate => candidate.graph_id === side.run);
+  return {runtime:JSON.parse(new TextDecoder().decode(bytes)),assetURL,playURL:run?.playable_url};
+}
+const tabs = ['scene','compare','graph'];
+function switchTab(name) {
+  for (const value of tabs) {
+    const selected = name === value;
+    $(`tab-${value}`).setAttribute('aria-selected',String(selected));
+    $(`tab-${value}`).tabIndex = selected ? 0 : -1;
+    $(`panel-${value}`).hidden = !selected;
+  }
+  if (name === 'graph') renderGraph();
+  const address = new URL(location.href);
+  if (name === 'scene') address.searchParams.delete('view');
+  else address.searchParams.set('view', name);
+  history.replaceState(history.state, '', address);
+}
+for (const [index,name] of tabs.entries()) {
+  $(`tab-${name}`).addEventListener('click',()=>switchTab(name));
+  $(`tab-${name}`).addEventListener('keydown',event=>{
+    if (!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
+    event.preventDefault();
+    const next = event.key === 'Home' ? tabs[0] : event.key === 'End' ? tabs.at(-1)
+      : tabs[(index + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+    switchTab(next); $(`tab-${next}`).focus();
+  });
 }
 function placeGallery(gallery) {
   const hasPosters = gallery.childElementCount > 0;
@@ -566,6 +604,7 @@ async function refresh() {
     const signature=JSON.stringify(data); bindText($('connection'), () => (tr('프로젝트에 연결됨'))); document.body.classList.remove('offline');
     if(signature===state.signature) return;
     const previousRun=activeRun(); const previousProjection=JSON.stringify(previousRun); state.signature=signature; state.runs=data.runs; state.nodes=data.graph['@graph']; state.context=data.graph['@context']; state.project=data.project_id;
+    updateCompare(state.nodes.filter(node=>state.project && node['@id'].startsWith(state.project+':')), {loadRuntime:loadComparisonRuntime, evidenceURL:comparisonFileURL});
     bindText($('project-name'), () => (data.project_name || tr('제작 관찰실')));
     const projects=Array.isArray(data.projects) ? data.projects : [];
     const browsing=projects.length>1; $('project-picker').hidden=!browsing; $('project-name').hidden=browsing;
@@ -606,6 +645,8 @@ window.addEventListener('studio:localechange', () => {
   }
 });
 
+const initialView = new URLSearchParams(location.search).get('view');
+if (tabs.includes(initialView)) switchTab(initialView);
 await refresh(); const refreshTimer=setInterval(refresh,4000);
 matchMedia('(max-width: 700px)').addEventListener('change',()=>{if($('tab-graph').getAttribute('aria-selected')==='true') renderGraph();});
 window.addEventListener('pagehide',()=>{clearInterval(refreshTimer);clearInterval(state.proofTimer);state.renderer?.dispose();});

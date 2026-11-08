@@ -34,20 +34,29 @@ def graph_pins(project, runtime):
             continue
         if hashlib.sha256((project / runtime).read_bytes()).hexdigest() != candidate['sha256']:
             continue
-        admitted = {candidate['@id']: candidate}
-        pending = list(candidate.get('wasDerivedFrom', []))
-        pending += [i for n in nodes if 'ScenePlacement' in n.get('@type', []) and candidate['@id'] in n.get('partOf', []) for i in n.get('placementOf', [])]
+        # Older reused scenes can point at their original RuntimeProduct.
+        # SceneRevision digests identify canonical JSON, not file bytes.
+        products = set()
+        pending = [candidate]
+        seen = set()
         while pending:
-            ident = pending.pop()
-            if ident in admitted:
+            product = pending.pop()
+            if product['@id'] in seen:
                 continue
+            seen.add(product['@id'])
+            dependencies = set(product.get('wasDerivedFrom', []))
+            for node in nodes:
+                if 'ScenePlacement' in node.get('@type', []) and product['@id'] in node.get('partOf', []):
+                    dependencies.update(node.get('placementOf', []))
+            for ident in dependencies:
+                node = by_id[ident]
+                if 'RuntimeProduct' in node['@type']:
+                    pending.append(node)
+                elif 'Artifact' in node['@type']:
+                    products.add(ident)
+        pins = {runtime: candidate}
+        for ident in sorted(products):
             node = by_id[ident]
-            admitted[ident] = node
-            pending.extend(node.get('wasDerivedFrom', []))
-        pins = {}
-        for node in admitted.values():
-            if 'path' not in node or 'sha256' not in node:
-                continue
             if node['path'] in pins and pins[node['path']]['sha256'] != node['sha256']:
                 raise ValueError('Conflicting linked artifact pins')
             pins[node['path']] = node

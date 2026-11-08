@@ -6,7 +6,7 @@
 
 macOS/Linux, Python 3.10+ (`venv`, `ensurepip` 포함), Codex CLI (`plugin marketplace add`, `plugin add`, `plugin list --json` 지원), Node.js/npm, Blender, Webstage CLI가 PATH에 있어야 한다. 이 실행 파일과 Webstage의 컴파일 도구는 설치기가 설치하지 않는다. 사용하는 Webstage 배포판의 로컬 컴파일 도구도 연결 가능한 준비 환경에서 미리 설치해야 한다. Node.js 22+와 Blender 5.2 LTS를 기준으로 준비한다. Blender의 `--offline-mode` 지원이 필요하다.
 
-소스 workspace에는 `studio/`와 `assets/`가 모두 있어야 한다. 각 저장소의 배포 리비전을 고정해서 받는다. 소스 코드, CLI, Blender, Webstage 도구의 설치와 아래 의존성 취득은 **런타임/오프라인 설치 전에** 끝낸다. 이 문서의 bootstrap 범위는 Python venv/픽셀 CLI, 로컬 플러그인 등록, Three.js다. Blender 렌더와 Webstage 컴파일 성공은 별도 제작 검증이다.
+소스 workspace에는 `studio/`와 `assets/`가 모두 있어야 한다. 각 저장소의 배포 리비전을 고정해서 받는다. 소스 코드, CLI, Blender, Webstage 도구의 설치와 아래 의존성 취득은 **런타임/오프라인 설치 전에** 끝낸다. 이 문서의 bootstrap 범위는 Python venv/픽셀 CLI, 로컬 플러그인 등록, 고정된 Three.js와 Phaser다. Blender 렌더와 Webstage 컴파일 성공은 별도 제작 검증이다.
 
 ## 연결 가능한 준비 환경에서 의존성 취득
 
@@ -22,6 +22,10 @@ PYTHON=/absolute/path/to/python3.13
 PREPARE=$(mktemp -d)
 cp "$WORKSPACE/assets/plugins/model-assets/three/package.json" "$PREPARE/"
 cp "$WORKSPACE/assets/plugins/model-assets/three/package-lock.json" "$PREPARE/"
+(cd "$PREPARE" && npm ci --cache "$INPUTS/npm-cache" \
+  --ignore-scripts --no-audit --no-fund)
+cp "$WORKSPACE/studio/engines/web/phaser/package.json" "$PREPARE/"
+cp "$WORKSPACE/studio/engines/web/phaser/package-lock.json" "$PREPARE/"
 (cd "$PREPARE" && npm ci --cache "$INPUTS/npm-cache" \
   --ignore-scripts --no-audit --no-fund)
 ```
@@ -46,7 +50,7 @@ python3 "$STUDIO_ROOT/tools/scene.py" validate \
 
 `env.sh`는 이 셸의 CODEX_HOME, PATH, STUDIO_ROOT, MODEL_ASSETS_ROOT를 지정한다. 이후 같은 셸에서 Codex와 제작 명령을 실행한다. `venv/bin`이 PATH 선두이므로 스튜디오가 호출하는 `python3`와 `pixel-asset`이 같은 환경을 사용한다. 새 셸에서는 다시 source한다. 목적지 전체는 절대 경로가 포함된 Python venv와 Codex 등록을 소유하므로 옮기지 말고 새 경로에서 재설치한다.
 
-설치기는 빈 임시 환경에서 wheel/npm 입력을 사전 검사한 뒤 목적지를 만들고, 실제 Codex 등록 결과, 설치된 픽셀 CLI의 `--help`, Three.js 버전과 모듈 import를 검사한다. 성공하면 stdout JSON의 `status`가 `ready`이고 `install-result.json`, `env.sh`가 생긴다. 이는 제작물의 시각 품질·게임 통합 검증이 아니다.
+설치기는 빈 임시 환경에서 wheel/npm 입력을 사전 검사한 뒤 목적지를 만들고, 실제 Codex 등록 결과, 설치된 픽셀 CLI의 `--help`, Three.js 버전과 모듈 import, 고정 Phaser 런타임·라이선스 바이트를 검사한다. 성공하면 stdout JSON의 `status`가 `ready`이고 `install-result.json`, `env.sh`가 생긴다. 이는 제작물의 시각 품질·게임 통합 검증이 아니다.
 
 실패하면 오류에 표시된 사전 조건을 복구하고 **동일한 명령**으로 재시도한다. 같은 소스 바이트로 생성된 부분 설치는 재사용한다. 소스가 바뀌었거나 스테이지 파일이 수정되면 새 목적지를 사용한다. 실패한 환경은 자동 삭제하지 않는다. 한 목적지의 동시 설치는 거부한다. npm 캐시는 npm이 관리하는 준비 저장소이며 설치 도중 캐시 메타데이터가 갱신될 수 있다.
 
@@ -64,4 +68,34 @@ INSTALL_TEST_WHEELHOUSE="$INPUTS/wheels" INSTALL_TEST_NPM_CACHE="$INPUTS/npm-cac
 
 셸이나 작업 폴더를 바꾸면 `python3`가 다른 버전으로 해석될 수 있다. wheel을 준비한 인터프리터의 절대 경로를 설치에도 사용한다. 예를 들어 `cp313` macOS arm64 Pillow wheel은 CPython 3.15 환경에서 거부된다. 확인 명령은 `"$PYTHON" -c "import sys,sysconfig; print(sys.executable, sys.version, sysconfig.get_platform())"`이다.
 
-0.5.x는 `studio/engines/web/phaser/package.json 및 package-lock.json`의 Phaser 3.90.0과 eventemitter3도 같은 npm 캐시에 준비해야 한다. 임시 폴더에 이 두 파일을 복사하고 Three와 동일한 `npm ci --cache "$INPUTS/npm-cache" --ignore-scripts --no-audit --no-fund`를 실행한다. 런타임은 패키지 무결성과 배포 파일·라이선스의 고정 SHA-256을 검사한다.
+이력: 0.5.x에서 Phaser 3.90.0과 eventemitter3의 오프라인 캐시 준비가 추가됐다. 현재 0.7.1에도 적용되며 위 준비 절차에 포함했다. 런타임은 패키지 무결성과 배포 파일·라이선스의 고정 SHA-256을 검사한다.
+
+
+## 0.7.1 첫 실행과 재개
+
+설치한 `env.sh`를 source한 같은 셸에서 실행한다. `pixel-asset --help`에 `motion`이 없으면 이전 CLI이므로 새 로컬 패키지 설치를 확인한다. 소스 개발 환경의 `PYTHONPATH=assets/src` 실행은 설치본 검증과 구분한다.
+
+```sh
+PROJECT="/absolute/path/to/new-game"
+python3 "$STUDIO_ROOT/tools/start.py" new "$PROJECT" \
+  --idea "森のロボットが標的を狙って訓練する" --title "森の道場" --language ja --hits 5
+python3 "$STUDIO_ROOT/tools/start.py" build "$PROJECT"
+python3 "$STUDIO_ROOT/tools/start.py" inspect "$PROJECT"
+```
+
+한국어는 `--language ko`를 쓴다. 아이디어 원문·제목·목표·조작·완료 기준을 고정하며 기본 규칙은 이동 후 표적에 1..20회 명중하기다. 임의 아이디어의 규칙을 자동 구현하지 않는다. 자체 CC0 master와 명시적 rig, 새 프로젝트용 workspace manifest가 포함되어 외부 이미지나 서비스를 찾을 필요가 없다. 빌드는 로컬 motion → action-set → Studio → Phaser 경로이며 정상 설치된 고정 의존성을 사용한다. `--kind 3d`는 포함된 forest-camp 요청으로 첫 관찰용 장면을 만든다.
+
+`inspect`, `status`, `resume`는 현재 파일과 그래프에서 다음 명령을 출력한다. 새 프로젝트는 `build_required`, 엔진 파일 준비는 `playable_export`, 3D 장면 준비는 `scene_ready`다. 변경·부분 motion은 검사 대상으로 남고 자동 덮어쓰기를 하지 않는다. 출력된 HTTP 서버 명령을 실행한 뒤 주소를 연다. `playable_export`는 서버가 이미 시작됐거나 게임 목표·외형 검수가 끝났다는 뜻이 아니다.
+
+Phaser 브라우저 검사는 실제 설치 파일로 실행한다.
+
+```sh
+python3 "$STUDIO_ROOT/tools/playcheck.py" run \
+  --project "$PROJECT" --export play/run-실제출력ID
+```
+
+`--export`는 `start.py` 출력에서 확인한 **프로젝트 상대** Phaser 납품 디렉터리다. 이 명령에는 Python 3.11+ (`tomllib`)와 `$CODEX_HOME/config.toml` (미지정 시 `~/.codex/config.toml`)의 활성 `mcp_servers.stagehand`, `env.STAGEHAND_BROWSER="local"`, 준비된 로컬 브라우저가 필요하다. 격리 설치의 `env.sh`는 별도 `$CODEX_HOME`을 선택한다. 해당 홈에도 승인된 로컬 Stagehand 설정을 준비해야 하며, 설치기는 기존 홈의 설정이나 자격 증명을 자동 복사하지 않는다. 서버는 검사 중 임시 포트에만 열고 종료한다. 실패/사용 불가는 실제 플레이 통과로 기록하지 않는다. 반환된 `checks/browser-*.json`은 정상 입력·명중·완료·재시작과 실제 전달 바이트의 해시를 담고 그래프에 연결된다. 사용 범위와 사람 판단 게이트는 [GRAPH](GRAPH.md#동작-수정과-ab-검수)를 따른다.
+
+## 배포 파일 스테이징
+
+`python3 "$WORKSPACE/studio/tools/stage.py" --out /새/플러그인/폴더`는 명시된 설치 파일만 새 폴더로 복사한다. 0.7.1은 시작 템플릿, start/revise/review, browser playcheck, 읽기 전용 A/B 화면을 포함한다. 이 명령만으로 Python CLI·npm 의존성·Codex 등록이 설치되지는 않는다. 실제 사용은 위 `install_workspace.py`의 설치·검증 결과와 설치된 명령으로 확인한다. 기존 설치를 갱신할 때는 변경된 소스에 맞는 새 목적지를 선택한다.
