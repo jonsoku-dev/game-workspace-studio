@@ -214,8 +214,15 @@ def build(project, request_name, output_name):
             response.update(recoverable=True, next='Review diagnostics and authored frames; retry with a fresh --out directory')
         with (output / 'result.json').open('x', encoding='utf-8') as stream:
             json.dump(response, stream, ensure_ascii=False, indent=2)
-        generated = [{'path': p.relative_to(project).as_posix(), 'sha256': sha(p.read_bytes()),
-                      'wasDerivedFrom': used} for p in files_under(output)]
+        copies = {inputs / path.relative_to(request.parent): path for path in executed_pins}
+        if field == 'frames':
+            copies[output / 'inputs' / 'original-frames-manifest.json'] = source
+        generated = []
+        for path in files_under(output):
+            item = {'path': path.relative_to(project).as_posix(), 'sha256': sha(path.read_bytes())}
+            if path in copies:
+                item['wasDerivedFrom'] = [admitted_pins[copies[path].relative_to(project).as_posix()]['@id']]
+            generated.append(item)
         response['activity'] = work(project, 'Produce character with pixel-asset character', used=used, generated=generated)
         return response
     except (OSError, ValueError, TypeError, KeyError, subprocess.SubprocessError):

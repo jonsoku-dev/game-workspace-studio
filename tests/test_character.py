@@ -49,7 +49,8 @@ class CharacterTests(unittest.TestCase):
             self.assertNotIn('wasGeneratedBy', nodes[pin])
         generated = [n for n in nodes.values() if result['activity'] in n.get('wasGeneratedBy', [])]
         self.assertTrue(any(n.get('path') == result['files']['character'] for n in generated))
-        self.assertTrue(all(n.get('wasDerivedFrom') == activity['used'] for n in generated))
+        self.assertTrue(all(len(n.get('wasDerivedFrom', [])) == 1 for n in generated if '/inputs/' in n['path']))
+        self.assertTrue(all(not n.get('wasDerivedFrom') for n in generated if '/bundle/' in n['path']))
         self.assertEqual(self.run_build()['status'], 'error')
         self.assertEqual((self.project / result['files']['character']).read_bytes(), b'RIVE fixture')
 

@@ -77,10 +77,10 @@ python3 tools/graph.py history --project examples/forest-camp
 로컬 Codex에 스튜디오를 설치하는 절차다. 아래는 이 버전의 새 설치 경로 예시다.
 
 ```sh
-python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.8.0"
-codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.8.0"
+python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.8.1"
+codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.8.1"
 codex plugin add game-studio@game-studio
-STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.8.0"
+STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.8.1"
 ```
 
 프로젝트에서 `$game-studio`로 기획·씬 제작을 요청한다. 예를 들어 “Forest Camp의 30cm 등불 통풍구에 입체 불티를 붙이고 제작 과정을 보여 줘”라고 지시한다.
@@ -139,7 +139,7 @@ python3 "$STUDIO_ROOT/tools/export_game.py" --engine phaser --project . --worksp
 
 완료된 웹 게임으로 연결하려면 workspace manifest의 `playtests` 배열에 `{"activity":"<엔진 내보내기 ExternalWork ID>","url":"http://127.0.0.1:<게임 서버 포트>/<출력 폴더>/" }`를 추가한다. 별도 포트에서 그 정적 결과를 제공한다. 해당 실행의 runtime을 실제 입력으로 사용한 완료된 Three.js/Phaser 내보내기에만 **게임 열기 / ゲームを開く**가 표시된다. 링크 등록은 서버의 현재 가동 여부를 보장하지 않는다.
 
-## PNG → Rive 캐릭터 (0.8.0)
+## PNG → Rive 캐릭터 (0.8.1)
 
 방향 전환·공격·연기는 **상태별로 그린 PNG 프레임**을 기본으로 사용한다. 원화는 외형 정체성 기준이다. 원하는 방향과 몸의 형태가 달라지면 그 상태를 그린 뒤 원속도로 확인한다. 관절 컷아웃은 사용자가 명시적으로 원할 때만 임시 방법으로 사용한다.
 
