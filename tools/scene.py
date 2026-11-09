@@ -395,6 +395,9 @@ def build(project, output, timeout, scene_name="scene.json", source_artifact=Non
     output_conflict = False
     try:
         output = local_path(project, output_name)
+        store = project.resolve() / ".game-studio"
+        if output == store or output.is_relative_to(store):
+            raise SceneError("confinement", "Write build output outside the .game-studio graph storage.")
         record["output"] = str(output.relative_to(project))
         input_path = local_path(project, scene_name)
         record["scene"] = str(input_path.relative_to(project))

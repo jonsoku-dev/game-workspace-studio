@@ -67,6 +67,11 @@ function nodes(selector) {
 global.NodeFilter = {SHOW_ELEMENT: 1};
 global.document = {get baseURI() { return location; }, body: nodes('#left')[0],
   documentElement: {get clientWidth() { return viewportWidth; },
+    get dataset() {
+      if (payload.mode === 'never_ready') return {ready: 'pending'};
+      if (payload.mode === 'late_ready') return {ready: now >= 400 ? 'true' : 'pending'};
+      return {};
+    },
     get scrollWidth() { return viewportWidth + (payload.mode === 'page_overflow' ? 60 : 0); }},
   createTreeWalker: () => {
     let walked = false;
@@ -269,6 +274,11 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual([o['action'] for o in report['observations']], ['click', 'press', 'expect_text'])
         self.assertEqual(report['observations'][-1]['observed']['text'], 'Ready')
 
+    def test_declared_readiness_is_awaited_before_the_first_step(self):
+        report = self.execute('late_ready')
+        self.assertTrue(report['passed'])
+        self.assertEqual([o['action'] for o in report['observations']], ['click', 'press', 'expect_text'])
+
     def test_text_timeout_and_missing_target_are_observed_mismatches(self):
         for mode in ('mismatch', 'missing'):
             with self.subTest(mode=mode):
@@ -382,7 +392,8 @@ class RunnerTests(unittest.TestCase):
             ('unexpected', 'navigation', 'unexpected_origin', 1),
             ('action', 'action', 'action_failed', 0),
             ('external', 'navigation', 'unsafe_control', 0),
-            ('ambiguous', 'action', 'selector_ambiguous', 0)]:
+            ('ambiguous', 'action', 'selector_ambiguous', 0),
+            ('never_ready', 'navigation', 'not_ready', None)]:
             with self.subTest(mode=mode), self.assertRaises(web_regression.RegressionOperationalError) as raised:
                 self.execute(mode)
             diagnostic = raised.exception.diagnostic

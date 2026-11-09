@@ -45,6 +45,33 @@ class CombatStarterTest(unittest.TestCase):
         self.assertEqual(jobs['pitch']['sheet'],'./fx/custom-0.webp')
         self.assertNotIn('sheet',jobs['echo'])
 
+    def test_custom_actor_without_jump_or_with_small_cells_passes_export_gate(self):
+        from PIL import Image
+        import combat_quality
+        art=web_game.ROOT/'starter/combat-brief'
+        actor=json.loads((art/'bell-knight.json').read_bytes())
+        no_jump=dict(actor,actions={k:v for k,v in actor['actions'].items() if k!='jump'},
+                     action_ms={k:v for k,v in actor.get('action_ms',{}).items() if k!='jump'})
+        sheet=Image.open(art/'bell-knight.webp').convert('RGBA')
+        small_sheet=sheet.resize((sheet.width*3//4,sheet.height*3//4),Image.Resampling.LANCZOS)
+        scale=lambda f:{**f,**{k:f[k]*3//4 for k in ('x','y','w','h')}}
+        small=dict(actor,image='small.webp',frames=[scale(f) for f in actor['frames']],
+                   pivot=[v*3//4 for v in actor['pivot']],bodyHeight=actor['bodyHeight']*3/4)
+        small_sheet.save(self.root/'small.webp',lossless=True)
+        (self.root/'bell-knight.webp').write_bytes((art/'bell-knight.webp').read_bytes())
+        for name,data in (('no-jump',dict(no_jump,image='bell-knight.webp')),('small',small)):
+            with self.subTest(name):
+                (self.root/(name+'.json')).write_text(json.dumps(data))
+                brief=self.root/(name+'-brief.json')
+                brief.write_text(json.dumps({'schema_version':1,'title':name,'jobs':[
+                    {'id':'knight','name':'기사','skill':'파문','motif':'astral','actor':name+'.json'}]}))
+                project=self.root/name
+                web_game.initialize_combat(project,brief)
+                _,sources=web_game._sources(project)
+                report=combat_quality.assess(sources)
+                codes={f['code'] for f in report['findings'] if 'job-0' in f['asset']}
+                self.assertFalse(codes & {'actor-data','portrait-resolution'},report['findings'])
+
     def test_invalid_brief_or_unsafe_sheet_is_atomic(self):
         base={'id':'bell','name':'종','skill':'음파','motif':'blade'}
         brief=self.root/'brief.json';project=self.root/'rejected'

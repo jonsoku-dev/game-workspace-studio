@@ -151,6 +151,17 @@ class CombatReviewTests(unittest.TestCase):
         timing = json.loads((self.project / 'reviews/default/timing.json').read_text())
         self.assertEqual(timing['contact_ms'], 380)
         self.assertEqual(sum(f['ms'] for f in timing['phases']['impact']), 480)
+        impact = [f['ms'] for f in timing['phases']['impact']]
+        # Frames play over decay / IMPACT_RATE (300ms of 480ms); the rest is the game's held, fading last frame.
+        self.assertEqual(sum(impact[:-1]) + round(impact[-1] - (480 - round(480 / combat_review.IMPACT_RATE))),
+                         round(480 / combat_review.IMPACT_RATE))
+        self.assertGreaterEqual(impact[-1], 480 - round(480 / combat_review.IMPACT_RATE))
+
+    def test_impact_rate_matches_runtime_and_board(self):
+        root = Path(combat_review.__file__).resolve().parents[1]
+        fx = (root / 'starter/combat/game/combat-fx.mjs').read_text()
+        self.assertIn('export const IMPACT_RATE = %s;' % combat_review.IMPACT_RATE, fx)
+        self.assertIn('p*%s' % combat_review.IMPACT_RATE, (root / 'tools/asset_board.py').read_text())
 
     def test_input_aliases_and_escape_rejected_before_publication(self):
         path = self.project / 'game/motion/job-0.webp'

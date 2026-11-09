@@ -112,6 +112,53 @@ class GraphTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             graph.record_work(self.root, invalid)
 
+    def test_recorded_paths_are_canonical_project_relative(self):
+        (self.root / "sub").mkdir()
+        (self.root / "sub/y.json").write_text("{}")
+        digest = __import__("hashlib").sha256(b"{}").hexdigest()
+        plain = graph.record_work(self.root, {"id": "plain", "label": "Plain", "agent": "t", "status": "complete",
+                                               "files": ["image.png"], "generated": [{"path": "sub/y.json", "sha256": digest}]})
+        dotted = graph.record_work(self.root, {"id": "dotted", "label": "Dotted", "agent": "t", "status": "complete",
+                                                "files": ["./image.png"], "generated": [{"path": "sub//y.json", "sha256": digest}]})
+        for ident in (plain, dotted):
+            artifacts = [n for n in graph.query(self.root, kind="Artifact") if n["@id"].startswith(ident + ":")]
+            self.assertEqual(sorted(a["path"] for a in artifacts), ["image.png", "sub/y.json"])
+        suffix = lambda ident: sorted(n["@id"].rsplit(":", 1)[1] for n in graph.query(self.root, kind="Artifact")
+                                      if n["@id"].startswith(ident + ":"))
+        self.assertEqual(suffix(plain), suffix(dotted))
+        with self.assertRaises(ValueError):
+            graph.record_work(self.root, {"id": "dup", "label": "Dup", "agent": "t", "status": "complete",
+                                          "files": ["image.png", "./image.png"]})
+
+    def test_workspace_input_pins_are_verified_when_workspace_given(self):
+        source, exporter = self.root / "source", self.root / "exporter"
+        for folder in (source, exporter):
+            folder.mkdir()
+        (source / "runtime.json").write_text("{}")
+        graph.update_run(source, {"run_id": "r", "status": "ready", "started_at": "2026-11-01",
+                                  "runtime": "runtime.json"}, {"id": "s", "brief": {"title": "S"}, "assets": [], "nodes": []})
+        runtime = graph.query(source, kind="RuntimeProduct")[0]
+        pin = {k: runtime[k] for k in ("@id", "sha256", "byteCount")}
+        graph.record_work(exporter, {"id": "seed", "label": "Seed", "agent": "t", "status": "complete"})
+        manifest = self.root / "workspace.json"
+        manifest.write_text(json.dumps({"schema_version": 1, "workspace_id": "fa361f61-ab51-4ee7-8539-49daee605c9d",
+                                        "projects": ["source", "exporter"]}))
+        base = {"label": "Export", "agent": "t", "status": "complete"}
+        for bad in (dict(pin, sha256="0" * 64), dict(pin, **{"@id": pin["@id"] + "-missing"})):
+            with self.assertRaisesRegex(ValueError, "registered entity"):
+                graph.record_work(exporter, dict(base, id="bad", workspace_inputs=[bad]), manifest)
+        own = graph.project_id(exporter) + ":work:not-yet-recorded"
+        with self.assertRaisesRegex(ValueError, "other projects"):
+            graph.record_work(exporter, dict(base, id="own", workspace_inputs=[dict(pin, **{"@id": own})]))
+        graph.record_work(exporter, dict(base, id="good", workspace_inputs=[pin]), manifest)
+        self.assertEqual(graph.main(["record", "--project", str(exporter), "--record", str(self._write(
+            dict(base, id="cli", workspace_inputs=[pin])))]), 2)
+
+    def _write(self, record):
+        path = self.root / "record-cli.json"
+        path.write_text(json.dumps(record))
+        return path
+
     def test_same_content_different_request_paths_and_portable_copy(self):
         self.finish(self.record())
         shutil.copyfile(self.root / "request.json", self.root / "another.json")

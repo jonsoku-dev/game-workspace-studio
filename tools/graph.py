@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import re
+import sys
 import tempfile
 import uuid
 
@@ -455,6 +456,8 @@ def export_graph(project):
     for path in paths:
         if path.is_symlink():
             raise ValueError("graph shards cannot be symlinks")
+        if not path.is_file():
+            raise ValueError(f"graph shard must be a regular file: {path.name}")
         document = json.loads(path.read_text())
         # External records may reference an already admitted node in another shard.
         if not _supported_context(document.get("@context")) or document.get("schema_version") != 1:
@@ -483,8 +486,12 @@ def query(project, subject=None, kind=None):
             if (subject is None or node["@id"] == subject) and (kind is None or kind in node["@type"])]
 
 
-def record_work(project, record):
-    """Admit one immutable, scoped external work record; never execute its content."""
+def record_work(project, record, workspace=None):
+    """Admit one immutable, scoped external work record; never execute its content.
+
+    When a workspace manifest is given, every workspace_inputs pin must resolve to a
+    registered foreign Entity with the same hash and size before admission.
+    """
     allowed = {"id", "label", "agent", "status", "used", "observed", "files", "generated", "verification", "references", "workspace_inputs"}
     if not isinstance(record, dict) or set(record) - allowed:
         raise ValueError("unknown external-work fields")
@@ -519,6 +526,19 @@ def record_work(project, record):
             or type(pin["byteCount"]) is not int or pin["byteCount"] < 0 for pin in workspace_inputs)
             or len({pin["@id"] for pin in workspace_inputs}) != len(workspace_inputs)):
         raise ValueError("workspace inputs require unique foreign entity hash/size pins")
+    if any(pin["@id"].startswith(scope + ":") for pin in workspace_inputs):
+        raise ValueError("workspace inputs must pin entities of other projects")
+    if workspace_inputs and workspace is not None:
+        tools = str(Path(__file__).resolve().parent)
+        if tools not in sys.path:
+            sys.path.insert(0, tools)
+        import workspace_graph
+        unified = {n["@id"]: n for n in workspace_graph.export_workspace(workspace)["@graph"]}
+        for pin in workspace_inputs:
+            target = unified.get(pin["@id"], {})
+            if ("Entity" not in target.get("@type", [])
+                    or any(target.get(k) != pin[k] for k in ("sha256", "byteCount"))):
+                raise ValueError(f"workspace input is not a registered entity with this hash/size: {pin['@id']}")
     if workspace_inputs:
         work["snapshot"] = {"workspace_inputs": json.loads(_json(workspace_inputs))}
     references = record.get("references", [])
@@ -532,10 +552,12 @@ def record_work(project, record):
     paths = set()
     for path in files:
         snapshot = _snapshot(project, path, False)
-        if any(_local(project, p) == _local(project, path) for p in paths):
+        canonical = _local(project, path).relative_to(Path(project).resolve()).as_posix()
+        snapshot["path"] = canonical
+        if canonical in paths:
             raise ValueError("duplicate external file")
-        paths.add(snapshot["path"])
-        artifact = ident + ":artifact:" + _digest(path.encode())
+        paths.add(canonical)
+        artifact = ident + ":artifact:" + _digest(canonical.encode())
         nodes[artifact] = _node(artifact, "Artifact", **snapshot)
         work["observed"].append(artifact)
         artifacts.append(artifact)
@@ -548,8 +570,9 @@ def record_work(project, record):
                 or not {"path", "sha256"} <= output.keys()):
             raise ValueError("generated requires path and sha256")
         snapshot = _snapshot(project, output["path"], False)
-        canonical = str(_local(project, output["path"]).relative_to(Path(project).resolve()))
-        if canonical in paths or any(_local(project, p) == _local(project, output["path"]) for p in paths):
+        canonical = _local(project, output["path"]).relative_to(Path(project).resolve()).as_posix()
+        snapshot["path"] = canonical
+        if canonical in paths:
             raise ValueError("duplicate external file")
         paths.add(canonical)
         if output["sha256"] != snapshot["sha256"]:
@@ -559,7 +582,7 @@ def record_work(project, record):
                 or "Entity" not in by_id[target]["@type"] for target in derived)
                 or len(derived) != len(set(derived))):
             raise ValueError("derivation requires explicitly used existing entities")
-        artifact = ident + ":artifact:" + _digest(output["path"].encode())
+        artifact = ident + ":artifact:" + _digest(canonical.encode())
         nodes[artifact] = _node(artifact, "Artifact", wasGeneratedBy=[ident], wasDerivedFrom=derived, **snapshot)
         artifacts.append(artifact)
     verification = record.get("verification")
@@ -587,12 +610,17 @@ def main(argv=None):
     parser.add_argument("--record", type=Path)
     parser.add_argument("--id")
     parser.add_argument("--type")
+    parser.add_argument("--workspace", type=Path,
+                        help="workspace.json used to verify workspace_inputs pins before admission")
     args = parser.parse_args(argv)
     try:
         if args.command == "record":
             if args.record is None:
                 raise ValueError("record requires --record")
-            result = {"@id": record_work(args.project, json.loads(args.record.read_text()))}
+            record = json.loads(args.record.read_text())
+            if record.get("workspace_inputs") and args.workspace is None:
+                raise ValueError("record with workspace_inputs requires --workspace to verify the pins")
+            result = {"@id": record_work(args.project, record, args.workspace)}
         elif args.command == "history":
             result = history(args.project)
         elif args.command == "query":

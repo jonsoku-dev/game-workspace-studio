@@ -14,6 +14,11 @@ from PIL import Image, ImageChops
 
 MOTIFS = {'blade': 'sword', 'brawler': 'fist', 'astral': 'star', 'rail': 'gun'}
 MAX_PIXELS = 16_777_216
+# Sized to what a brief may admit: 5 default actors, up to 8 custom actors at the
+# combat_motion cap, 8 painted skill sheets, clips, portraits and the background.
+DECODE_IMAGES = 160
+DECODE_PIXELS = 256 * 1024 * 1024
+DECODE_BUDGET = 'Asset decoding exceeds %d images / %d megapixels total' % (DECODE_IMAGES, DECODE_PIXELS // (1024 * 1024))
 
 
 def _module(raw, prefix='export default '):
@@ -64,10 +69,44 @@ def runtime_actors(sources):
     return manifest
 
 
+STRAY_MASS = .005
+
+
+def _robust_box(alpha):
+    """Bounding box after trimming sparse outer rows/columns (stray specks, not the figure).
+
+    Each side may shed at most STRAY_MASS of the visible pixels, so a few isolated dots
+    cannot move the crop that the distinctness checks normalise against.
+    """
+    box = alpha.getbbox()
+    if box is None:
+        return None
+    region = alpha.crop(box)
+    width, height = region.size
+    rows = [v * width / 255 for v in region.resize((1, height), Image.Resampling.BOX).tobytes()]
+    cols = [v * height / 255 for v in region.resize((width, 1), Image.Resampling.BOX).tobytes()]
+    budget = sum(rows) * STRAY_MASS
+
+    def trim(counts):
+        start, end, shed = 0, len(counts), 0.0
+        while start < end - 1 and shed + counts[start] <= budget:
+            shed += counts[start]
+            start += 1
+        shed = 0.0
+        while end - 1 > start and shed + counts[end - 1] <= budget:
+            shed += counts[end - 1]
+            end -= 1
+        return start, end
+
+    top, bottom = trim(rows)
+    left, right = trim(cols)
+    return (box[0] + left, box[1] + top, box[0] + right, box[1] + bottom)
+
+
 def _shape(image):
     # Alpha alone ignores hidden RGB and recoloring; crop removes pure translation.
     alpha = image.getchannel('A').point(lambda a: 255 if a >= 32 else 0)
-    box = alpha.getbbox()
+    box = _robust_box(alpha)
     if box is None:
         raise ValueError('Frame has no visible painted pixels')
     return alpha.crop(box).resize((64, 64), Image.Resampling.NEAREST)
@@ -102,6 +141,12 @@ def assess(sources):
               'artistic_acceptance': 'pending'}
 
     def fail(asset, code, repair):
+        if repair == DECODE_BUDGET:
+            # One game-level finding; later assets were never inspected, so do not blame them.
+            if not any(f['code'] == 'decode-budget' for f in report['findings']):
+                report['findings'].append({'asset': 'game', 'code': 'decode-budget',
+                                           'repair': DECODE_BUDGET + '. 직업 수나 아틀라스 크기를 줄이세요.'})
+            return
         if 'NoneType' in repair:
             repair = '메타데이터 항목이 비어 있습니다. 해당 에셋의 객체·배열·필수 필드를 복구하세요.'
         report['findings'].append({'asset': asset, 'code': code, 'repair': repair})
@@ -120,8 +165,8 @@ def assess(sources):
                     or image.width * image.height > MAX_PIXELS):
                 raise ValueError('Use a static PNG/WebP/JPEG within 16 megapixels')
             decoded_pixels[path] = image.width * image.height
-            if len(decoded_pixels) > 64 or sum(decoded_pixels.values()) > 64 * 1024 * 1024:
-                raise ValueError('Asset decoding exceeds 64 images / 64 megapixels total')
+            if len(decoded_pixels) > DECODE_IMAGES or sum(decoded_pixels.values()) > DECODE_PIXELS:
+                raise ValueError(DECODE_BUDGET)
             return image.convert('RGBA')
 
     def local(value, folder='game/'):
@@ -221,7 +266,8 @@ def assess(sources):
             actions = actor['actions']
             required = {'move', 'windup', 'heavy', 'release', 'follow', 'recover', 'hurt'}
             if role == 'player':
-                required.update(('idle', 'evade', 'jump'))
+                # jump is optional: the runtime falls back to evade (COMBAT.md, game.mjs).
+                required.update(('idle', 'evade'))
             if not isinstance(actions, dict) or not required <= actions.keys() or len(actions) > 30:
                 raise ValueError('필수 동작 상태를 제작하세요: ' + ', '.join(sorted(required - set(actions or {}))))
             action_ms = actor.get('action_ms', {})
@@ -238,7 +284,7 @@ def assess(sources):
                         or sum(durations) > (60000 if state in action_ms else 120000)):
                     raise ValueError('Repair bounded per-state exposure timing for ' + state)
                 exposures[state] = durations
-            active_states = required | ({'walk'} & actions.keys() if role == 'player' else set())
+            active_states = required | ({'walk', 'jump'} & actions.keys() if role == 'player' else set())
             used = set(i for state in active_states for i in actions[state])
             distinct = _distinct([shapes[i] for i in sorted(used)])
             minimum = 14 if role == 'player' else 11
@@ -253,10 +299,10 @@ def assess(sources):
                     fail(asset, 'phase-' + state, state + '에 준비·회복을 구분할 수 있는 포즈 2개를 제작하세요.')
                 elif (exposures[state][1 if state != 'recover' else 0] * 4 < sum(exposures[state])):
                     fail(asset, 'exposure-' + state, '두 번째 준비 포즈와 첫 번째 회복 포즈를 해당 상태 시간의 25% 이상 노출하세요 (기본값 65% / 70%).')
-            roles = ['release', 'follow', 'recover', 'hurt'] + (['idle', 'evade', 'jump'] if role == 'player' else [])
+            roles = ['release', 'follow', 'recover', 'hurt'] + (['idle', 'evade'] + (['jump'] if 'jump' in actions else []) if role == 'player' else [])
             representatives = [shapes[actions['heavy'][-1]]] + [shapes[actions[state][0]] for state in roles]
             if _distinct(representatives) < len(representatives):
-                fail(asset, 'action-silhouettes', '대기·준비·발동·후속·회복·피격·회피' + ('·점프' if role == 'player' else '') + '의 몸과 무기 형태가 서로 구분되도록 제작하세요.')
+                fail(asset, 'action-silhouettes', '대기·준비·발동·후속·회복·피격·회피' + ('·점프' if role == 'player' and 'jump' in actions else '') + '의 몸과 무기 형태가 서로 구분되도록 제작하세요.')
             report['actors'].append({'asset': asset, 'role': role, 'used_poses': len(used), 'distinct_poses': distinct, 'active_states': sorted(active_states), 'frames': len(shapes)})
         except (ValueError, TypeError, KeyError, IndexError, AttributeError, OSError, RecursionError, Image.DecompressionBombError) as error:
             fail(asset, 'actor-data', str(error))

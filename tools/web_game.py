@@ -153,6 +153,11 @@ def export(project, out='build/play'):
                 raise ValueError('Output must not contain symlinks')
         if os.path.lexists(output):
             raise ValueError('Output must not exist')
+        for parent in output.parents:
+            if parent == project:
+                break
+            if (parent / 'web-game.json').exists() or (parent / 'engine-export.json').exists():
+                raise ValueError('Output is inside an existing export; choose a sibling path')
         spec, sources = _sources(project)
         runtimes = {name: _read(ROOT, 'engines/web/' + name) for name in
                     runtime_names(spec)}

@@ -235,3 +235,6 @@ try {
 } catch(error) {
   status.textContent='Unable to start'; const alert=document.querySelector('#error');alert.hidden=false;alert.textContent=error.message;console.error(error);
 }
+
+// Regression runners wait for this marker; module top-level awaits have finished here.
+document.documentElement.dataset.ready = 'true';

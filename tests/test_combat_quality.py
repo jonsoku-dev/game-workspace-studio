@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import sys
 import unittest
+from unittest.mock import patch
 
 from PIL import Image, ImageDraw
 
@@ -128,6 +129,48 @@ class CombatQualityTest(unittest.TestCase):
         self.assertIn('gait-move', codes)
         self.assertIn('action-silhouettes', codes)
         self.assertIn('phase-heavy', codes)
+
+    def test_stray_specks_do_not_make_one_pose_distinct(self):
+        sources = dict(self.default)
+        original = Image.open(io.BytesIO(sources['game/motion/blade.webp'])).convert('RGBA')
+        pose = original.crop((0, 0, 512, 512))
+        sheet = Image.new('RGBA', original.size, (0, 0, 0, 0))
+        for i in range(original.width // 512):
+            cell = pose.copy()
+            # One nearly invisible 2x2 speck per frame at a different corner offset.
+            for dx in range(2):
+                for dy in range(2):
+                    cell.putpixel(((i * 37) % 500 + dx, (i * 53) % 500 + dy), (255, 255, 255, 40))
+            sheet.alpha_composite(cell, (i * 512, 0))
+        sources['game/motion/blade.webp'] = encoded(sheet, 'WEBP')
+        codes = {f['code'] for f in self.findings(sources) if f['asset'].endswith('blade.json')}
+        for code in ('pose-coverage', 'gait-move', 'action-silhouettes'):
+            self.assertIn(code, codes)
+
+    def test_decode_budget_is_one_game_finding_not_blamed_on_untouched_assets(self):
+        with patch.object(combat_quality, 'DECODE_PIXELS', 1):
+            report = combat_quality.assess(dict(self.default))
+        budget = [f for f in report['findings'] if f['code'] == 'decode-budget']
+        self.assertEqual(len(budget), 1)
+        self.assertEqual(budget[0]['asset'], 'game')
+        self.assertFalse([f for f in report['findings'] if f['code'] != 'decode-budget' and 'decoding exceeds' in f['repair']])
+
+    def test_eight_job_brief_fits_decode_budget(self):
+        sources = dict(self.custom)
+        actor = json.loads(sources['game/motion/job-0.json'])
+        extra, jobs = {}, {}
+        for i in range(8):
+            sources['game/motion/job-%d.json' % i] = json.dumps(dict(actor, image='job-%d.webp' % i)).encode()
+            sources['game/motion/job-%d.webp' % i] = sources['game/motion/job-0.webp']
+            sources['game/art/job-%d-idle.webp' % i] = sources['game/art/job-0-idle.webp']
+            sources['game/fx/custom-%d.webp' % i] = sources['game/fx/custom-0.webp']
+            extra['job-%d' % i] = dict(actor, image='job-%d.webp' % i)
+            jobs['job-%d' % i] = {'name': '직업%d' % i, 'skill': '기술%d' % i, 'motif': 'astral', 'actor': 'job-%d' % i,
+                                   'sheet': './fx/custom-%d.webp' % i}
+        sources['game/motion/manifest.mjs'] = ("import base from './default.mjs';\nexport default {...base,..." + json.dumps(extra) + '};').encode()
+        sources['game/jobs.mjs'] = ('export const JOBS = ' + json.dumps(jobs) + ';').encode()
+        report = combat_quality.assess(sources)
+        self.assertFalse([f for f in report['findings'] if 'decod' in f['code'] or 'decoding exceeds' in f['repair']], report['findings'])
 
     def test_prettified_single_shape_skill_sheet_fails(self):
         sources = dict(self.default)

@@ -103,3 +103,6 @@ try {
   $('stage-title').textContent = '공방을 열 수 없습니다';
   $('status').textContent = '캠페인 파일을 불러오지 못했습니다. 내보낸 게임을 웹 서버에서 열고 다시 시도하세요.';
 }
+
+// Regression runners wait for this marker; module top-level awaits have finished here.
+document.documentElement.dataset.ready = 'true';

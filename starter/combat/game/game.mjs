@@ -278,3 +278,6 @@ $('motion').addEventListener('click',()=>motion(!reduced));osMotion.addEventList
 select(selected);reset('select');motion(reduced);
 function frame(time) {const dt=lastTime?Math.min((time-lastTime)/1000,.04):0;lastTime=time;if(!document.hidden)step(dt);draw();requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
+
+// Regression runners wait for this marker; module top-level awaits have finished here.
+document.documentElement.dataset.ready = 'true';

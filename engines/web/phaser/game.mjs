@@ -161,3 +161,6 @@ window.scoutGame = new Phaser.Game({type:Phaser.AUTO,parent:'game',width:960,hei
 for (const [role,path] of Object.entries(bundle.files)) if (/_(license|notice)$/.test(role)) {
   const a=document.createElement('a');a.href=path;a.textContent=role;document.querySelector('#credits').append(a,document.createTextNode(' · '));
 }
+
+// Regression runners wait for this marker; module top-level awaits have finished here.
+document.documentElement.dataset.ready = 'true';

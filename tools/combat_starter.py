@@ -142,7 +142,12 @@ def attach_actor(stage, index, root, path, read):
         bbox=thumb.getbbox()
         if not bbox:
             raise ValueError('Invisible idle frame')
-        thumb.crop(bbox).save(stage/f'game/art/job-{index}-idle.webp',quality=93)
+        thumb=thumb.crop(bbox)
+        # The export gate requires a 240x290 selection portrait; upscale small idle crops once here.
+        scale=max(1.0,240/thumb.width,290/thumb.height)
+        if scale>1:
+            thumb=thumb.resize((math.ceil(thumb.width*scale),math.ceil(thumb.height*scale)),Image.Resampling.LANCZOS)
+        thumb.save(stage/f'game/art/job-{index}-idle.webp',quality=93)
     key=f'job-{index}';name=key+'.webp';actor['image']=name
     (stage/'game/motion'/name).write_bytes(data)
     (stage/'game/motion'/(key+'.json')).write_text(json.dumps(actor))

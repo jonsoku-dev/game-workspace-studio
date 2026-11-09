@@ -15,7 +15,7 @@ KEYS = {'Enter', 'Space', 'Tab', 'Escape', 'Backspace', 'Delete',
 ASSERTIONS = {'expect_text', 'expect_control', 'expect_layout', 'expect_page'}
 FAULTS = {
     'setup': {'browser_start', 'browser_page', 'viewport', 'server_start', 'browser_close'},
-    'navigation': {'navigation_failed', 'unexpected_origin', 'unsafe_control'},
+    'navigation': {'navigation_failed', 'not_ready', 'unexpected_origin', 'unsafe_control'},
     'resource': {'http_failure', 'inventory_mismatch'},
     'page': {'page_error', 'console_error'},
     'action': {'control_missing', 'control_hidden', 'control_disabled', 'selector_ambiguous', 'action_failed'},
@@ -214,6 +214,25 @@ try {
   }
   pending = {category: 'navigation', fault: 'navigation_failed', step};
   await target.goto(origin + '/index.html', {waitUntil: 'load', timeout: 5000});
+  // 'load' does not wait for module top-level await. Pages that declare <html data-ready="pending">
+  // must flip it to "true" when init finishes; others get network idle, fonts and two frames.
+  pending = {category: 'navigation', fault: 'not_ready', step};
+  if (typeof target.waitForLoadState === 'function')
+    await target.waitForLoadState('networkidle', {timeout: 3000}).catch(() => {});
+  const readyUntil = Date.now() + 5000;
+  let readiness;
+  do {
+    readiness = await target.evaluate(async () => {
+      const declared = document.documentElement.dataset?.ready;
+      if (document.fonts?.ready) await document.fonts.ready;
+      if (typeof requestAnimationFrame === 'function')
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      return {declared: declared ?? null};
+    });
+    if (readiness.declared === null || readiness.declared === 'true') break;
+    await target.waitForTimeout(75);
+  } while (Date.now() < readyUntil);
+  if (readiness.declared !== null && readiness.declared !== 'true') fail('navigation', 'not_ready');
   pending = {category: 'runner', fault: 'evaluation_failed', step};
   const inventory = await target.evaluate(async paths => {
     const hashes = {};

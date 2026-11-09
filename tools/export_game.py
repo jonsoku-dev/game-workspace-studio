@@ -129,7 +129,7 @@ def export_game(engine, project, workspace, sources, out, *, three_package=None,
                                for p in sorted(output.rglob('*')) if p.is_file()],
                     verification={'passed': True, 'checks': ['Engine receipts matched registered graph pins',
                                                              'Complete output inventory hashed before publication']})
-        ident = graph.record_work(project, work)
+        ident = graph.record_work(project, work, manifest)
         return {'output': str(output), 'activity': ident, 'engine': engine}
     except Exception as error:
         # Adapter exceptions may contain credentials or subprocess output; retain only the safe failure category.

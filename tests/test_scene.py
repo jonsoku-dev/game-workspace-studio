@@ -318,6 +318,12 @@ class SceneTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             scene.build(self.project, "../secret-path", 30)
         self.assertEqual(scene.graph.history(self.project)[-1]["error"]["code"], "confinement")
+        for name in (".game-studio/runs/x.jsonld", ".game-studio/tmp", ".game-studio"):
+            with self.assertRaises(ValueError):
+                scene.build(self.project, name, 30)
+            self.assertEqual(scene.graph.history(self.project)[-1]["error"]["code"], "confinement")
+        self.assertFalse((self.project / ".game-studio/runs/x.jsonld").exists())
+        self.assertFalse((self.project / ".game-studio/tmp").exists())
 
     def test_example_and_invalid_boundaries(self):
         scene.load_scene(self.project)

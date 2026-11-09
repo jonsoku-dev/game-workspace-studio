@@ -59,6 +59,22 @@ class WebGameTest(unittest.TestCase):
         self.assertEqual(len(receipt['stages']), 2)
         self.assertEqual(receipt['provenance']['campaign.mjs']['origin'], 'installed-runtime')
 
+    def test_export_inside_existing_export_is_refused_and_base_stays_admitted(self):
+        tools = str(web_game.ROOT / 'tools')
+        if tools not in sys.path:
+            sys.path.insert(0, tools)
+        import web_revision
+        self.export('build/a')
+        before = web_revision.accept_export(self.project, 'build/a')
+        for nested in ('build/a/v2', 'build/a/deeper/v3'):
+            with self.assertRaisesRegex(ValueError, 'inside an existing export'):
+                self.export(nested)
+        with self.assertRaises(ValueError):
+            self.export('.game-studio/web')
+        self.assertFalse((self.project / 'build/a/v2').exists())
+        self.assertEqual(web_revision.accept_export(self.project, 'build/a')['pins'], before['pins'])
+        self.export('build/b')
+
     def test_campaign_cli_publishes_manifest_receipt_and_installed_runtime(self):
         self.campaign()
         run = subprocess.run([sys.executable, str(web_game.ROOT / 'tools/web_game.py'),

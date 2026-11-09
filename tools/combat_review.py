@@ -46,6 +46,9 @@ def frames(entries, sheet):
     return entries
 
 
+IMPACT_RATE = 1.6  # mirrors starter/combat/game/combat-fx.mjs IMPACT_RATE
+
+
 def retime(sequence, duration):
     """Match drawActor's normalized phase progress, retaining every authored exposure."""
     total = sum(f['duration_ms'] for f in sequence)
@@ -132,8 +135,11 @@ def prepare(project, actor_name, clip_index, stage, pin):
         timing = motifs[job['motif']]['heavy']
         if not isinstance(timing, list) or len(timing) != 3:
             raise ValueError('Invalid generated motif timing')
+        # The runtime plays painted/default impacts at IMPACT_RATE and holds the last frame for the rest of decay.
+        played = round(timing[2] / IMPACT_RATE)
         phases['impact'] = [{**f, 'ms': r['duration_ms']} for f, r in zip(phases['impact'], retime(
-            [{'duration_ms': f['ms']} for f in phases['impact']], timing[2]))]
+            [{'duration_ms': f['ms']} for f in phases['impact']], played))]
+        phases['impact'][-1]['ms'] += timing[2] - played
     if (any(type(t) is not int or not 1 <= t <= 60000 for t in timing)
             or not isinstance(fx_pivot, list) or len(fx_pivot) != 2
             or any(type(v) is not int or not 0 <= v <= phases['impact'][0][k] for v, k in zip(fx_pivot, ('w', 'h')))

@@ -1,6 +1,10 @@
 import manifest from './fx/manifest.mjs';
 import {MOTIF_MS} from './motif-ms.mjs';
 
+// Painted/default impact atlases finish in decay / IMPACT_RATE, then hold their last frame while fading.
+// tools/combat_review.py and tools/asset_board.py read this constant; keep them in step.
+export const IMPACT_RATE = 1.6;
+
 export const DEFAULT_JOBS = {
   blade: { name: '검사', skill: '초승달 베기', motif: 'blade' },
   brawler: { name: '격투가', skill: '지진권', motif: 'brawler' },
@@ -274,7 +278,7 @@ export function createCombatFX({ jobs = DEFAULT_JOBS, reducedMotion = false } = 
           // Painted body, authored pixel silhouette and fine ink wisps have separate decay.
           painted(ctx, d.jobKey, Math.min(5, 2 + Math.floor(after * 4)), x, y, ({ blade: 425, brawler: 400, astral: 470, rail: 390 }[d.motif]) * power, ({ blade: 380, brawler: 420, astral: 450, rail: 340 }[d.motif]) * power, d.face, fade * .82);
           pixel(ctx, manifest[d.heavy ? style.heavy : style.light], clamp(after), x, y, d.face, power * 1.25, fade * .85);
-          pixel(ctx, impacts.get(d.jobKey), clamp(after * 1.6), x, y, d.face, power * .95, fade);
+          pixel(ctx, impacts.get(d.jobKey), clamp(after * IMPACT_RATE), x, y, d.face, power * .95, fade);
           if (d.heavy) {
             if (d.motif === 'blade' && after > .12) pixel(ctx, manifest['sword-wheel'], clamp((after - .12) / .88), x, y + 24, d.face, 1.5, fade * .65);
             if (d.motif === 'brawler') pixel(ctx, manifest['fist-quake'], clamp(after * 1.15), x, y + 34, d.face, 1.8, fade * .85);
@@ -306,7 +310,7 @@ export function createCombatFX({ jobs = DEFAULT_JOBS, reducedMotion = false } = 
       if (reducedMotion) {
         stroke(ctx, color, 2, [x - 12, y, x + 12, y]);
       } else if (event === 'parry') {
-        pixel(ctx, manifest.impact, clamp(p * 1.6), x, y, face, 1.65, fade);
+        pixel(ctx, manifest.impact, clamp(p * IMPACT_RATE), x, y, face, 1.65, fade);
         ctx.strokeStyle = color; ctx.lineWidth = 4 * fade;
         ctx.beginPath(); ctx.ellipse(x, y, 14 + p * 24, 45 + p * 20, -.4 * face, -1.5, 1.5); ctx.stroke();
       } else if (event === 'evade') {
