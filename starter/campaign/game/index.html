@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>신호 공방</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #101d27; color: #edf4f4; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 28px 16px; }
+    main { max-width: 680px; margin: auto; }
+    header { border-bottom: 1px solid #52616a; padding-bottom: 18px; }
+    h1 { font-size: clamp(2rem, 8vw, 3rem); margin: 6px 0 12px; }
+    h2 { font-size: 1.3rem; margin: 8px 0; }
+    p { line-height: 1.65; }
+    .eyebrow, .label { color: #afc2c7; font-size: .88rem; letter-spacing: .05em; }
+    .bench { margin: 22px 0; padding: 22px; border: 1px solid #52616a; border-radius: 16px; background: #182b36; }
+    #device { color: #f6cc80; }
+    ol { display: flex; gap: 12px; padding: 0; margin: 12px 0 24px; list-style: none; }
+    li { display: grid; place-content: center; min-width: 58px; min-height: 64px; border: 1px solid #72838a; border-radius: 10px; font-size: 1.8rem; }
+    li.current { outline: 3px solid #f6cc80; outline-offset: 3px; }
+    li.correct { color: #102922; background: #9be3be; }
+    li.wrong { color: #2a1717; background: #ffb0a1; }
+    .keys, .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+    button { font: inherit; min-height: 48px; padding: 10px 18px; border: 1px solid #acbec2; border-radius: 9px; background: #233e4b; color: inherit; cursor: pointer; }
+    .keys button { flex: 1; font-size: 1.7rem; min-width: 72px; }
+    button:hover:enabled { background: #365667; }
+    button:active:enabled { transform: translateY(2px); }
+    button:focus-visible { outline: 3px solid #f6cc80; outline-offset: 4px; }
+    button:disabled { opacity: .45; cursor: default; }
+    button[hidden] { display: none; }
+    #next, #retry { background: #efc378; color: #172831; border-color: #efc378; }
+    #status { min-height: 3.4em; font-weight: 600; }
+    small { display: block; color: #afc2c7; line-height: 1.7; margin-top: 20px; }
+    @media (max-width: 380px) { .bench { padding: 16px; } li { min-width: 52px; } }
+    @media (prefers-reduced-motion: reduce) { button:active:enabled { transform: none; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">작은 장치를 고치는 순서 퍼즐</div>
+      <h1>신호 공방</h1>
+      <p>신호를 살펴보고 버튼으로 전달하세요. 두 장치를 복구하면 오늘의 작업이 끝납니다.</p>
+    </header>
+    <section class="bench" aria-labelledby="stage-title">
+      <div id="stage-number" class="label">공방 준비 중</div>
+      <h2 id="stage-title">신호를 불러오고 있습니다</h2>
+      <p id="objective"></p>
+      <p id="device"></p>
+      <div class="label">장치에 표시된 신호</div>
+      <ol id="signal" aria-label="표시 신호"></ol>
+      <div class="label" id="progress">입력 대기</div>
+      <ol id="answer" aria-label="입력 진행"></ol>
+      <div class="keys" aria-label="신호 입력">
+        <button type="button" data-symbol="circle" aria-label="동그라미 입력" disabled>●</button>
+        <button type="button" data-symbol="diamond" aria-label="마름모 입력" disabled>◆</button>
+        <button type="button" data-symbol="triangle" aria-label="세모 입력" disabled>▲</button>
+      </div>
+      <p id="status" role="status" aria-live="polite">잠시만 기다려 주세요.</p>
+      <div class="actions">
+        <button type="button" id="retry" hidden>이 단계 다시 시도</button>
+        <button type="button" id="next" hidden>다음 장치로 계속</button>
+        <button type="button" id="restart" disabled>처음부터 다시 시작</button>
+      </div>
+      <small id="tactic"></small>
+    </section>
+    <small>마우스·터치로 기호를 누르세요. 키보드는 Tab으로 이동하고 Enter 또는 Space로 입력합니다. 잘못 전달한 신호는 같은 단계에서 다시 시도할 수 있습니다.</small>
+  </main>
+  <script type="module" src="./game.mjs"></script>
+</body>
+</html>

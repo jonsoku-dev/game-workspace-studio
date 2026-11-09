@@ -39,6 +39,107 @@ class WebGameTest(unittest.TestCase):
     def errors(self):
         return [n for n in graph.query(self.project, kind='ExternalWork') if n['status'] == 'error']
 
+    def campaign(self):
+        self.spec['stages'] = [dict(id=name, title=name, objective='Reach exit', tactic='Watch timing')
+                               for name in ('first', 'second')]
+        (self.project / 'genre.json').write_text(json.dumps(self.spec))
+
+    def test_new_campaign_starter_publishes_and_preserves_existing_project(self):
+        project = self.project / 'new-game'
+        command = [sys.executable, str(web_game.ROOT / 'tools/web_game.py'), '--project', str(project)]
+        created = subprocess.run([*command, '--init-campaign'], capture_output=True, text=True, check=True)
+        activity = json.loads(created.stdout)['activity']
+        self.assertEqual(graph.query(project, subject=activity)[0]['status'], 'complete')
+        original = (project / 'genre.json').read_bytes()
+        duplicate = subprocess.run([*command, '--init-campaign'], capture_output=True, text=True)
+        self.assertEqual(duplicate.returncode, 2)
+        self.assertEqual((project / 'genre.json').read_bytes(), original)
+        published = subprocess.run(command, capture_output=True, text=True, check=True)
+        receipt = json.loads(Path(json.loads(published.stdout)['receipt']).read_text())
+        self.assertEqual(len(receipt['stages']), 2)
+        self.assertEqual(receipt['provenance']['campaign.mjs']['origin'], 'installed-runtime')
+
+    def test_campaign_cli_publishes_manifest_receipt_and_installed_runtime(self):
+        self.campaign()
+        run = subprocess.run([sys.executable, str(web_game.ROOT / 'tools/web_game.py'),
+                              '--project', str(self.project)], capture_output=True, text=True)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        output = Path(json.loads(run.stdout)['output'])
+        receipt = json.loads((output / 'web-game.json').read_text())
+        self.assertEqual(receipt['stages'], self.spec['stages'])
+        data = (web_game.ROOT / 'engines/web/campaign.mjs').read_bytes()
+        self.assertEqual((output / 'campaign.mjs').read_bytes(), data)
+        self.assertEqual(receipt['provenance']['campaign.mjs'], {
+            'source': 'studio/engines/web/campaign.mjs', 'origin': 'installed-runtime',
+            'sha256': hashlib.sha256(data).hexdigest(), 'byteCount': len(data)})
+        self.assertEqual(json.loads((output / 'genre.json').read_text()), self.spec)
+
+    def test_legacy_campaign_named_source_is_preserved_without_stages(self):
+        source = self.project / 'game/campaign.mjs'
+        source.write_text('export const legacy = true;')
+        output = Path(self.export()['output'])
+        self.assertEqual((output / 'campaign.mjs').read_bytes(), source.read_bytes())
+        receipt = json.loads((output / 'web-game.json').read_text())
+        self.assertNotIn('stages', receipt)
+        self.assertEqual(receipt['provenance']['campaign.mjs']['source'], 'game/campaign.mjs')
+
+    def test_campaign_rejects_runtime_shadow_files_and_directories_casefolded(self):
+        self.campaign()
+        for name in ('campaign.mjs', 'CAMPAIGN.MJS'):
+            path = self.project / 'game' / name
+            for directory in (False, True):
+                path.mkdir() if directory else path.write_text('shadow')
+                with self.subTest(name=name, directory=directory), self.assertRaises(ValueError):
+                    self.export()
+                path.rmdir() if directory else path.unlink()
+        self.assertFalse((self.project / 'build/play').exists())
+
+    def test_campaign_manifest_rejects_bad_counts_fields_slugs_and_text(self):
+        self.campaign()
+        valid = self.spec['stages']
+        invalid = [None, {}, [], valid[:1], valid * 17, valid * 2]
+        for field, value in [('id', 'Upper'), ('id', 'a\n'), ('id', 'a--b'), ('id', 'é'),
+                             ('id', 'a' * 65), ('title', ''), ('objective', '  '),
+                             ('tactic', 1), ('title', 'x' * 4001)]:
+            invalid.append([{**valid[0], field: value}, valid[1]])
+        invalid.extend([[{**valid[0], 'extra': True}, valid[1]],
+                        [{k: v for k, v in valid[0].items() if k != 'tactic'}, valid[1]],
+                        [None, valid[1]]])
+        for stages in invalid:
+            (self.project / 'genre.json').write_text(json.dumps({**self.spec, 'stages': stages}))
+            with self.subTest(stages=stages), self.assertRaises(ValueError):
+                self.export()
+        self.assertFalse((self.project / 'build/play').exists())
+
+    def test_campaign_manifest_accepts_count_and_text_boundaries(self):
+        self.campaign()
+        self.spec['stages'] = [dict(id='a' * 61 + f'-{index}', title='😀' * 4000,
+                                    objective='Exit', tactic='Wait') for index in range(32)]
+        (self.project / 'genre.json').write_text(json.dumps(self.spec))
+        spec, _ = web_game._sources(self.project)
+        self.assertEqual(spec['stages'], self.spec['stages'])
+
+    def test_campaign_runtime_change_during_publication_is_rejected(self):
+        self.campaign()
+        original = web_game._read
+        reads = 0
+        def changed(root, relative):
+            nonlocal reads
+            data = original(root, relative)
+            if root == web_game.ROOT and relative == 'engines/web/campaign.mjs':
+                reads += 1
+                if reads > 1:
+                    return data + b'changed'
+            return data
+        with patch.object(web_game, '_read', side_effect=changed), self.assertRaises(ValueError):
+            self.export()
+        self.assertFalse((self.project / 'build/play').exists())
+
+    def test_campaign_runtime_with_actual_node(self):
+        run = subprocess.run(['node', str(web_game.ROOT / 'engines/web/test-campaign.mjs')],
+                             capture_output=True, text=True)
+        self.assertEqual(run.returncode, 0, run.stderr)
+
     def test_minimum_real_cli_preserves_bytes_paths_hashes_and_precise_derivation(self):
         before = {p.relative_to(self.project).as_posix(): p.read_bytes()
                   for p in self.project.rglob('*') if p.is_file()}
@@ -61,6 +162,7 @@ class WebGameTest(unittest.TestCase):
             self.assertEqual(item['byteCount'], len(data))
         self.assertEqual((output / 'feedback.mjs').read_bytes(), (web_game.ROOT / 'engines/web/feedback.mjs').read_bytes())
         self.assertEqual(receipt['provenance']['feedback.mjs']['origin'], 'installed-runtime')
+        self.assertFalse((output / 'campaign.mjs').exists())
         nodes = graph.export_graph(self.project)['@graph']
         by_id = {n['@id']: n for n in nodes}
         work = by_id[result['activity']]

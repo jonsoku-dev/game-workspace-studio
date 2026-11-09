@@ -21,6 +21,25 @@ python3 -m http.server 8937 --bind 127.0.0.1 --directory "$PROJECT/build/play"
 
 `genre.json` 형식은 `{"schema_version":1,"title":"혜성 궤도","genre":"슬링샷 RPG","goal":"아군 연계로 보스 격파","controls":"구슬을 뒤로 당겼다가 놓아 발사"}`이다. `game/` 아래에는 납품할 로컬 웹 파일만 둔다. 게임은 상대경로 `./feedback.mjs`를 가져올 수 있다. 게시 성공은 소스와 출력의 일치를 뜻한다. 승리·실패·재시작은 브라우저에서 각 게임의 정상 입력으로 확인한다.
 
+## 다음 판이 있는 웹 게임
+
+새 게임은 Codex 채팅에서 재미와 아트 방향을 정하고 시작한다. 여러 스테이지에 쓸 실제 조작 예제가 필요하면 다음 명령으로 빈 경로에 신호 공방을 생성한다. 코드를 고쳐 기존 게임을 확장할 때는 게시 명령만 실행한다.
+
+```sh
+python3 "$STUDIO_ROOT/tools/web_game.py" --init-campaign --project "$PROJECT"
+python3 "$STUDIO_ROOT/tools/web_game.py" --project "$PROJECT" --out build/first
+python3 -m http.server 8937 --bind 127.0.0.1 --directory "$PROJECT/build/first"
+```
+
+`genre.json`의 기존 형식에 선택 사항인 `stages`를 추가한다. 각 단계에는 순서가 있으며 `id`(고유 소문자 영문 슬러그), `title`, `objective`, `tactic` 네 필드를 쓴다. 2–32개 단계를 지원한다. 스타터는 첫 단계의 신호를 순서대로 입력하고 다음 단계에서는 고장 난 장치의 신호를 역순으로 입력한다.
+
+```js
+import { loadCampaign } from "./campaign.mjs";
+const campaign = await loadCampaign();
+```
+
+`stage`는 현재 단계의 고정된 정의, `index`는 0부터 시작하는 번호다. 게임이 승리를 판정하면 `finishStage()`가 `phase`를 `between` 또는 마지막 판의 `complete`로 바꾼다. 플레이어가 계속을 선택할 때 `advance()`로 다음 판에 들어간다. 패배 시 `failStage()`, 해당 판부터 재도전할 때 `retry()`, 처음부터 다시 할 때 `restart()`를 쓴다. 상태가 허용하지 않는 전환은 `false`를 반환한다. 목숨·점수·장비의 인계와 복구는 게임 규칙에서 구현한다. 게시 영수증에는 단계 정의, 런타임 및 소스 해시가 들어간다. [연출 가이드북](PLAYBOOK.md)
+
 ## 실행
 
 설치된 `pixel-asset` 명령과 활성 `model-assets` 플러그인이 필요하다. Blender·컴파일러 의존성은 3D 제작기가 소유한다.
@@ -92,10 +111,10 @@ python3 tools/graph.py history --project examples/forest-camp
 로컬 Codex에 스튜디오를 설치하는 절차다. 아래는 이 버전의 새 설치 경로 예시다.
 
 ```sh
-python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.10.0"
-codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.10.0"
+python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.11.0"
+codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.11.0"
 codex plugin add game-studio@game-studio
-STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.10.0"
+STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.11.0"
 ```
 
 프로젝트에서 `$game-studio`로 기획·씬 제작을 요청한다. 예를 들어 “Forest Camp의 30cm 등불 통풍구에 입체 불티를 붙이고 제작 과정을 보여 줘”라고 지시한다.

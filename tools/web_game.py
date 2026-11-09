@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path, PurePosixPath
+import re
 import unicodedata
 import stat
 import uuid
@@ -68,11 +69,27 @@ def _pin(data):
 def _sources(project):
     sources = {'genre.json': _read(project, 'genre.json')}
     spec = json.loads(sources['genre.json'])
-    if (not isinstance(spec, dict) or set(spec) != {'schema_version', 'title', 'genre', 'goal', 'controls'}
+    required = {'schema_version', 'title', 'genre', 'goal', 'controls'}
+    if (not isinstance(spec, dict) or not required <= set(spec) or set(spec) - required - {'stages'}
             or type(spec['schema_version']) is not int or spec['schema_version'] != 1
             or any(not isinstance(spec[k], str) or not spec[k].strip() or len(spec[k]) > 4000
                    for k in ('title', 'genre', 'goal', 'controls'))):
         raise ValueError('genre.json requires schema_version 1, title, genre, goal and controls strings')
+    if 'stages' in spec:
+        stages = spec['stages']
+        if not isinstance(stages, list) or not 2 <= len(stages) <= 32:
+            raise ValueError('Campaign requires 2 to 32 stages')
+        ids = set()
+        for stage in stages:
+            if (not isinstance(stage, dict) or set(stage) != {'id', 'title', 'objective', 'tactic'}
+                    or not isinstance(stage['id'], str) or len(stage['id']) > 64
+                    or not re.fullmatch(r'[a-z][a-z0-9]*(?:-[a-z0-9]+)*', stage['id'])
+                    or stage['id'] in ids
+                    or any(not isinstance(stage[k], str) or not stage[k].strip() or len(stage[k]) > 4000
+                           for k in ('title', 'objective', 'tactic'))):
+                raise ValueError('Expected unique stage slugs and bounded title, objective and tactic strings')
+            ids.add(stage['id'])
+    reserved = RESERVED | ({'campaign.mjs'} if 'stages' in spec else set())
     game = project / 'game'
     if game.is_symlink() or not game.is_dir():
         raise ValueError('Expected game/ source directory')
@@ -86,7 +103,7 @@ def _sources(project):
             relative = path.relative_to(game).as_posix()
             _relative(relative)
             folded = unicodedata.normalize('NFC', relative).casefold()
-            if (folded in seen or PurePosixPath(folded).parts[0] in RESERVED
+            if (folded in seen or PurePosixPath(folded).parts[0] in reserved
                     or path.is_symlink()):
                 raise ValueError('Reserved, conflicting or symlink source path')
             seen.add(folded)
@@ -125,7 +142,8 @@ def export(project, out='build/play'):
         if os.path.lexists(output):
             raise ValueError('Output must not exist')
         spec, sources = _sources(project)
-        feedback = _read(ROOT, 'engines/web/feedback.mjs')
+        runtimes = {name: _read(ROOT, 'engines/web/' + name) for name in
+                    (('feedback.mjs', 'campaign.mjs') if 'stages' in spec else ('feedback.mjs',))}
         # Observation admits existing bytes without claiming their authorship.
         observed = graph.record_work(project, {'id': key + '-inputs', 'agent': work['agent'],
             'label': 'Observe static web game inputs', 'status': 'complete', 'files': sorted(sources)})
@@ -145,13 +163,15 @@ def export(project, out='build/play'):
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(data)
                 provenance[destination] = {'source': source, 'artifact': pins[source]['@id'], **_pin(data)}
-            if _read(ROOT, 'engines/web/feedback.mjs') != feedback:
-                raise ValueError('Installed feedback changed during publication')
-            (stage / 'feedback.mjs').write_bytes(feedback)
-            provenance['feedback.mjs'] = {'source': 'studio/engines/web/feedback.mjs',
-                                           'origin': 'installed-runtime', **_pin(feedback)}
+            for name, data in runtimes.items():
+                if _read(ROOT, 'engines/web/' + name) != data:
+                    raise ValueError('Installed runtime changed during publication')
+                (stage / name).write_bytes(data)
+                provenance[name] = {'source': 'studio/engines/web/' + name,
+                                    'origin': 'installed-runtime', **_pin(data)}
             receipt = {'schema_version': 1, 'engine': 'web', 'work_id': key,
                        **{k: spec[k] for k in ('title', 'genre', 'goal', 'controls')},
+                       **({'stages': spec['stages']} if 'stages' in spec else {}),
                        'index': (relative / 'index.html').as_posix(), 'provenance': provenance,
                        'files': [{'path': p, **_pin((stage / p).read_bytes())} for p in sorted(provenance)]}
             (stage / 'web-game.json').write_text(json.dumps(receipt, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
@@ -179,14 +199,36 @@ def export(project, out='build/play'):
         raise
 
 
+def initialize_campaign(project):
+    """Create the installed playable starter in a new project, without overwriting work."""
+    project = Path(project).absolute()
+    with runtime_inputs.output_stage(project) as stage:
+        outputs = []
+        for name in ('genre.json', 'game/index.html', 'game/game.mjs'):
+            data = _read(ROOT, 'starter/campaign/' + name)
+            target = stage / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(data)
+            outputs.append({'path': name, 'sha256': _pin(data)['sha256']})
+        _sources(stage)
+        activity = graph.record_work(stage, {'id': 'campaign-' + uuid.uuid4().hex, 'agent': 'studio-web-game',
+            'label': 'Initialize playable campaign starter', 'status': 'complete', 'generated': outputs})
+    return {'project': str(project), 'activity': activity}
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--project', required=True, type=Path)
-    parser.add_argument('--out', default='build/play')
+    action = parser.add_mutually_exclusive_group()
+    action.add_argument('--out', help='New project-relative export directory (default: build/play)')
+    action.add_argument('--init-campaign', action='store_true', help='Create a playable two-stage starter in a new project')
     args = parser.parse_args(argv)
     try:
-        print(json.dumps(export(args.project, args.out)))
+        result = initialize_campaign(args.project) if args.init_campaign else export(args.project, args.out or 'build/play')
+        print(json.dumps(result))
     except Exception as error:
+        if args.init_campaign:
+            parser.exit(2, 'Campaign initialization failed (' + type(error).__name__ + '); use a new project path.\n')
         parser.exit(2, 'Web game export failed (' + type(error).__name__ + '); inspect the project graph failure record.\n')
 
 

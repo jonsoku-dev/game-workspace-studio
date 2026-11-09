@@ -1,7 +1,7 @@
 {
   "name": "game-studio",
-  "version": "0.10.0",
-  "description": "Create game slices, publish authored web games, and review their local production history.",
+  "version": "0.11.0",
+  "description": "Interview for game direction, create playable campaigns, and review production history.",
   "skills": "./.agents/skills/",
-  "interface": {"displayName": "Game Studio", "shortDescription": "Plan scenes and place generated assets", "category": "Productivity", "capabilities": ["Read", "Write"], "defaultPrompt": ["게임 기획과 씬 배치를 만들고 설치된 에셋 제작기로 통합해 줘."]}
+  "interface": {"displayName": "Game Studio", "shortDescription": "Plan scenes and place generated assets", "category": "Productivity", "capabilities": ["Read", "Write"], "defaultPrompt": ["재미와 아트 방향을 나와 정하고, 다음 판에서 공략이 달라지는 게임을 만들어 줘."]}
 }
