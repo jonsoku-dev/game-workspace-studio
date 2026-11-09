@@ -12,7 +12,7 @@ ATLAS_IDS = ('sword-cut', 'sword-wheel', 'sword-cleave', 'fist-rise', 'fist-quak
 ROOT = 'starter/combat/'
 def inventory():
     # Pin every distributable file, including upstream notices. Never copy a whole working tree.
-    return (['genre.json', 'game/index.html', 'game/game.mjs', 'game/style.css', 'game/jobs.mjs',
+    return (['genre.json','game/art-profile.json', 'game/index.html', 'game/game.mjs', 'game/style.css', 'game/jobs.mjs',
              'game/timing.mjs','game/motif-ms.mjs','game/combat-fx.mjs','game/combat-motion.mjs','game/motion/manifest.mjs', 'game/art/bell-tower.jpg', 'game/fx/credits.json',
              'game/fx/manifest.mjs', 'game/art/credits.json']
             + [f'game/art/{k}-{pose}.webp' for k in (*MOTIFS, 'warden') for pose in ('idle', 'attack')]

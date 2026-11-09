@@ -131,3 +131,8 @@ python3 "$STUDIO_ROOT/tools/character.py" --project "$PROJECT" \
 ## 0.13.1 자료 반영과 예방 검사
 
 설치 패키지의 `REFERENCES.md`와 `tools/reference_review.py`로 첨부별 제작 판단과 실제 파일을 대조할 수 있다. `web_revision.py check`는 등록된 배포본에서 기본 모바일 검사를 실행한다. `--check`로 해당 게임의 입력·상태·배치 검사를 선택할 수 있다. [자료·예방 검사 사용법](README.md#첨부-자료-반영-점검)
+
+
+## 전투 미술 기준
+
+0.15.0은 에셋 지시서, 공명기사 비교판, 정상 내보내기에서의 기술 검사를 포함한다. 기본 전투 에셋의 시트 판독에는 Pillow가 필요하다. Pixel 제작기가 연결된 환경에서 [에셋 제작 기준](ASSET-ART.md)과 [COMBAT](COMBAT.md)의 명령을 사용한다. 별도 웹게임·캠페인에는 전투 자세 기준을 강제하지 않는다.

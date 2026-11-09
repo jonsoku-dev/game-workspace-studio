@@ -315,6 +315,7 @@ def _report(project, report, used, case_path):
     return {'passed': report['passed'], 'status': report['status'], 'report': relative,
             'activity': activity, 'changes': report['changes'], 'output': report.get('output'),
             'next_steps': report.get('next_steps', []),
+            **({'asset_review':report['asset_review']} if 'asset_review' in report else {}),
             **({'diagnostic': report['diagnostic']} if 'diagnostic' in report else {})}
 
 
@@ -390,6 +391,10 @@ def _attempt(project, base, *, out=None, kind=None, reason=None, check=None, ope
         if operation != 'check':
             report.update(passed=True, status='verified', phase='verified')
     except Exception as error:
+        if isinstance(error, web_game.asset_review.AssetFloorError):
+            report['asset_review'] = error.review
+            report['phase'] = 'asset-review'
+            report.pop('output',None)
         report['error'] = {'type': type(error).__name__, 'phase': report['phase']}
         diagnostic = _diagnostic(error, candidate or accepted)
         if diagnostic:
@@ -417,7 +422,10 @@ def _attempt(project, base, *, out=None, kind=None, reason=None, check=None, ope
             report['pin_checks'][name] = {'passed': False, 'error': type(error).__name__}
             report.update(passed=False, status='operational_error' if operation == 'check' else 'rejected', phase='final-pins')
             report.setdefault('error', {'type': type(error).__name__, 'phase': 'final-pins'})
-    report['next_steps'] = _next_steps(report)
+    report['next_steps'] = ([{'action':'Open asset comparison; repair flagged assets and rebuild.',
+                               'board':report['asset_review']['board'],
+                               'art_direction':report['asset_review']['art_direction']}]
+                            if 'asset_review' in report else _next_steps(report))
     result = _report(project, report, used, case_path if case_data is not None and
                      report.get('case', {}).get('origin') == 'project-source' else None)
     if not report['passed']:

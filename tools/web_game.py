@@ -12,6 +12,7 @@ import uuid
 
 import graph
 import combat_starter
+import asset_review
 import runtime_inputs
 
 
@@ -153,6 +154,13 @@ def export(project, out='build/play'):
         for source, data in sources.items():
             if any(pins[source][k] != v for k, v in _pin(data).items()):
                 raise ValueError('Input changed before graph observation')
+        quality = None
+        if asset_review.applicable(sources):
+            phase = 'asset-review'
+            quality = asset_review.inspect(project, sources, ROOT, _read, _sources)
+            if quality['status'] != 'passed':
+                work['observed'] = [quality['activity']]
+                raise asset_review.AssetFloorError(quality)
         provenance = {}
         phase = 'static-copy'
         with runtime_inputs.output_stage(output) as stage:
@@ -175,6 +183,8 @@ def export(project, out='build/play'):
                        **({'stages': spec['stages']} if 'stages' in spec else {}),
                        'index': (relative / 'index.html').as_posix(), 'provenance': provenance,
                        'files': [{'path': p, **_pin((stage / p).read_bytes())} for p in sorted(provenance)]}
+            if quality:
+                receipt['asset_review'] = quality
             (stage / 'web-game.json').write_text(json.dumps(receipt, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
         phase = 'graph-recording'
         generated = []
@@ -187,13 +197,15 @@ def export(project, out='build/play'):
                 item['wasDerivedFrom'] = [provenance[name]['artifact']]
             generated.append(item)
         work.update(status='complete', used=sorted(p['@id'] for p in pins.values()), generated=generated,
+                    **({'observed':[quality['activity']]} if quality else {}),
                     verification={'passed': True, 'checks': ['Source bytes verified against observed graph hashes',
                                                              'Static payload copied without executing project source']})
         activity = graph.record_work(project, work)
         return {'output': str(output), 'activity': activity, 'engine': 'web',
-                'receipt': str(output / 'web-game.json')}
+                'receipt': str(output / 'web-game.json'), **({'asset_review':quality} if quality else {})}
     except Exception as error:
         graph.record_work(project, {**{k: work[k] for k in ('id', 'agent', 'label')}, 'status': 'error',
+                                    **({'observed':work['observed']} if 'observed' in work else {}),
             'verification': {'passed': False, 'checks': [phase, type(error).__name__,
                 'Output path exists; inspect ownership before retry' if output is not None and output.exists()
                 else 'Output was not published; retry after correcting the failure']}})
@@ -230,6 +242,8 @@ def initialize_combat(project, brief=None):
         _, files = _sources(stage)
         if brief:
             files['combat-brief.json'] = _read(stage, 'combat-brief.json')
+        files['art-direction.md'] = asset_review.production_brief(files).encode('utf-8')
+        (stage/'art-direction.md').write_bytes(files['art-direction.md'])
         activity = graph.record_work(stage, {'id': 'combat-' + uuid.uuid4().hex, 'agent':'studio-web-game',
             'label':'Initialize class combat with contact-timed effects', 'status':'complete',
             'generated':[{'path':name,'sha256':_pin(data)['sha256']} for name,data in files.items()]})
@@ -242,19 +256,29 @@ def main(argv=None):
     action = parser.add_mutually_exclusive_group()
     action.add_argument('--out', help='New project-relative export directory (default: build/play)')
     action.add_argument('--init-campaign', action='store_true', help='Create a playable two-stage starter in a new project')
+    action.add_argument('--review-assets', action='store_true', help='Compare combat assets at play size and report repairs')
     action.add_argument('--init-combat', action='store_true', help='New playable class combat project')
     parser.add_argument('--combat-brief', type=Path, help='Local class definitions and optional six-frame artwork for --init-combat')
     args = parser.parse_args(argv)
     if args.combat_brief and not args.init_combat:
         parser.error('--combat-brief requires --init-combat')
     try:
-        if args.init_combat:
+        if args.review_assets:
+            project = args.project.resolve(strict=True)
+            _, sources = _sources(project)
+            result = asset_review.inspect(project,sources,ROOT,_read,_sources)
+        elif args.init_combat:
             result = initialize_combat(args.project, args.combat_brief)
         elif args.init_campaign:
             result = initialize_campaign(args.project)
         else:
             result = export(args.project, args.out or 'build/play')
-        print(json.dumps(result))
+        print(json.dumps(result,ensure_ascii=False))
+        if args.review_assets and result['status']!='passed':
+            parser.exit(2)
+    except asset_review.AssetFloorError as exc:
+        print(json.dumps(exc.review,ensure_ascii=False))
+        parser.exit(2, 'Combat artwork below the technical reference floor; open the review board.\n')
     except Exception as error:
         if args.init_combat:
             parser.exit(2, f'Combat initialization failed: {error}\n')

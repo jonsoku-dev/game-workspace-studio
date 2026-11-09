@@ -1,0 +1,18 @@
+{
+  "source": "Game Studio 0.14.1 installed resonance-foundry example",
+  "version": 1,
+  "sha256": {
+    "jobs.mjs": "6685a027d3b0eeaf40b0940566b1d1224e9deb126138115898ee36dded35a771",
+    "motion/job-0.json": "4d5913c2f0d72ff58f737734d507374e9f1ea064161bc4223ede26648ae04c27",
+    "motion/manifest.mjs": "5a3d864cefa7f78e4c6f6ee0106556a496f3f2b3838a54854a9ee03f9afad83c",
+    "art/job-0-idle.webp": "5f62d6eab637fe9a93dc350ad1cb85de34bfe2aedd4e215aaea968fce0de0b8f",
+    "fx/job-clip-0.json": "858dc9a596521558cfd1b036172fd29a9e9ceb57be0c4d8427c25f8c139e6ec3",
+    "fx/job-clip-0.png": "4ff5c6ea43aa0626bd079c0a77f9900219be91146ef06ae18b0f8e52bb055e07",
+    "fx/job-clip-0-credit.json": "dfb89f2c2b5cbc367d42417dbb76b6a82fa38168af79aae5a3721adea95887cf",
+    "fx/job-impact-0.png": "5f1687050e5c8dea8e74ee524dd7044bbe83475c3a21215e263678c7d1e247ca",
+    "fx/job-impact-1.png": "20f198d32581edf030410e6d9d7b52e185b82eeea2fdc223a318f53bbcd7f62f",
+    "motion/job-0.webp": "f975b98a259ac6c1323757275e5f19c31b60737634c175a25ec63359b9cc13ad",
+    "fx/custom-0.webp": "829280cc6417604f7a07bb8dd025e1eb9fc87f82167f23c7c584d7efc03feb02",
+    "art/bell-tower.jpg": "a6b92e8325ff410605bc9940f731805b100a765fb8817c34458fdcd182e45d0a"
+  }
+}

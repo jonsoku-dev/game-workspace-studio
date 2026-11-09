@@ -6,6 +6,7 @@
 | --- | --- |
 | `start.py new/status/inspect/resume/build` | 등록 프로젝트의 첫 2D 타격/배달 또는 3D 관찰 씬, 중간 상태 복구. |
 | `web_game.py --init-combat/--init-campaign/--out` | 직업 전투, 여러 판 캠페인, 기존 독립 웹게임 납품. 소스·런타임 해시를 기록한다. |
+| `web_game.py --review-assets` | 공명기사 기준과 실제 프로젝트 원화·자세·효과를 비교하고 부족한 셀에 대한 수정 지시를 기록한다. |
 | `combat_motion.py` | 직접 그린 여러 자세를 Pixel 시트로 제작해 같은 발 피벗과 단계별 시간으로 전투에 적용. |
 | `combat_review.py` | 게임의 실제 캐릭터 시트와 직업별 접촉 시간으로 Rive 재생기와 액션 세트의 명중 동작을 원속도 검토. |
 | `scene.py validate/build` | 선언형 씬의 pixel-effect, pixel-action-set, model-assets 배치 및 실제 제작기 실행. |

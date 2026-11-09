@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "title": "빙정 종탑",
+  "jobs": [
+    {
+      "id": "glacier-ranger",
+      "name": "빙정사수",
+      "skill": "빙정매",
+      "motif": "rail",
+      "sheet": "glass-falcon.webp",
+      "palette": [
+        "#142a48",
+        "#3c5baa",
+        "#8ddcf4",
+        "#fdf5e3"
+      ]
+    }
+  ]
+}
