@@ -2,7 +2,7 @@ import {JOBS} from './jobs.mjs';
 import {RECOVERY_MS} from './timing.mjs';
 const followTime=RECOVERY_MS.follow/1000, recoverTime=RECOVERY_MS.recover/1000;
 import {createCombatFX} from './combat-fx.mjs';
-import {motionReady,drawActor} from './combat-motion.mjs';
+import {motionReady,drawActor,sampleActorPose} from './combat-motion.mjs';
 import actorManifest from './motion/manifest.mjs';
 
 const $ = id => document.getElementById(id);
@@ -86,7 +86,11 @@ function attack(heavy) {
   const front=(enemy.x-player.x)*player.face>=-12;
   const inReach=distance(player,enemy)<=range;
   const target=heavy&&aim ? aim : front&&inReach ? enemy : {x:player.x+player.face*range,y:player.y};
-  const cast=fx.cast(selected,{x:player.x,y:player.y-player.z,targetX:target.x,targetY:target.y,face:player.face,heavy});
+  const cast=fx.cast(selected,{x:player.x,y:player.y-player.z,targetX:target.x,targetY:target.y,face:player.face,heavy,sampleSource:({time,cast})=>{
+    const options=actorPoseOptions({...player,cast,castAge:time},JOBS[selected].motif);
+    const pose=sampleActorPose(options), point=pose&&(pose.socket('weapon-tip')??pose.socket('muzzle'));
+    return point?{...point,face:options.face}:null;
+  }});
   player.cooldown=Math.max(heavy?1.02:.47,cast.contactTime+.32); player.pose=cast.contactTime+.32;
   player.cast=cast; player.castAge=0;
   sound('attack'); event('casting',heavy?`${JOBS[selected].skill || '강공격'} — 조준한 지점을 향합니다.`:'약공격 — 전방을 견제합니다.');
@@ -115,15 +119,16 @@ function contact(cast) {
   const connected=front&&distance(cast,enemy)<=reach+35&&Math.hypot(enemy.x-cast.targetX,(enemy.y-cast.targetY)*1.4)<(cast.heavy?105:120);
   if(!connected) { misses++; sound('miss'); event('miss','빗나감 — 거리·방향·적의 이동을 확인하세요.'); return false; }
   const damage=Math.round((cast.heavy?config().damage:18)*(enemy.exposed>0?1.8:1));
+  const hitPoint={x:enemy.x,y:enemy.y};
   const braced=enemy.phase==='windup';
   enemy.hp=Math.max(0,enemy.hp-damage);
   if(!braced) {enemy.x=clamp(enemy.x+cast.face*(cast.heavy?22:8),330,950);enemy.pose=.24;enemy.hurt=.25;}
-  fx.react('hurt',{x:enemy.x,y:enemy.y,face:cast.face});
+  fx.react('hurt',{...hitPoint,face:cast.face});
   hits++; stop=cast.heavy?.075:.035; shake=reduced?0:cast.heavy?9:4;
   floats.push({x:enemy.x,y:enemy.y-105,text:`${enemy.exposed>0?'노출! ':''}−${damage}`,life:.9,color:config().color});
   sound(cast.heavy?'crit':'hit'); event('hit',`${cast.heavy?'강공격':'약공격'} 적중! ${damage} 피해${enemy.exposed>0?' · 노출 보너스':braced?' · 버티는 갑주: 쇄도는 계속됩니다':''}`);
   if(enemy.hp<=0) finish(true);
-  return {hit:true,x:enemy.x,y:enemy.y};
+  return {hit:true,...hitPoint};
 }
 function enemyImpact() {
   const within=Math.hypot(player.x-enemy.targetX,(player.y-enemy.targetY)*1.7)<148;
@@ -178,10 +183,9 @@ function step(dt) {
   sync();
 }
 function ellipse(x,y,rx,ry,fill,stroke) {ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();}}
-function figure(who,motif,isEnemy=false) {
+function actorPoseOptions(who,motif,isEnemy=false) {
   const face=isEnemy?(player.x<enemy.x?-1:1):who.face;
   const feet=who.y+68, altitude=isEnemy?0:who.z, h=isEnemy?272:248;
-  ellipse(who.x,feet-4,isEnemy?68:49-altitude*.18,14-altitude*.045,'#07151c75');
   let pose='idle', progress=0;
   if(isEnemy) {
     if(who.hurt>0) {pose='hurt';progress=1-who.hurt/.25;}
@@ -206,11 +210,17 @@ function figure(who,motif,isEnemy=false) {
   const available=actorManifest[kind]?.actions;
   if(pose==='jump'&&available&&!available.jump)pose='evade';
   if(pose==='walk'&&available&&!available.walk)pose='move';
+  return {kind,x:who.x,groundY:feet-altitude,height:h,face,pose,progress:clamp(progress,0,1),time:reduced?0:clock};
+}
+function figure(who,motif,isEnemy=false) {
+  const options=actorPoseOptions(who,motif,isEnemy), {pose,progress}=options;
+  const feet=who.y+68, altitude=isEnemy?0:who.z;
+  ellipse(who.x,feet-4,isEnemy?68:49-altitude*.18,14-altitude*.045,'#07151c75');
   root.dataset[isEnemy?'enemyPose':'playerPose']=pose;
   if(!isEnemy)root.dataset.contactPhase=pose;
   root.dataset[isEnemy?'enemyPoseProgress':'playerPoseProgress']=progress.toFixed(2);
   if(who.evade>0||who.parry>0||who.exposed>0) ellipse(who.x,who.y+6-altitude,who.parry>0?72:62,91,null,who.parry>0?'#ffe2a4':who.exposed>0?'#ffe2a4':'#b2f6f2');
-  drawActor(ctx,{kind,x:who.x,groundY:feet-altitude,height:h,face,pose,progress:clamp(progress,0,1),time:reduced?0:clock});
+  drawActor(ctx,options);
   if(isEnemy&&who.exposed>0){ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.fillStyle='#ffe2a4';ctx.fillText('◇ 노출',who.x,who.y-150);}
 }
 function draw() {

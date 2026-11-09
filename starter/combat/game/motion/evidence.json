@@ -892,7 +892,7 @@
       "cli_stdout": "{\"schema_version\": 1, \"status\": \"ready\", \"files\": {\"sheet\": \"sheet.png\", \"metadata\": \"sheet.json\", \"preview\": \"preview.gif\"}}",
       "pixel_sheet_sha256": "2f9436040018a9468d77f8ae819eeab4921b82bc37afe22f0e3011976508f0ac",
       "webp_sha256": "e283cc78885c1a6313d714513f5df5021d6139cf234d9bcfe5801f6dc906cdef",
-      "metadata_sha256": "d4ecec473ad595e92b79187f6160239f506503c9829d504912a85c9b4bee99da",
+      "metadata_sha256": "7561bb40bb2ff1777a407ed5e7f6459ca27369e0ed50aff5200939b4d1fe52ef",
       "action_ms": {
         "windup": [
           35,
@@ -1180,7 +1180,8 @@
             453
           ]
         }
-      ]
+      ],
+      "socket_authoring": "Per-exposure gun muzzle marked on the final compiled 512px cells; unchanged source image and pixel atlas."
     },
     "warden": {
       "producer": "pixel_asset_pipeline.cli sheet",

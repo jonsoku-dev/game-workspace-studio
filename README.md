@@ -1,5 +1,7 @@
 # Game Studio
 
+독립 웹게임에서 실제 도구·표면 접촉과 파편 원점을 연결하려면 [접촉 효과 제작](CONTACT.md)을 따른다.
+
 새 직업별 전투는 [전투 제작 경로](COMBAT.md)의 `web_game.py --init-combat`로 시작한다. 작화 포즈·명중 시트·실제 접촉 판정이 들어 있는 독립 게임을 생성하며 새 원화·직업·팔레트를 입력할 수 있다. [설치 기능 지도](CAPABILITIES.md) 새 프로젝트는 직업별 미술 제작 지시서를 포함하며, 내보내기 때 [공명기사 기준과 실제 에셋을 비교](ASSET-ART.md)한다.
 
 게임 기획과 씬 배치, 설치된 에셋 제작기의 엔진 통합을 담당하는 로컬 Codex 플러그인이다. Python 3.10+ stdlib CLI가 실제 제작기를 호출해 프로젝트 상대 경로를 담은 런타임 씬을 만든다. 모델·픽셀 제작 코드는 포함하지 않는다.
@@ -164,10 +166,10 @@ python3 tools/graph.py history --project examples/forest-camp
 로컬 Codex에 스튜디오를 설치하는 절차다. 아래는 이 버전의 새 설치 경로 예시다.
 
 ```sh
-python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.15.0"
-codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.15.0"
+python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.16.0"
+codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.16.0"
 codex plugin add game-studio@game-studio
-STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.15.0"
+STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.16.0"
 ```
 
 프로젝트에서 `$game-studio`로 기획·씬 제작을 요청한다. 예를 들어 “Forest Camp의 30cm 등불 통풍구에 입체 불티를 붙이고 제작 과정을 보여 줘”라고 지시한다.

@@ -19,6 +19,10 @@
 | `graph.py record/query/export/history`, `workspace_graph.py`, `visualize.py` | 원본·실행·검증 기록, 프로젝트 그래프 합치기, 읽기 전용 검수. |
 | `install_workspace.py` | 격리된 환경·로컬 패키지 설치. 소스 저장소의 `stage.py`는 배포 제작용이다. |
 
+## 접촉 연출
+
+프레임별 무기 소켓은 `combat_motion.py`가 픽셀 변환을 적용해 저장한다. 독립 게임은 `genre.json`의 `contact:true`로 원형 도구와 표면의 접촉점·방향·미끄럼 속도를 받는다. [연출과 검증](CONTACT.md)
+
 ## Pixel Asset Pipeline
 
 | 명령 | 제작에 쓰는 입력과 결과 |

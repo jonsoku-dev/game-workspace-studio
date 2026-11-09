@@ -1,6 +1,7 @@
 """Installed combat starter inventory and local, brief-driven class artwork."""
 import io
 import json
+import math
 from pathlib import Path
 import re
 import subprocess
@@ -115,6 +116,13 @@ def attach_actor(stage, index, root, path, read):
                     or not 0<=f['x']<f['x']+f['w']<=im.width or not 0<=f['y']<f['y']+f['h']<=im.height
                     or not 1<=f['ms']<=60000 or not 1<=f['w']<=512 or not 1<=f['h']<=512):
                 raise ValueError('Invalid motion frame')
+            sockets=f.get('sockets',{})
+            if (not isinstance(sockets,dict) or len(sockets)>16 or
+                    any(not isinstance(name,str) or not re.fullmatch('[a-z][a-z0-9-]{0,47}',name) or
+                        not isinstance(point,list) or len(point)!=2 or
+                        any(type(v) not in (int,float) or not math.isfinite(v) or not 0<=v<=f[key]
+                            for v,key in zip(point,('w','h'))) for name,point in sockets.items())):
+                raise ValueError('Invalid motion sockets')
         pivot=actor['pivot']
         if (not isinstance(pivot,list) or len(pivot)!=2 or
                 any(type(v) is not int or not 0<=v<=actor['frames'][0][key] for v,key in zip(pivot,('w','h')))):

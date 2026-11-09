@@ -5,7 +5,9 @@ Request v1: {"cell":[512,512],"pivot":[256,470],"kinds":{"blade":{
 "body_height":270,"frames":[{"id":"guard","path":"guard.png",
 "foot":[220,450],"scale":0.6,"duration_ms":100}],
 "actions":{"idle":["guard"]}}}}. Optional crop is [left,top,right,bottom];
-foot coordinates are relative to that crop. Paths resolve beside the request.
+foot and optional sockets {"weapon": [x,y]} coordinates are relative to that crop.
+Sockets use safe names (max 16) and compile to frame-local cell pixels.
+Paths resolve beside the request.
 Optional actor action_ms maps action names to matching integer-ms lists;
 each entry and each action total must be in 1..60000.
 """
@@ -91,11 +93,23 @@ def _compile(request, output, pixel_root):
             foot = item['foot']
             if len(foot) != 2 or not all(type(n) in (float, int) and math.isfinite(n) and 0 <= n <= frame.size[i] for i,n in enumerate(foot)):
                 raise ValueError('Frame needs an explicit foot anchor')
+            sockets = item.get('sockets', {})
+            if (not isinstance(sockets, dict) or len(sockets) > 16 or
+                    any(not isinstance(name, str) or not re.fullmatch('[a-z][a-z0-9-]{0,47}', name) or
+                        not isinstance(point, list) or len(point) != 2 or
+                        any(type(n) not in (int, float) or not math.isfinite(n) or not 0 <= n <= frame.size[axis]
+                            for axis, n in enumerate(point)) for name, point in sockets.items())):
+                raise ValueError('Invalid frame sockets')
+            source_size = frame.size
             size = (max(1, round(frame.width * scale)), max(1, round(frame.height * scale)))
             if max(size) > 1024:
                 raise ValueError('Resized frame exceeds 1024px')
             frame = frame.resize(size, Image.Resampling.LANCZOS)
             at = (round(pivot[0] - foot[0] * scale), round(pivot[1] - foot[1] * scale))
+            compiled_sockets = {name: [at[axis] + point[axis] * size[axis] / source_size[axis] for axis in range(2)]
+                                for name, point in sockets.items()}
+            if any(not 0 <= point[axis] <= cell[axis] for point in compiled_sockets.values() for axis in range(2)):
+                raise ValueError('Frame socket outside cell')
             bounds = frame.getbbox()
             if not bounds or at[0] + bounds[0] < 0 or at[1] + bounds[1] < 0 or at[0] + bounds[2] > cell[0] or at[1] + bounds[3] > cell[1]:
                 raise ValueError(f'Visible pixels clipped for {kind}/{ident}; adjust cell or common source scale')
@@ -105,7 +119,7 @@ def _compile(request, output, pixel_root):
             canvas.save(stage / filename)
             ids[ident] = i
             entries.append({'path': filename, 'duration_ms': item.get('duration_ms', 100)})
-            records.append({'id': ident, 'source': item['path'], 'source_sha256': hashlib.sha256(source_bytes).hexdigest(), 'crop': item.get('crop'), 'source_foot': foot, 'source_scale': scale, 'frame_sha256': digest(stage / filename), 'rgba_sha256': hashlib.sha256(canvas.tobytes()).hexdigest(), 'bounds': canvas.getbbox()})
+            records.append({'sockets': compiled_sockets, 'id': ident, 'source': item['path'], 'source_sha256': hashlib.sha256(source_bytes).hexdigest(), 'crop': item.get('crop'), 'source_foot': foot, 'source_scale': scale, 'frame_sha256': digest(stage / filename), 'rgba_sha256': hashlib.sha256(canvas.tobytes()).hexdigest(), 'bounds': canvas.getbbox()})
         actions = {}
         if 'idle' not in actor['actions']:
             raise ValueError('Every actor needs idle')
@@ -144,7 +158,7 @@ def _compile(request, output, pixel_root):
                 draw.line((x,y+pivot[1],x+cell[0],y+pivot[1]), fill='#f7cf79')
                 draw.text((x+8,y+8), item['id'], fill='white')
             contact.save(stage / 'contact.jpg', quality=92)
-        manifest[kind] = {'image': f'{kind}.webp', 'pivot': pivot, 'bodyHeight': actor['body_height'], 'actions': actions, 'frames': [{'id': r['id'], **f['rect'], 'ms': f['duration_ms']} for r,f in zip(records,metadata['frames'])]}
+        manifest[kind] = {'image': f'{kind}.webp', 'pivot': pivot, 'bodyHeight': actor['body_height'], 'actions': actions, 'frames': [{'id': r['id'], **f['rect'], 'ms': f['duration_ms'], **({'sockets': r['sockets']} if r['sockets'] else {})} for r,f in zip(records,metadata['frames'])]}
         if action_ms:
             manifest[kind]['action_ms'] = action_ms
         write(output / f'{kind}.json', manifest[kind])

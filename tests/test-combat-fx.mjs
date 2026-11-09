@@ -1,5 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { mkdtemp, mkdir, copyFile, writeFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { createCombatFX, DEFAULT_JOBS } from '../starter/combat/game/combat-fx.mjs';
 
 let imageCount = 0;
@@ -112,4 +116,66 @@ test('changing reduced motion during flight preserves cache, timeline and exactl
   fx.step(.02, () => { calls++; return true; }); assert.equal(calls, 1); assert.equal(d.contactTime, .2);
   fx.setReducedMotion(true); fx.draw(canvas().ctx); fx.step(10, () => calls++);
   assert.equal(calls, 1); assert.equal(imageCount, allocated);
+});
+
+
+test('authored moving and flipped pose sockets drive windup, then release and aim stay world locked without drawing', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'combat-emitter-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await mkdir(join(root, 'motion'));
+  await copyFile(new URL('../starter/combat/game/combat-motion.mjs', import.meta.url), join(root, 'combat-motion.mjs'));
+  const actor = { image: 'actor.png', pivot: [16, 24], bodyHeight: 20,
+    actions: { idle: [0], heavy: [0], release: [1] },
+    frames: [{ x: 0, y: 0, w: 32, h: 32, ms: 100, sockets: { 'weapon-tip': [20, 12] } },
+      { x: 32, y: 0, w: 32, h: 32, ms: 100, sockets: { 'weapon-tip': [28, 16] } }] };
+  await writeFile(join(root, 'motion/manifest.mjs'), `export default ${JSON.stringify({ rail: actor })};`);
+  const { motionReady, sampleActorPose } = await import(pathToFileURL(join(root, 'combat-motion.mjs')).href);
+  await motionReady;
+  for (const useClip of [false, true]) for (const reducedMotion of [false, true]) {
+    const fx = createCombatFX({ jobs: { rail: { motif: 'rail', ...(useClip ? { clip } : {}) } }, reducedMotion });
+    await fx.ready;
+    const owner = { kind: 'rail', x: 100, groundY: 200, height: 40, face: 1 };
+    let samples = 0;
+    const aim = { ...input, sampleSource({ time, cast }) {
+      samples++;
+      const pose = sampleActorPose({ ...owner, pose: time < cast.windup ? 'heavy' : 'release' });
+      return { ...pose.socket('weapon-tip'), face: pose.face };
+    } };
+    const d = fx.cast('rail', aim);
+    assert.deepEqual([d.x, d.y, d.face], [108, 176, 1]);
+    owner.x = 150; owner.groundY = 230; owner.face = -1;
+    fx.step(d.windup / 2);
+    assert.deepEqual([d.x, d.y, d.face], [142, 206, -1]);
+    const charge = canvas(); fx.draw(charge.ctx);
+    assert(charge.translations.some(([x, y]) => x === 142 && y === 206));
+    assert.equal(samples, 2, 'draw must not sample or advance simulation');
+    owner.x = 180;
+    fx.step(d.windup / 2);
+    assert.deepEqual([d.x, d.y, d.face], [156, 214, -1], 'release frame has its own authored socket');
+    const releaseSamples = samples;
+    owner.x = 900; owner.groundY = 999; owner.face = 1; aim.targetX = 999;
+    fx.step(d.flight / 2);
+    assert.deepEqual([d.x, d.y, d.face, d.targetX, d.targetY], [156, 214, -1, 650, 310]);
+    let contacts = 0;
+    fx.step(d.flight / 2 + .001, cast => {
+      contacts++; assert.equal(cast, d); return { hit: true, x: 610, y: 290 };
+    });
+    const impact = canvas(); fx.draw(impact.ctx);
+    assert(impact.translations.some(([x, y]) => x === 610 && y === 290));
+    assert(!impact.translations.some(([x, y]) => x === 650 && y === 310));
+    assert.equal(samples, releaseSamples); assert.equal(contacts, 1);
+    fx.reset();
+    const miss = fx.cast('rail', aim);
+    fx.step(miss.contactTime + .001, () => false);
+    const missed = canvas(); fx.draw(missed.ctx); assert.equal(missed.draws.length, 0);
+  }
+});
+
+test('missing authored sockets retain the legacy origin and malformed sources fail at the boundary', async () => {
+  const fx = createCombatFX(); await fx.ready;
+  const d = fx.cast('rail', { ...input, sampleSource: () => null });
+  fx.step(d.windup + .001);
+  assert.deepEqual([d.x, d.y], [input.x, input.y]);
+  assert.throws(() => fx.cast('rail', { ...input, sampleSource: true }), /sampleSource/);
+  assert.throws(() => fx.cast('rail', { ...input, sampleSource: () => ({ x: NaN, y: 1 }) }), /finite world/);
 });

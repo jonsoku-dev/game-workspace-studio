@@ -593,7 +593,13 @@ export default {
         "y": 0,
         "w": 512,
         "h": 512,
-        "ms": 85
+        "ms": 85,
+        "sockets": {
+          "weapon-tip": [
+            303,
+            209
+          ]
+        }
       },
       {
         "id": "windupB",
@@ -601,7 +607,13 @@ export default {
         "y": 0,
         "w": 512,
         "h": 512,
-        "ms": 65
+        "ms": 65,
+        "sockets": {
+          "weapon-tip": [
+            405,
+            269
+          ]
+        }
       },
       {
         "id": "release",
@@ -609,7 +621,13 @@ export default {
         "y": 0,
         "w": 512,
         "h": 512,
-        "ms": 60
+        "ms": 60,
+        "sockets": {
+          "weapon-tip": [
+            390,
+            211
+          ]
+        }
       },
       {
         "id": "follow",
@@ -617,7 +635,13 @@ export default {
         "y": 0,
         "w": 512,
         "h": 512,
-        "ms": 110
+        "ms": 110,
+        "sockets": {
+          "weapon-tip": [
+            324,
+            166
+          ]
+        }
       },
       {
         "id": "recover",
@@ -625,7 +649,13 @@ export default {
         "y": 0,
         "w": 512,
         "h": 512,
-        "ms": 130
+        "ms": 130,
+        "sockets": {
+          "weapon-tip": [
+            367,
+            269
+          ]
+        }
       },
       {
         "id": "hurt",
@@ -633,7 +663,13 @@ export default {
         "y": 0,
         "w": 512,
         "h": 512,
-        "ms": 160
+        "ms": 160,
+        "sockets": {
+          "weapon-tip": [
+            365,
+            279
+          ]
+        }
       },
       {
         "id": "idle",
@@ -641,7 +677,13 @@ export default {
         "y": 0,
         "w": 512,
         "h": 512,
-        "ms": 1100
+        "ms": 1100,
+        "sockets": {
+          "weapon-tip": [
+            322,
+            343
+          ]
+        }
       },
       {
         "id": "air",
@@ -649,7 +691,13 @@ export default {
         "y": 0,
         "w": 512,
         "h": 512,
-        "ms": 200
+        "ms": 200,
+        "sockets": {
+          "weapon-tip": [
+            363,
+            269
+          ]
+        }
       },
       {
         "id": "strideA",
@@ -657,7 +705,13 @@ export default {
         "y": 0,
         "w": 512,
         "h": 512,
-        "ms": 95
+        "ms": 95,
+        "sockets": {
+          "weapon-tip": [
+            352,
+            290
+          ]
+        }
       },
       {
         "id": "strideB",
@@ -665,7 +719,13 @@ export default {
         "y": 0,
         "w": 512,
         "h": 512,
-        "ms": 95
+        "ms": 95,
+        "sockets": {
+          "weapon-tip": [
+            329,
+            309
+          ]
+        }
       },
       {
         "id": "strideC",
@@ -673,7 +733,13 @@ export default {
         "y": 0,
         "w": 512,
         "h": 512,
-        "ms": 95
+        "ms": 95,
+        "sockets": {
+          "weapon-tip": [
+            361,
+            271
+          ]
+        }
       },
       {
         "id": "strideD",
@@ -681,7 +747,13 @@ export default {
         "y": 0,
         "w": 512,
         "h": 512,
-        "ms": 95
+        "ms": 95,
+        "sockets": {
+          "weapon-tip": [
+            343,
+            252
+          ]
+        }
       },
       {
         "id": "breath",
@@ -689,7 +761,13 @@ export default {
         "y": 0,
         "w": 512,
         "h": 512,
-        "ms": 1100
+        "ms": 1100,
+        "sockets": {
+          "weapon-tip": [
+            314,
+            341
+          ]
+        }
       },
       {
         "id": "dodge",
@@ -697,7 +775,13 @@ export default {
         "y": 0,
         "w": 512,
         "h": 512,
-        "ms": 130
+        "ms": 130,
+        "sockets": {
+          "weapon-tip": [
+            386,
+            354
+          ]
+        }
       }
     ],
     "action_ms": {

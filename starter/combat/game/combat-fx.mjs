@@ -85,17 +85,29 @@ export function createCombatFX({ jobs = DEFAULT_JOBS, reducedMotion = false } = 
   const ready = Promise.all(pending);
   // Keep an early load failure observable through ready without an unhandled rejection.
   ready.catch(() => {});
-  function cast(jobKey, { x, y, targetX, targetY, face = 1, heavy = true }) {
+  function cast(jobKey, { x, y, targetX, targetY, face = 1, heavy = true, sampleSource }) {
     const job = jobs[jobKey];
     if (!job) throw new RangeError(`Unknown combat job: ${jobKey}`);
     if (![x, y, targetX, targetY, face].every(Number.isFinite)) throw new TypeError('Combat FX coordinates and face must be finite');
+    if (sampleSource !== undefined && typeof sampleSource !== 'function') throw new TypeError('Combat FX sampleSource must be a function');
     const motif = job.motif ?? jobKey;
     const style = MOTIFS[motif];
     const [baseWindup,baseFlight,baseDecay]=MOTIF_MS[motif][heavy?'heavy':'light'].map(ms=>ms/1000);
     const [windup, flight, decay] = heavy && clips.has(jobKey) ? clips.get(jobKey).timing : [baseWindup, baseFlight, baseDecay];
-    const descriptor = Object.freeze({ jobKey, motif, x, y, targetX, targetY, face: face < 0 ? -1 : 1, heavy: !!heavy, windup, flight, decay, contactTime: windup + flight });
-    active.push({ descriptor, time: 0, contacted: false, hit: false, hitX: targetX, hitY: targetY });
+    const source = { x, y, face: face < 0 ? -1 : 1 };
+    const descriptor = Object.freeze({ jobKey, motif, get x() { return source.x; }, get y() { return source.y; }, get face() { return source.face; }, targetX, targetY, heavy: !!heavy, windup, flight, decay, contactTime: windup + flight });
+    const effect = { descriptor, source, sampleSource, time: 0, contacted: false, hit: false, hitX: targetX, hitY: targetY };
+    sampleEmitter(effect, 0);
+    active.push(effect);
     return descriptor;
+  }
+  // Sample only in simulation; after release the world-space source is locked.
+  function sampleEmitter(effect, time) {
+    const point = effect.sampleSource?.({ time, cast: effect.descriptor });
+    if (point == null) return;
+    if (![point.x, point.y].every(Number.isFinite) || (point.face !== undefined && !Number.isFinite(point.face))) throw new TypeError('Combat FX source must have finite world coordinates');
+    effect.source.x = point.x; effect.source.y = point.y;
+    if (point.face !== undefined) effect.source.face = point.face < 0 ? -1 : 1;
   }
   function react(event, { x, y, face = 1 }) {
     if (!REACTIONS[event]) throw new RangeError(`Unknown combat reaction: ${event}`);
@@ -108,11 +120,13 @@ export function createCombatFX({ jobs = DEFAULT_JOBS, reducedMotion = false } = 
     reactions = reactions.filter(reaction => reaction.time < REACTIONS[reaction.event][0]);
     // Snapshot prevents a callback casting another move from advancing it in this step.
     for (const effect of [...active]) {
-      effect.time += dt;
       const d = effect.descriptor;
+      if (effect.time < d.windup) sampleEmitter(effect, Math.min(effect.time + dt, d.windup));
+      effect.time += dt;
       if (!effect.contacted && effect.time >= d.contactTime) {
         effect.contacted = true;
         const result = onContact?.(d);
+        // Legacy boolean hits use locked aim; point results place the confirmed impact.
         effect.hit = result === true || result?.hit === true;
         if (effect.hit && Number.isFinite(result?.x) && Number.isFinite(result?.y)) {
           effect.hitX = result.x; effect.hitY = result.y;

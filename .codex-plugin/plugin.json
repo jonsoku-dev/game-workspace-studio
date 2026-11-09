@@ -1,6 +1,6 @@
 {
   "name": "game-studio",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "description": "Interview for game direction, build playable games with class-specific combat and contact-timed effects, compare actual artwork at play size, and verify revisions in the browser.",
   "skills": "./.agents/skills/",
   "interface": {

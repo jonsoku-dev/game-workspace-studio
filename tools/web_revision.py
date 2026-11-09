@@ -52,7 +52,7 @@ def _inventory(project, relative):
                 raise ValueError('Export contains symlink')
             if name in files:
                 result[local] = web_game._pin(web_game._read(project, local))
-            if len(result) > web_game.MAX_FILES + 4:
+            if len(result) > web_game.MAX_FILES + 5:
                 raise ValueError('Export inventory exceeds limit')
     return result
 
@@ -68,7 +68,7 @@ def accept_export(project, relative):
             or not isinstance(receipt.get('work_id'), str)
             or not re.fullmatch(r'web-[a-f0-9]{32}', receipt['work_id'])
             or receipt.get('index') != relative + '/index.html'
-            or not isinstance(receipt.get('files'), list) or not 3 <= len(receipt['files']) <= web_game.MAX_FILES + 3
+            or not isinstance(receipt.get('files'), list) or not 3 <= len(receipt['files']) <= web_game.MAX_FILES + 4
             or not isinstance(receipt.get('provenance'), dict)):
         raise ValueError('Invalid web export receipt')
     nodes = graph.query(project)
@@ -109,7 +109,7 @@ def accept_export(project, relative):
             raise ValueError('Export provenance pin differs')
         digest = {key: pin[key] for key in ('sha256', 'byteCount')}
         if pin.get('origin') == 'installed-runtime':
-            if name not in {'feedback.mjs', 'campaign.mjs'} or pin.get('source') != 'studio/engines/web/' + name:
+            if name not in web_game.runtime_names(receipt) or pin.get('source') != 'studio/engines/web/' + name:
                 raise ValueError('Unexpected installed runtime')
             runtimes[name] = digest
         else:
@@ -120,8 +120,8 @@ def accept_export(project, relative):
                     or any(artifact.get(k) != v for k, v in digest.items())):
                 raise ValueError('Export source provenance differs')
             sources[source] = digest
-    if 'feedback.mjs' not in runtimes:
-        raise ValueError('Missing installed feedback runtime')
+    if set(web_game.runtime_names(receipt)) != runtimes.keys():
+        raise ValueError('Missing declared installed runtime')
     return {'directory': relative, 'receipt': receipt, 'receipt_artifact': artifacts[receipt_path]['@id'],
             'pins': expected, 'sources': sources, 'runtimes': runtimes}
 
@@ -129,7 +129,7 @@ def accept_export(project, relative):
 def _current(project):
     spec, source_bytes = web_game._sources(project)
     runtime_bytes = {name: web_game._read(web_game.ROOT, 'engines/web/' + name) for name in
-                     (('feedback.mjs', 'campaign.mjs') if 'stages' in spec else ('feedback.mjs',))}
+                     web_game.runtime_names(spec)}
     return {'sources': {p: web_game._pin(data) for p, data in source_bytes.items()},
             'runtimes': {p: web_game._pin(data) for p, data in runtime_bytes.items()}}
 

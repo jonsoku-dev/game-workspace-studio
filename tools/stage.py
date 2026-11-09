@@ -14,7 +14,7 @@ FILES = (
     "starter/combat-brief/bell-knight.json","starter/combat-brief/bell-knight.webp",
     "starter/combat-brief/knight-motion.json","starter/combat-brief/knight-poses.webp","starter/combat-brief/knight-stride.webp","starter/combat-brief/knight-walk.webp",
     "starter/combat-brief/falcon.json","starter/combat-brief/glass-falcon.webp","starter/combat-brief/clip.json", "starter/combat-brief/resonance.gif","starter/combat-brief/ORIGIN","starter/combat-brief/NOTICE", "starter/combat-brief/choir.json","starter/combat-brief/resonance.webp",
-    "INSTALL.md", "tools/install_workspace.py", "tools/combat_starter.py", "tools/combat_motion.py", "tools/combat_review.py", "COMBAT.md","ASSET-ART.md","tools/asset_review.py","tools/combat_quality.py","tools/asset_board.py", "CAPABILITIES.md",
+    "INSTALL.md", "tools/install_workspace.py", "tools/combat_starter.py", "tools/combat_motion.py", "tools/combat_review.py", "COMBAT.md","CONTACT.md","engines/web/contact.mjs","ASSET-ART.md","tools/asset_review.py","tools/combat_quality.py","tools/asset_board.py", "CAPABILITIES.md",
     "tools/character.py", "tools/start.py", "tools/revise.py", "tools/review.py", "tools/playcheck.py", "tools/playcheck_browser.py", "tools/courier_playcheck.py",
     "starter/checks/web-health.json", "starter/campaign/checks/first-play.json", "starter/campaign/genre.json", "starter/campaign/game/index.html", "starter/campaign/game/game.mjs",
     "starter/2d/master.png", "starter/2d/motion.json", "starter/2d/LICENSE.txt", "starter/2d/NOTICE.md",
