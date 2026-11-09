@@ -534,7 +534,7 @@ def build(project, output, timeout, scene_name="scene.json", source_artifact=Non
             reason = "output_exists"
         elif isinstance(exc, FileNotFoundError):
             reason = "missing_input" if phase in ("admission", "inputs", "reuse-validation") else "missing_tool"
-        elif isinstance(exc, json.JSONDecodeError):
+        elif isinstance(exc, json.JSONDecodeError) and phase == "admission":
             reason = "invalid_schema"
         else:
             reason = {"admission": "invalid_scene", "inputs": "input_mismatch", "discovery": "missing_tool",

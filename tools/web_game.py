@@ -113,7 +113,12 @@ def _sources(project):
         for name in sorted(dirs + files):
             path = Path(directory) / name
             relative = path.relative_to(game).as_posix()
-            _relative(relative)
+            if name in ('.DS_Store', 'Thumbs.db') and path.is_file() and not path.is_symlink():
+                continue  # OS metadata is never published; skip instead of failing the export
+            try:
+                _relative(relative)
+            except ValueError:
+                raise ValueError(f'Unsafe or hidden source path: game/{relative}') from None
             folded = unicodedata.normalize('NFC', relative).casefold()
             if (folded in seen or PurePosixPath(folded).parts[0] in reserved
                     or path.is_symlink()):

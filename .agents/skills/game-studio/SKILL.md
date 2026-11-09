@@ -3,7 +3,7 @@ name: game-studio
 description: 사용자와 재미·아트 방향을 정해 게임 아이디어를 첫 플레이와 여러 스테이지로 만든다. 첨부 자료 반영 점검, 기존 웹 게임 수정·버그 재현·버튼과 화면 배치 검증, 연출 가이드북, 2D·3D 제작, 원화 PNG의 Rive 동작, A/B 검수와 엔진 전달에도 사용한다.
 ---
 
-게임 목표·조작·씬·엔진 연결을 소유한다. 이 파일에서 상위 세 폴더가 `$STUDIO_ROOT`다. 픽셀은 설치된 `pixel-asset`, 모델은 `model-assets`의 계약으로 제작한다. 설치·의존성 문제는 [INSTALL](../../../INSTALL.md), 수정·검수 JSON과 증거 관계는 [GRAPH](../../../GRAPH.md)를 해당 단계에서 읽는다.
+게임 목표·조작·씬·엔진 연결을 소유한다. `$STUDIO_ROOT`는 `.codex-plugin/plugin.json`이 있는 폴더로, 이 SKILL.md가 있는 폴더 기준 `../../..`이다. 픽셀은 설치된 `pixel-asset`, 모델은 `model-assets`의 계약으로 제작한다. 설치·의존성 문제는 [INSTALL](../../../INSTALL.md), 수정·검수 JSON과 증거 관계는 [GRAPH](../../../GRAPH.md)를 해당 단계에서 읽는다.
 
 ## 새 게임과 스테이지의 기본 흐름
 

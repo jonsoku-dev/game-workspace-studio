@@ -75,6 +75,14 @@ class WebGameTest(unittest.TestCase):
         self.assertEqual(web_revision.accept_export(self.project, 'build/a')['pins'], before['pins'])
         self.export('build/b')
 
+    def test_os_metadata_is_skipped_and_hidden_sources_are_named(self):
+        (self.project / 'game/.DS_Store').write_bytes(b'finder')
+        receipt = json.loads(Path(self.export('build/meta')['receipt']).read_text())
+        self.assertNotIn('.DS_Store', json.dumps(receipt))
+        (self.project / 'game/.secret').write_text('x')
+        with self.assertRaisesRegex(ValueError, 'game/.secret'):
+            self.export('build/hidden')
+
     def test_campaign_cli_publishes_manifest_receipt_and_installed_runtime(self):
         self.campaign()
         run = subprocess.run([sys.executable, str(web_game.ROOT / 'tools/web_game.py'),

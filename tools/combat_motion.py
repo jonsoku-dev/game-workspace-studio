@@ -73,10 +73,15 @@ def _compile(request, output, pixel_root):
         if type(actor['body_height']) not in (int, float) or not math.isfinite(actor['body_height']) or not 1 <= actor['body_height'] <= 512:
             raise ValueError('Body height must be finite and in 1..512')
         entries, records, ids = [], [], {}
+        folded = set()
         for i, item in enumerate(actor['frames']):
             ident = item['id']
             if ident in ids or not re.fullmatch('[a-zA-Z][a-zA-Z0-9-]{0,47}', ident):
                 raise ValueError('Frame IDs must be unique safe names')
+            if ident.casefold() in folded:
+                # Prepared files are named by id; case-insensitive filesystems would collide.
+                raise ValueError('Frame IDs must be unique ignoring case: ' + ident)
+            folded.add(ident.casefold())
             source_bytes = _read(request.parent, item['path'])
             with Image.open(io.BytesIO(source_bytes), formats=['PNG', 'WEBP']) as original:
                 if original.is_animated or original.width * original.height > 16_777_216:

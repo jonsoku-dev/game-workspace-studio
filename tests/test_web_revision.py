@@ -133,6 +133,8 @@ class WebRevisionTest(unittest.TestCase):
                     self.build(kind='bugfix', check='case.json')
                 report = self.report(error.exception.result)
                 self.assertFalse(report['passed'])
+                if outcome == {'passed': True, 'status': 'passed'}:
+                    self.assertEqual([s['fault'] for s in report['next_steps']], ['not_reproduced'])
                 if isinstance(outcome, TimeoutError):
                     self.assertEqual(report['error']['type'], 'TimeoutError')
                     self.assertNotIn('before', report['checks'])

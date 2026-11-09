@@ -203,6 +203,12 @@ def _next_steps(report):
         return []
     diagnostic = report.get('diagnostic')
     failure = report['checks'].get('after', report['checks'].get('before', {})).get('failed_assertion')
+    before = report['checks'].get('before')
+    if (not diagnostic and report.get('phase') == 'baseline-check' and isinstance(before, dict)
+            and before.get('passed') is True and 'after' not in report['checks']):
+        return [{'category': 'assertion', 'fault': 'not_reproduced', 'step': None,
+                 'instruction': 'The case passes on the base export, so it does not observe the reported defect. '
+                                'Make its final assertion fail on the base before rebuilding the fix.'}]
     if diagnostic:
         category, fault, step = diagnostic['category'], diagnostic['fault'], diagnostic['step']
     elif failure:
@@ -301,7 +307,9 @@ def _report(project, report, used, case_path):
               'generated': [] if write_error else [{'path': relative, 'sha256': web_game._pin(data)['sha256']}],
               'verification': {'passed': report['passed'] and not write_error, 'checks':
                   ['report-write-error', write_error] if write_error else [report['phase'],
-                  'Structured check outcomes are pinned in ' + relative]}}
+                  'Structured check outcomes are pinned in ' + relative] + (
+                  ['Installed runtime also changed: ' + ', '.join(report['runtime_changed'])]
+                  if report.get('runtime_changed') else [])}}
     if case_path and report.get('pin_checks', {}).get('case', {}).get('passed'):
         record['files'] = [case_path]
     try:
@@ -388,6 +396,10 @@ def _attempt(project, base, *, out=None, kind=None, reason=None, check=None, ope
                 report['checks']['after'] = _check(project, out, case)
                 if not report['checks']['after']['passed']:
                     raise ValueError('Candidate failed comparison assertion')
+            runtime = [c['path'] for c in report['changes'] if c['origin'] == 'installed-runtime']
+            if kind == 'bugfix' and runtime:
+                # The fix may come from the plugin upgrade rather than the edited source; say so.
+                report['runtime_changed'] = runtime
         if operation != 'check':
             report.update(passed=True, status='verified', phase='verified')
     except Exception as error:

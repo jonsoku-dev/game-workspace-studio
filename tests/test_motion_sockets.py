@@ -69,6 +69,15 @@ class MotionSocketTests(unittest.TestCase):
             self.compile()
         self.assertFalse((self.root / 'out').exists())
 
+    def test_ids_differing_only_by_case_are_rejected(self):
+        frames = self.spec['kinds']['blade']['frames']
+        frames[1]['id'] = 'Guard'
+        for actions in self.spec['kinds']['blade']['actions'].values():
+            actions[1] = 'Guard'
+        with self.assertRaisesRegex(ValueError, 'ignoring case'):
+            self.compile()
+        self.assertFalse((self.root / 'out').exists())
+
 
 if __name__ == '__main__':
     unittest.main()
