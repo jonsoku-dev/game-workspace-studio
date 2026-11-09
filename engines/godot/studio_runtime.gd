@@ -92,10 +92,13 @@ func _process(delta: float) -> void:
 		var age := fposmod(clock - float(p.start_s), float(entry.duration))
 		var mesh: Node3D = entry.node
 		mesh.visible = age < float(p.life_s)
-		mesh.position = vec(p.offset) + vec(p.drift) * age
+		# model-assets ember contract: offset + drift*u + sin(pi*u)*.35*[drift.z, 0, -drift.x], scale*sqrt(sin(pi*u)).
+		var u := age / float(p.life_s) if age < float(p.life_s) else 0.0
+		var drift := vec(p.drift)
+		var envelope := sin(PI * u)
+		mesh.position = vec(p.offset) + drift * u + Vector3(drift.z, 0, -drift.x) * (envelope * 0.35)
 		mesh.rotation = vec(p.spin) * age
-		var fade := sin(PI * clampf(age / float(p.life_s), 0, 1))
-		mesh.scale = Vector3.ONE * maxf(0.001, float(p.scale) * fade)
+		mesh.scale = Vector3.ONE * maxf(0.001, float(p.scale) * sqrt(maxf(0.0, envelope)))
 
 func _exit_tree() -> void:
 	for model in models.values():

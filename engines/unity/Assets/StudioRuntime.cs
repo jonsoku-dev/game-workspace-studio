@@ -157,9 +157,13 @@ public class StudioParticles : MonoBehaviour
             var p = recipe.particles[i]; var t = particles[i];
             float age = Mathf.Repeat(seconds - p.start_s, recipe.duration_s);
             t.gameObject.SetActive(age < p.life_s);
-            t.localPosition = StudioRuntime.Position(p.offset) + StudioRuntime.Position(p.drift) * age;
+            // model-assets ember contract: offset + drift*u + sin(pi*u)*.35*[drift.z, 0, -drift.x], scale*sqrt(sin(pi*u)).
+            float u = age < p.life_s ? age / p.life_s : 0f;
+            float envelope = Mathf.Sin(Mathf.PI * u);
+            var lateral = new[] { p.drift[2] * envelope * 0.35f, 0f, -p.drift[0] * envelope * 0.35f };
+            t.localPosition = StudioRuntime.Position(p.offset) + StudioRuntime.Position(p.drift) * u + StudioRuntime.Position(lateral);
             t.localRotation = StudioRuntime.Rotation(new[] { p.spin[0] * age * Mathf.Rad2Deg, p.spin[1] * age * Mathf.Rad2Deg, p.spin[2] * age * Mathf.Rad2Deg });
-            t.localScale = Vector3.one * Mathf.Max(0.001f, p.scale * Mathf.Sin(Mathf.PI * Mathf.Clamp01(age / p.life_s)));
+            t.localScale = Vector3.one * Mathf.Max(0.001f, p.scale * Mathf.Sqrt(Mathf.Max(0f, envelope)));
         }
     }
 }

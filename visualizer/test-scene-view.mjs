@@ -46,6 +46,13 @@ for (const change of [d => d.units = 'pixels', d => d.duration_s = 0, d => d.par
   const bad = structuredClone(descriptor); change(bad);
   assert.throws(() => validateParticleEffect(bad), /mesh-particles/);
 }
+// The visualizer must reproduce the model-assets reference sampler (tools/ember.py) exactly.
+const contract = JSON.parse(await readFile(new URL('../../assets/plugins/model-assets/tests/ember-samples.json', import.meta.url), 'utf8'));
+for (const item of contract.samples) {
+  const state = particleStateAt(item.particle, item.duration_s, item.elapsed_s);
+  assert.equal(state.visible, item.expected.visible);
+  for (const [a, b] of [...state.position, state.scale].map((v, i) => [v, [...item.expected.position, item.expected.scale][i]])) assert.ok(Math.abs(a - b) < 1e-9, `ember contract ${a} != ${b}`);
+}
 const at = particleStateAt(particle, descriptor.duration_s, 1);
 const looped = particleStateAt(particle, descriptor.duration_s, 4.2);
 assert.equal(at.visible, true);

@@ -236,8 +236,10 @@ try {
     aura.intensity=game.won?18:game.charge*3;ring.material.color.set(game.won?'#9cffe1':'#f4c071');
     for(const effect of particles){effect.group.visible=game.charge>0; const {descriptor}=effect;
       descriptor.particles.forEach((p,i)=>{const age=feedback.reducedMotion?Math.min(p.life_s/2,descriptor.duration_s/2):((time-p.start_s)%descriptor.duration_s+descriptor.duration_s)%descriptor.duration_s;
-        transform.position.fromArray(p.offset).addScaledVector(new THREE.Vector3(...p.drift),age);
-        transform.rotation.set(...p.spin.map(v=>v*age));transform.scale.setScalar(age<p.life_s?p.scale*Math.sin(Math.PI*age/p.life_s):0);transform.updateMatrix();
+        // model-assets ember contract: offset + drift*u + sin(pi*u)*.35*[drift.z,0,-drift.x], scale*sqrt(sin(pi*u)).
+        const u=age<p.life_s?age/p.life_s:0, envelope=Math.sin(Math.PI*u);
+        transform.position.fromArray(p.offset).addScaledVector(new THREE.Vector3(...p.drift),u).add(new THREE.Vector3(p.drift[2],0,-p.drift[0]).multiplyScalar(envelope*.35));
+        transform.rotation.set(...p.spin.map(v=>v*age));transform.scale.setScalar(age<p.life_s?p.scale*Math.sqrt(Math.max(0,envelope)):0);transform.updateMatrix();
         for(const part of effect.parts){matrix.multiplyMatrices(transform.matrix,part.base);part.mesh.setMatrixAt(i,matrix);}
       });for(const part of effect.parts)part.mesh.instanceMatrix.needsUpdate=true;
     }
