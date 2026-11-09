@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "viewport": {"width": 390, "height": 844},
+  "steps": [
+    {"expect_page": "fits_viewport"},
+    {"expect_page": "respects_hidden"}
+  ]
+}

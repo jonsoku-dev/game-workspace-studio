@@ -204,7 +204,7 @@ def initialize_campaign(project):
     project = Path(project).absolute()
     with runtime_inputs.output_stage(project) as stage:
         outputs = []
-        for name in ('genre.json', 'game/index.html', 'game/game.mjs'):
+        for name in ('genre.json', 'game/index.html', 'game/game.mjs', 'checks/first-play.json'):
             data = _read(ROOT, 'starter/campaign/' + name)
             target = stage / name
             target.parent.mkdir(parents=True, exist_ok=True)

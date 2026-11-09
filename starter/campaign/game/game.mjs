@@ -1,4 +1,5 @@
 import {loadCampaign} from './campaign.mjs';
+import {createFeedback} from './feedback.mjs';
 
 const symbols = {circle: '●', diamond: '◆', triangle: '▲'};
 const names = {circle: '동그라미', diamond: '마름모', triangle: '세모'};
@@ -8,6 +9,7 @@ const keys = [...document.querySelectorAll('[data-symbol]')];
 
 try {
   const campaign = await loadCampaign();
+  const feedback = createFeedback();
   let entered = [];
   const target = () => campaign.index === 0 ? signals[0] : [...signals[1]].reverse();
 
@@ -44,6 +46,16 @@ try {
     $('status').textContent = message;
   }
 
+  function present(name) {
+    const cue = feedback.emit(name);
+    const slot = $('answer').children[entered.length - 1];
+    slot.dataset.cue = name;
+    if (!cue.enabled || cue.reducedMotion) return;
+    const frames = name === 'denied' ? ['translateX(0)', 'translateX(-4px)', 'translateX(3px)', 'translateX(0)']
+      : ['scale(1)', 'scale(1.12)', 'scale(1)'];
+    slot.animate(frames.map(transform => ({transform})), {duration: 180, easing: 'ease-out'});
+  }
+
   keys.forEach(button => button.addEventListener('click', () => {
     if (campaign.phase !== 'playing') return;
     const symbol = button.dataset.symbol;
@@ -52,14 +64,17 @@ try {
     if (symbol !== expected) {
       campaign.failStage();
       render(`${symbols[symbol]} 신호 오류! ${entered.length}번째 연결이 끊겼습니다. 이 단계에서 다시 시도하세요.`);
+      present('denied');
       $('retry').focus();
     } else if (entered.length === target().length) {
       campaign.finishStage();
       render(campaign.phase === 'complete' ? '공방 작업 완료! 두 장치를 모두 복구했습니다.'
         : '중계기 복구 성공! 계속 버튼을 눌러 다음 장치를 살펴보세요.');
+      present(campaign.phase === 'complete' ? 'finish' : 'progress');
       (campaign.phase === 'complete' ? $('restart') : $('next')).focus();
     } else {
       render(`${symbols[symbol]} 수신 완료! ${entered.length}번째 연결 성공. 다음 기호를 입력하세요.`);
+      present('select');
     }
   }));
 
@@ -68,6 +83,11 @@ try {
     render(message);
     keys[0].focus();
   }
+  $('sound').addEventListener('click', () => {
+    const state = feedback.setSound(!feedback.sound);
+    $('sound').textContent = state === 'unavailable' ? '소리 재생 불가' : feedback.sound ? '소리 켜짐' : '소리 꺼짐';
+    $('sound').setAttribute('aria-pressed', String(feedback.sound && state !== 'unavailable'));
+  });
   $('retry').addEventListener('click', () => {
     if (campaign.retry()) begin('같은 장치에서 다시 시작합니다. 신호 순서를 살펴보세요.');
   });

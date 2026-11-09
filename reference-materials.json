@@ -1,0 +1,359 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "path": "feedback/1-사진-1.jpg",
+      "sha256": "eb9e06ba1a80cb6f10a92cc0ac1c2d41d19c6def4fdd9f618a01efab0cd9c5b6",
+      "status": "applied",
+      "decision": "명중·거절·진행·UI 이벤트의 결과를 확인하고 각 위치에 효과를 낸다. 연출 토글과 소리는 게임 규칙과 분리한다.",
+      "evidence": [
+        {
+          "path": "REFERENCES.md",
+          "contains": "`feedback`"
+        },
+        {
+          "path": "FEEDBACK.md",
+          "contains": "입력을 받았다는 표시"
+        },
+        {
+          "path": "engines/web/feedback.mjs",
+          "contains": "get reducedMotion()"
+        }
+      ]
+    },
+    {
+      "path": "guide-6252/IMG_6252.jpeg",
+      "sha256": "eb2a4ca723841a7dcdad7a1ac18d06d378472cb87085152903fef8c2da086ccd",
+      "status": "applied",
+      "decision": "레벨 상승의 여섯 연출을 선택 가능한 레시피로 정리하고 실제 레벨 확정 뒤 강조한다.",
+      "evidence": [
+        {
+          "path": "REFERENCES.md",
+          "contains": "`guide-6252`"
+        },
+        {
+          "path": "PLAYBOOK.md",
+          "contains": "| Shockwave Hop |"
+        },
+        {
+          "path": "starter/campaign/game/game.mjs",
+          "contains": "present(campaign.phase === 'complete' ? 'finish' : 'progress')"
+        }
+      ]
+    },
+    {
+      "path": "guide-6253/IMG_6253.jpeg",
+      "sha256": "fb350434f8f16689cf4ba75f8c2303de2e50111822c338dcca835ac3a03499a1",
+      "status": "applied",
+      "decision": "화상 적용·지속·피해 틱·해제를 구분하는 여섯 연출을 제작 가이드에 연결한다. 표시는 실제 피해만 소비한다.",
+      "evidence": [
+        {
+          "path": "REFERENCES.md",
+          "contains": "`guide-6253`"
+        },
+        {
+          "path": "PLAYBOOK.md",
+          "contains": "| Burn Ticks |"
+        },
+        {
+          "path": "PLAYBOOK.md",
+          "contains": "화상 적용·유지·해제를 별도 이벤트"
+        }
+      ]
+    },
+    {
+      "path": "guide-6254/IMG_6254.jpeg",
+      "sha256": "710615e23bf66db20a5590d6451e5bd21cdcd5080f1e73e24add9bc6236d664a",
+      "status": "applied",
+      "decision": "피격 여섯 연출의 역할을 나누고 확정 접촉에만 피해·강조가 나오도록 한다.",
+      "evidence": [
+        {
+          "path": "REFERENCES.md",
+          "contains": "`guide-6254`"
+        },
+        {
+          "path": "PLAYBOOK.md",
+          "contains": "| Knockback |"
+        },
+        {
+          "path": "engines/web/feedback.mjs",
+          "contains": "hurt: "
+        }
+      ]
+    },
+    {
+      "path": "guide-6255/IMG_6255.jpeg",
+      "sha256": "bbb19b642d0799759945f216dc7e438635c44b050eea4bb797a10fd76bcf2c4a",
+      "status": "applied",
+      "decision": "Magnet은 흡인 표시와 실제 획득 조건을 나눠 설계한다. 획득이 확정되면 pickup을 발생시킨다.",
+      "evidence": [
+        {
+          "path": "REFERENCES.md",
+          "contains": "`guide-6255`"
+        },
+        {
+          "path": "PLAYBOOK.md",
+          "contains": "| Magnet |"
+        },
+        {
+          "path": "engines/web/feedback.mjs",
+          "contains": "pickup: "
+        }
+      ]
+    },
+    {
+      "path": "guide-6256/IMG_6256.jpeg",
+      "sha256": "957c9d975aeaa68aff71dc33cd5daa108d3dd5520be346dd5c19b03d977bf8bc",
+      "status": "applied",
+      "decision": "Pop은 확정된 입력 결과에서만 국소적으로 확대 후 원상 복구한다. starter의 게임 규칙·입력 영역은 바뀌지 않는다.",
+      "evidence": [
+        {
+          "path": "REFERENCES.md",
+          "contains": "`guide-6256`"
+        },
+        {
+          "path": "PLAYBOOK.md",
+          "contains": "| Pop |"
+        },
+        {
+          "path": "starter/campaign/game/game.mjs",
+          "contains": "scale(1.12)"
+        }
+      ]
+    },
+    {
+      "path": "guide-6257/IMG_6257.jpeg",
+      "sha256": "e06bafaf579e81c0e7598ff6d80643e833aa1a12666eb3873c0f04eb1827b715",
+      "status": "applied",
+      "decision": "Sparkle을 수집 위치에서 제한적으로 표시하며 빗나감·거절에는 성공 장식을 내지 않는다.",
+      "evidence": [
+        {
+          "path": "REFERENCES.md",
+          "contains": "`guide-6257`"
+        },
+        {
+          "path": "PLAYBOOK.md",
+          "contains": "| Sparkle |"
+        },
+        {
+          "path": "starter/campaign/game/game.mjs",
+          "contains": "present('denied')"
+        }
+      ]
+    },
+    {
+      "path": "guide-6258/IMG_6258.jpeg",
+      "sha256": "e4e40bae2c070193d57550ef0431d2b1217f3933cb4f8e692b4a41dd4025ab2f",
+      "status": "applied",
+      "decision": "Bonus Combo는 확인된 연속 사건의 규칙·점수와 표시·소리를 분리하고 회복 시간을 명시한다.",
+      "evidence": [
+        {
+          "path": "REFERENCES.md",
+          "contains": "`guide-6258`"
+        },
+        {
+          "path": "PLAYBOOK.md",
+          "contains": "| Bonus Combo |"
+        },
+        {
+          "path": "engines/web/feedback.mjs",
+          "contains": "details.combo"
+        }
+      ]
+    },
+    {
+      "path": "legacy-zip/pixel-asset-pipeline-0.1.0.zip",
+      "sha256": "e1f56b1c0bd8f8a07afc2837d90c0e704cd586b51751b870583bd51e11779bbc",
+      "status": "applied",
+      "decision": "초기 ZIP의 정적 build·validate·provider 경계를 소스 관리형 에셋 제작기와 Studio의 호출 경로로 이어간다. 과거 ZIP의 설치를 요구하지 않는다.",
+      "evidence": [
+        {
+          "path": "REFERENCES.md",
+          "contains": "`legacy-zip`"
+        },
+        {
+          "path": "tools/scene.py",
+          "contains": "pixel-asset"
+        },
+        {
+          "path": "REFERENCES.md",
+          "contains": "정적"
+        }
+      ]
+    },
+    {
+      "path": "pixel-formula/IMG_6229.png",
+      "sha256": "3f04acc27a3e9d37d3a120f436ddeb0350fd4b87dacad6b802729968a4115768",
+      "status": "applied",
+      "decision": "자리표·발선·시점·팔레트를 제작 입력에 고정하고 실제 색·알파·외톨이 픽셀을 검사한다.",
+      "evidence": [
+        {
+          "path": "REFERENCES.md",
+          "contains": "`pixel-formula`"
+        },
+        {
+          "path": "REFERENCES.md",
+          "contains": "STYLE · OUTLINE · VIEW · BACKGROUND"
+        },
+        {
+          "path": ".agents/skills/game-studio/SKILL.md",
+          "contains": "pixel-asset"
+        }
+      ]
+    },
+    {
+      "path": "pixelfx/1-사진-1.jpg",
+      "sha256": "4f5d84488620d562502537f95c478b8c04a6353f038a790e4e85ed3ef8ef1a13",
+      "status": "applied",
+      "decision": "픽셀 효과 생성과 접촉 프레임을 묶되 실제 명중이 성립할 때만 효과를 실행한다.",
+      "evidence": [
+        {
+          "path": "REFERENCES.md",
+          "contains": "`pixelfx`"
+        },
+        {
+          "path": "FEEDBACK.md",
+          "contains": "피드백"
+        },
+        {
+          "path": "engines/web/feedback.mjs",
+          "contains": "hit: "
+        },
+        {
+          "path": "REFERENCES.md",
+          "contains": "pixelfx"
+        }
+      ]
+    },
+    {
+      "path": "skill-index1/1-사진-1.jpg",
+      "sha256": "45df0b7f538c6dfaf55ba9e3f38812513f16ae462122c82422619688728c26a5",
+      "status": "applied",
+      "decision": "에셋 방향을 실제 사용 크기에서 결정하고, 엔진·장르별 제작 결과를 실행하는 경로로 연결한다.",
+      "evidence": [
+        {
+          "path": "REFERENCES.md",
+          "contains": "`skill-index1`"
+        },
+        {
+          "path": "tools/web_revision.py",
+          "contains": "def check("
+        },
+        {
+          "path": "tools/scene.py",
+          "contains": "\"model-assets\""
+        }
+      ]
+    },
+    {
+      "path": "skill-index2/2-사진-2.jpg",
+      "sha256": "dd8c2db7e006aa807efc5e6007f3bb78673adc451892946b767666d15fab6a12",
+      "status": "applied",
+      "decision": "기획·의사결정과 에셋 제작을 분리하고 후보 검토·엔진 통합·실제 플레이를 선택한다. 외부 스킬을 통째로 설치하지 않는다.",
+      "evidence": [
+        {
+          "path": "REFERENCES.md",
+          "contains": "`skill-index2`"
+        },
+        {
+          "path": "tools/scene.py",
+          "contains": "\"pixel-action-set\""
+        },
+        {
+          "path": "README.md",
+          "contains": "채팅에서 첫 게임 만들기"
+        }
+      ]
+    },
+    {
+      "path": "social1/1-사진-1.jpg",
+      "sha256": "2301b1a41169a8af49bdaa470dfe1a3c11c2135af0ce7b0c1d2af602dffd75c5",
+      "status": "applied",
+      "decision": "격자 정리·투명 배경·본 초안과 사람의 관절 보정을 구분한다. 승인하기 전 변형 제작으로 넘어가지 않는다.",
+      "evidence": [
+        {
+          "path": "REFERENCES.md",
+          "contains": "`social1`"
+        },
+        {
+          "path": ".agents/skills/game-studio/SKILL.md",
+          "contains": "rig-draft"
+        },
+        {
+          "path": "tools/character.py",
+          "contains": "Rive"
+        }
+      ]
+    },
+    {
+      "path": "social2/2-사진-2.jpg",
+      "sha256": "93ea496a755eb9af8d7cdbe2201076afd8bcc8ea18dc03e5b289c5d81ff698ea",
+      "status": "applied",
+      "decision": "기존 GIF의 재생 순서·시간을 명시적으로 재편집하고 공격 접촉 시점과 합성한다.",
+      "evidence": [
+        {
+          "path": "REFERENCES.md",
+          "contains": "`social2`"
+        },
+        {
+          "path": ".agents/skills/game-studio/SKILL.md",
+          "contains": "effect-clip"
+        },
+        {
+          "path": "REFERENCES.md",
+          "contains": "재생"
+        }
+      ]
+    },
+    {
+      "path": "social3/3-사진-3.jpg",
+      "sha256": "c3e52d345bcd1d8d33ea87d3a23ca77c98fbd808c3cee971b0a7892196c7b14a",
+      "status": "applied",
+      "decision": "Rive 출력·플레이어 재생·실루엣 연결·발 접지를 따로 검토하고 원화가 어색하면 직접 그린 셀을 쓴다.",
+      "evidence": [
+        {
+          "path": "REFERENCES.md",
+          "contains": "`social3`"
+        },
+        {
+          "path": ".agents/skills/game-studio/SKILL.md",
+          "contains": "Rive"
+        },
+        {
+          "path": "tools/character.py",
+          "contains": "Rive"
+        }
+      ]
+    },
+    {
+      "path": "social4/4-사진-4.jpg",
+      "sha256": "bc31875a4aea7338b26b1159a19c09ef43504ba03ff3fc16283bdf681bf278cc",
+      "status": "applied",
+      "decision": "로고는 구조가 다른 후보를 만들고 작은 크기와 밝고 어두운 배경에서 읽히는지 확인한다.",
+      "evidence": [
+        {
+          "path": "REFERENCES.md",
+          "contains": "`social4`"
+        },
+        {
+          "path": "starter/identity/LOGO.md",
+          "contains": "서로 다른 구조의 후보 세 개"
+        },
+        {
+          "path": "starter/identity/a-moon-strike.svg",
+          "contains": "<svg"
+        }
+      ]
+    }
+  ],
+  "unavailable": [
+    {
+      "name": "Game_Feel_Playbook_KR.pdf",
+      "reason": "참조 대화에 다운로드 링크만 있고 로컬 원본이 없다. 수록 범위는 이미지 7장과 대화 본문까지다."
+    },
+    {
+      "name": "Game_Feel_Playbook_KR.docx",
+      "reason": "같은 가이드의 편집본이다. 원래 바이트와 전문은 확인할 수 없다."
+    }
+  ]
+}

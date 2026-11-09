@@ -53,7 +53,7 @@ python3 "$STUDIO_ROOT/tools/web_revision.py" build --project "$PROJECT" --base p
   --check checks/restart-label.json
 ```
 
-경로는 실제 프로젝트에 맞춰 선택한다. 예를 들어 혜성 궤도의 키 설명은 `.notes > div`에 있다. 아래 검사는 그 요소에서 올바른 안내를 읽는다. `click`과 `press` 단계는 선택 사항이다. 마지막 단계는 `expect_text`여야 한다.
+경로는 실제 프로젝트에 맞춰 선택한다. 예를 들어 혜성 궤도의 키 설명은 `.notes > div`에 있다. 아래 검사는 그 요소에서 올바른 안내를 읽는다. `click`과 `press` 단계는 선택 사항이다. 마지막 단계에는 관찰할 결과의 단언을 둔다.
 
 ```json
 {"schema_version":1,"steps":[{"expect_text":{"selector":".notes > div","contains":"R 처음부터"}}]}
@@ -62,6 +62,34 @@ python3 "$STUDIO_ROOT/tools/web_revision.py" build --project "$PROJECT" --base p
 검사에는 설치된 Stagehand 로컬 MCP가 필요하다. 버그픽스는 같은 검사의 기준판 실패와 수정판 통과를 요구한다. 실행 또는 리소스 장애, 잘못된 기준판, 수정 중 바뀐 파일은 성공 처리하지 않는다. 명령은 새 보고서와 프로젝트 그래프를 기록한다. 실패한 후보가 이미 생성되었으면 그 출력을 보존하고 새 출력 경로로 재시도한다. 재현 검사는 브라우저에서 보이는 텍스트를 다루며, 미술 품질·오디오 청취·프레임 비용은 별도 관찰이 필요하다.
 
 여러 캠페인의 종료 화면에는 `campaign.confirmResult()`를 사용할 수 있다. 승리 후 계속은 `advance`, 패배 시 재도전은 `retry`, 최종 완료 후 처음부터는 `restart`를 반환한다. 하나의 결과를 처리한 뒤 같은 버튼이 한 번 더 활성화돼도 진행 중이면 `null`을 반환한다. 게임은 반환된 행동에 맞춰 진입 점수나 기술을 복원한다.
+
+## 첨부 자료 반영 점검
+
+[자료 색인](REFERENCES.md)은 원본별로 제작 도구, 가져올 판단, 확인 방법과 지원 한계를 연결한다. 새 프로젝트의 자료는 아래처럼 점검한다. 입력에는 사용할 자료만 모은다. ZIP·PDF도 로컬에서 바이트를 해시하며, 내용을 읽고 해석할 때는 해당 형식의 도구를 사용한다.
+
+```sh
+python3 "$STUDIO_ROOT/tools/reference_review.py" inventory --sources "$INPUTS" > "$PROJECT/references.json"
+python3 "$STUDIO_ROOT/tools/reference_review.py" review --project "$PROJECT" --sources "$INPUTS" --map references.json
+```
+
+첫 명령이 만든 지도의 `pending` 항목을 검토한다. `applied`는 `decision`과 프로젝트 파일의 근거가 필요하다. 예를 들어 신호 오류 연출을 적용했다면 `evidence`에 `{"path":"game/game.mjs","contains":"present('denied')"}`를 적는다. 파일 전체가 근거이면 `contains` 대신 `sha256`을 쓴다. 보류한 자료는 `deferred`와 이유를 기록하고, 받지 못한 원본은 `unavailable`에 `{"name":"파일명","reason":"사유"}`로 남긴다. 원본 폴더와 지도·검사 출력 폴더는 구분한다. 보고서는 파일별로 다음 조치를 제시하며, 확인한 지문과 근거는 프로젝트 그래프에 기록된다.
+
+## 예방 검사와 후속 개선
+
+```sh
+python3 "$STUDIO_ROOT/tools/web_revision.py" check --project "$PROJECT" --base build/first
+python3 "$STUDIO_ROOT/tools/web_revision.py" check --project "$PROJECT" --base build/first --check checks/first-play.json
+```
+
+첫 명령은 설치본의 390×844 기본 사례로 페이지 가로 넘침과 실제로 나타난 `[hidden]` 요소를 검사한다. 두 번째 명령은 신규 캠페인에 생성되는 신호 공방 사례다. 시작·다음·패배·재시도·완료를 조작하며 확인된 성공과 거절에 다른 표시가 붙는지 검사한다. 기존 게임도 해당 게임의 선택자와 조작을 사용해 사례를 작성할 수 있다.
+
+| 검사 | 관찰 |
+| --- | --- |
+| `expect_control` | 하나의 실제 요소가 visible, hidden, enabled, disabled 중 기대 상태인지 확인한다. 숨김을 기대해도 요소가 없으면 실패한다. |
+| `expect_layout` | `inside_viewport`는 요소가 가로 화면 안에 들어오는지, `separate`는 두 렌더링 영역이 겹치지 않는지 확인한다. |
+| `expect_page` | `fits_viewport`는 가로 스크롤 여부를, `respects_hidden`은 현재 상태에서 hidden 속성이 CSS로 무력화됐는지 확인한다. |
+
+사례에 `"viewport":{"width":390,"height":844}`를 지정할 수 있다. 예를 들어 `{"expect_layout":{"selector":".status","relation":"separate","other":"canvas"}}`는 텍스트 상태줄이 캔버스와 겹친 위치를 보고한다. 검사 보고서에는 관측 상태·사각형 또는 폭과 다음 수정 제안이 남는다. 선택된 화면과 상태의 DOM 검증이며 캔버스 내부 픽셀·타격감·청취는 원속도 플레이와 별도 근거로 확인한다.
 
 ## 실행
 
@@ -134,10 +162,10 @@ python3 tools/graph.py history --project examples/forest-camp
 로컬 Codex에 스튜디오를 설치하는 절차다. 아래는 이 버전의 새 설치 경로 예시다.
 
 ```sh
-python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.12.0"
-codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.12.0"
+python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.13.1"
+codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.13.1"
 codex plugin add game-studio@game-studio
-STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.12.0"
+STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.13.1"
 ```
 
 프로젝트에서 `$game-studio`로 기획·씬 제작을 요청한다. 예를 들어 “Forest Camp의 30cm 등불 통풍구에 입체 불티를 붙이고 제작 과정을 보여 줘”라고 지시한다.

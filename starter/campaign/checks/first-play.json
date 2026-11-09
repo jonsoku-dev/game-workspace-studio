@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "steps": [
+    {
+      "expect_page": "fits_viewport"
+    },
+    {
+      "expect_control": {
+        "selector": "[data-symbol=triangle]",
+        "state": "disabled"
+      }
+    },
+    {
+      "click": "[data-symbol=circle]"
+    },
+    {
+      "click": "[data-symbol=diamond]"
+    },
+    {
+      "expect_control": {
+        "selector": "#next",
+        "state": "enabled"
+      }
+    },
+    {
+      "click": "#next"
+    },
+    {
+      "expect_control": {
+        "selector": "#next",
+        "state": "hidden"
+      }
+    },
+    {
+      "click": "[data-symbol=diamond]"
+    },
+    {
+      "expect_control": {
+        "selector": "#answer [data-cue=denied]",
+        "state": "visible"
+      }
+    },
+    {
+      "expect_control": {
+        "selector": "#retry",
+        "state": "enabled"
+      }
+    },
+    {
+      "click": "#retry"
+    },
+    {
+      "click": "[data-symbol=triangle]"
+    },
+    {
+      "click": "[data-symbol=circle]"
+    },
+    {
+      "click": "[data-symbol=diamond]"
+    },
+    {
+      "expect_control": {
+        "selector": "#answer [data-cue=finish]",
+        "state": "visible"
+      }
+    },
+    {
+      "expect_text": {
+        "selector": "#status",
+        "contains": "공방 작업 완료"
+      }
+    }
+  ]
+}

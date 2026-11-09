@@ -1,7 +1,7 @@
 {
   "name": "game-studio",
-  "version": "0.12.0",
-  "description": "Interview for game direction, create and revise playable games, and reproduce fixes in the browser.",
+  "version": "0.13.1",
+  "description": "Interview for game direction, create and revise playable games, review source coverage, and check controls and layout in the browser.",
   "skills": "./.agents/skills/",
   "interface": {"displayName": "Game Studio", "shortDescription": "Plan scenes and place generated assets", "category": "Productivity", "capabilities": ["Read", "Write"], "defaultPrompt": ["재미와 아트 방향을 나와 정하고, 다음 판에서 공략이 달라지는 게임을 만들어 줘."]}
 }

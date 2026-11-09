@@ -24,32 +24,67 @@ NODE_STUB = r"""
 const fs = require('node:fs');
 const payload = JSON.parse(fs.readFileSync(0, 'utf8'));
 global.crypto = require('node:crypto').webcrypto;
-let now = 0, phase = 0, polls = 0, location = 'about:blank', closed = false;
+let now = 0, phase = 0, polls = 0, location = 'about:blank', closed = false, viewportWidth = 1024;
 Date.now = () => now;
 const events = {}, actions = [];
-const element = {getClientRects: () => [1], get innerText() {
-  return ['mismatch', 'lateerror'].includes(payload.mode) || polls < 3 ? 'Loading' : 'Ready';
-}};
-global.document = {get baseURI() { return location; }, querySelector: () => null,
-querySelectorAll: selector => {
-  if (selector === 'button#start' || selector === 'input#control') return [{
+function nodes(selector) {
+  if (selector === 'button#start' && payload.mode === 'missing_start') return [];
+  if (selector === '#status') {
+    if (phase !== 2) throw Error('Actions out of order');
+    polls++;
+    if (payload.mode === 'missing') return [];
+  }
+  if (!['button#start', 'input#control', '#status', '#retry', '#left', '#right', '#overflow', '#vertical'].includes(selector))
+    return [];
+  const hidden = selector === '#retry' && !['css_override', 'until_found', 'until_found_override'].includes(payload.mode);
+  let x = selector === '#right' ? (payload.mode === 'overlap' ? 50 : 120) : selector === '#overflow' ? 350 : 10;
+  if (selector === '#overflow' && payload.mode === 'page_overflow') x = viewportWidth - 40;
+  const y = selector === '#vertical' ? 2000 : 10;
+  const box = {x, y, width: 100, height: 32, left: x, right: x + 100, top: y, bottom: y + 32};
+  const controlHidden = selector === 'button#start' && payload.mode === 'hidden_start';
+  const element = {
+    id: selector.startsWith('#') ? selector.slice(1) : '', tagName: 'DIV',
+    parentElement: null, previousElementSibling: null,
+    hidden: selector === '#retry',
+    getAttribute: name => name === 'hidden' && selector === '#retry'
+      ? (['until_found', 'until_found_override'].includes(payload.mode) ? 'until-found' : '') : null,
+    getClientRects: () => hidden || controlHidden ? [] : [box],
+    getBoundingClientRect: () => box,
+    display: hidden || controlHidden ? 'none' : 'block',
+    matches: query => query === ':disabled' && ['disabled_start', 'fieldset_disabled'].includes(payload.mode),
     hasAttribute: () => false,
-    closest: name => name === 'a[href]' && ['external', 'popup'].includes(payload.mode)
-      ? {href: payload.mode === 'external' ? 'https://outside.invalid/' : location,
-         target: payload.mode === 'popup' ? '_blank' : ''}
-      : name === 'form' && payload.mode === 'externalform' ? {action: 'https://outside.invalid/'} : null
-  }];
-  if (selector !== '#status') throw Error('Unexpected selector');
-  if (phase !== 2) throw Error('Actions out of order');
-  polls++;
-  return payload.mode === 'missing' ? [] : [element];
-}};
-global.getComputedStyle = () => ({visibility: 'visible'});
+    closest: name => name === '[aria-disabled="true"]' && payload.mode === 'aria_disabled' ? {}
+      : name === 'a[href]' && ['external', 'popup'].includes(payload.mode)
+        ? {href: payload.mode === 'external' ? 'https://outside.invalid/' : location,
+           target: payload.mode === 'popup' ? '_blank' : ''}
+        : name === 'form' && payload.mode === 'externalform' ? {action: 'https://outside.invalid/'} : null,
+    get innerText() {
+      return ['mismatch', 'lateerror'].includes(payload.mode) || polls < 3 ? 'Loading' : 'Ready';
+    }
+  };
+  return payload.mode === 'ambiguous' ? [element, element] : [element];
+}
+global.NodeFilter = {SHOW_ELEMENT: 1};
+global.document = {get baseURI() { return location; }, body: nodes('#left')[0],
+  documentElement: {get clientWidth() { return viewportWidth; },
+    get scrollWidth() { return viewportWidth + (payload.mode === 'page_overflow' ? 60 : 0); }},
+  createTreeWalker: () => {
+    let walked = false;
+    return {currentNode: document.body, nextNode: () => {
+      if (walked) return null;
+      walked = true; return nodes('#overflow')[0];
+    }};
+  },
+  querySelector: selector => selector === 'base[target]' ? null : nodes(selector)[0],
+  querySelectorAll: selector => selector === '[hidden]' ? nodes('#retry') : nodes(selector)};
+global.getComputedStyle = element => ({visibility: 'visible', display: element.display,
+  contentVisibility: payload.mode === 'until_found' ? 'hidden' : 'visible'});
 const nativeFetch = global.fetch;
 global.fetch = async address => payload.mode === 'resource' ? {ok: false}
   : nativeFetch(new URL(address, location));
 const target = {
   on: (event, listener) => { events[event] = listener; },
+  setViewportSize: async size => { viewportWidth = size.width; },
   goto: async address => {
     if (payload.mode === 'navigation') throw Error('Navigation timeout');
     location = address;
@@ -60,13 +95,13 @@ const target = {
   locator: selector => ({
     click: async options => {
       if (payload.mode === 'action') throw Error('Control unavailable');
-      if (selector !== 'css=button#start' || options.timeout !== 2000 || phase !== 0)
+      if (selector !== 'css=button#start' || options.timeout !== 1000 || phase !== 0)
         throw Error('Wrong click');
       actions.push('click'); phase = 1;
       if (payload.mode === 'blocked') events.console({type: () => 'error'});
     },
     press: async (key, options) => {
-      if (selector !== 'css=input#control' || key !== 'Enter' || options.timeout !== 2000 || phase !== 1)
+      if (selector !== 'css=input#control' || key !== 'Enter' || options.timeout !== 1000 || phase !== 1)
         throw Error('Wrong press');
       actions.push('press'); phase = 2;
       if (payload.mode === 'unexpected') location = 'https://outside.invalid/';
@@ -84,7 +119,7 @@ const context = {newPage: async () => target};
   try {
     const run = new (Object.getPrototypeOf(async function() {}).constructor)('context', payload.code);
     const report = await run(context);
-    if (!closed || !actions.includes('press') || polls < 3) throw Error('Incomplete lifecycle');
+    if (!closed) throw Error('Incomplete lifecycle');
     process.stdout.write(JSON.stringify({report}));
   } catch (error) {
     process.stdout.write(JSON.stringify({error: error.message, closed}));
@@ -118,6 +153,45 @@ class CaseTests(unittest.TestCase):
         for data in invalid:
             with self.subTest(data=data[:100]), self.assertRaises(ValueError):
                 web_regression.parse_case(data)
+
+    def test_viewport_and_new_assertion_contracts(self):
+        valid = [
+            {'expect_control': {'selector': '#start', 'state': state}}
+            for state in ('visible', 'hidden', 'enabled', 'disabled')]
+        valid += [{'expect_layout': {'selector': '#panel', 'relation': 'inside_viewport'}},
+                  {'expect_layout': {'selector': '#panel', 'relation': 'separate', 'other': '#controls'}},
+                  {'expect_page': 'fits_viewport'}, {'expect_page': 'respects_hidden'}]
+        for step in valid:
+            case = {'schema_version': 1, 'viewport': {'width': 240, 'height': 4096}, 'steps': [step]}
+            self.assertEqual(web_regression.parse_case(json.dumps(case).encode()), case)
+        invalid = [
+            {'expect_control': {'selector': '#x', 'state': 'absent'}},
+            {'expect_control': {'selector': '#x', 'state': []}},
+            {'expect_layout': {'selector': '#x', 'relation': 'separate'}},
+            {'expect_layout': {'selector': '#x', 'relation': 'inside_viewport', 'other': '#y'}},
+            {'expect_layout': {'selector': '#x', 'relation': 'separate', 'other': 'https://outside.invalid'}},
+            {'expect_layout': {'selector': '#x', 'relation': 'overlaps'}},
+            {'expect_page': 'visible'}, {'expect_page': {'check': 'fits_viewport'}}]
+        for step in invalid:
+            with self.subTest(step=step), self.assertRaises(ValueError):
+                web_regression.parse_case(json.dumps({'schema_version': 1, 'steps': [step]}).encode())
+        for viewport in ({'width': 239, 'height': 844}, {'width': 390, 'height': 4097},
+                         {'width': True, 'height': 844}, {'width': 390.0, 'height': 844},
+                         {'width': 390}, {'width': 390, 'height': 844, 'scale': 2}, None):
+            with self.subTest(viewport=viewport), self.assertRaises(ValueError):
+                web_regression.parse_case(json.dumps({**CASE, 'viewport': viewport}).encode())
+
+    def test_operational_diagnostic_cannot_copy_untrusted_messages(self):
+        error = web_regression.RegressionOperationalError({
+            'category': 'action', 'fault': 'control_disabled', 'step': 3,
+            'resource': 'https://outside.invalid/secret', 'message': 'secret page text',
+            'observed': {'found': True, 'count': 1, 'text': 'secret page text',
+                         'rect': {'x': float('inf'), 'y': 0, 'width': 10, 'height': 10}}})
+        self.assertEqual(error.diagnostic, {'category': 'action', 'fault': 'control_disabled',
+                                          'step': 3, 'observed': {'found': True, 'count': 1}})
+        self.assertNotIn('secret', str(error))
+        fallback = web_regression.RegressionOperationalError({'category': [], 'fault': 'secret', 'step': True})
+        self.assertEqual(fallback.diagnostic, {'category': 'runner', 'fault': 'invalid_result', 'step': None})
 
     def test_inline_policy_is_explicit_and_retains_local_resource_policy(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -210,6 +284,113 @@ class RunnerTests(unittest.TestCase):
         report = self.execute(case=case)
         self.assertEqual(report['status'], 'assertion_failed')
         self.assertEqual(report['failed_assertion']['contains'], case['steps'][-1]['expect_text']['contains'])
+
+    def assertion(self, action, value, mode='normal', viewport=None):
+        case = {'schema_version': 1, 'steps': [{action: value}]}
+        if viewport is not None:
+            case['viewport'] = viewport
+        return self.execute(mode=mode, case=case)
+
+    def test_hidden_means_rendered_css_state_and_requires_a_matching_element(self):
+        assertion = {'selector': '#retry', 'state': 'hidden'}
+        self.assertTrue(self.assertion('expect_control', assertion)['passed'])
+        report = self.assertion('expect_control', assertion, mode='css_override')
+        self.assertFalse(report['passed'])
+        self.assertTrue(report['failed_assertion']['observed']['visible'])
+        report = self.assertion('expect_control', {'selector': '#typo', 'state': 'hidden'})
+        self.assertFalse(report['passed'])
+        self.assertFalse(report['failed_assertion']['observed']['found'])
+
+    def test_enabled_and_disabled_require_rendered_native_or_accessibility_state(self):
+        for mode in ('disabled_start', 'fieldset_disabled', 'aria_disabled'):
+            with self.subTest(mode=mode):
+                report = self.assertion('expect_control', {'selector': 'button#start', 'state': 'disabled'}, mode=mode)
+                self.assertTrue(report['passed'])
+                self.assertFalse(report['observations'][0]['observed']['enabled'])
+                self.assertFalse(self.assertion('expect_control', {
+                    'selector': 'button#start', 'state': 'enabled'}, mode=mode)['passed'])
+        self.assertTrue(self.assertion('expect_control', {'selector': 'button#start', 'state': 'enabled'})['passed'])
+        for state in ('visible', 'enabled', 'disabled'):
+            self.assertFalse(self.assertion('expect_control', {'selector': '#retry', 'state': state})['passed'])
+
+    def test_horizontal_viewport_fit_ignores_vertical_scroll_and_records_css_rects(self):
+        viewport = {'width': 390, 'height': 844}
+        report = self.assertion('expect_layout', {'selector': '#vertical', 'relation': 'inside_viewport'}, viewport=viewport)
+        self.assertTrue(report['passed'])
+        observed = report['observations'][0]['observed']
+        self.assertEqual(observed['viewport_width'], 390)
+        self.assertEqual(observed['rect'], {'x': 10, 'y': 2000, 'width': 100, 'height': 32})
+        assertion = {'selector': '#overflow', 'relation': 'inside_viewport'}
+        self.assertFalse(self.assertion('expect_layout', assertion, viewport=viewport)['passed'])
+        self.assertTrue(self.assertion('expect_layout', assertion)['passed'])
+
+    def test_separate_requires_two_rendered_nonoverlapping_elements(self):
+        assertion = {'selector': '#left', 'relation': 'separate', 'other': '#right'}
+        self.assertTrue(self.assertion('expect_layout', assertion)['passed'])
+        report = self.assertion('expect_layout', assertion, mode='overlap')
+        self.assertFalse(report['passed'])
+        self.assertEqual(report['failed_assertion']['observed']['other']['rect']['x'], 50)
+        for other in ('#typo', '#retry'):
+            self.assertFalse(self.assertion('expect_layout', {**assertion, 'other': other})['passed'])
+
+    def test_page_viewport_uses_scroll_width_and_returns_first_overflow_hint(self):
+        viewport = {'width': 390, 'height': 844}
+        self.assertTrue(self.assertion('expect_page', 'fits_viewport', viewport=viewport)['passed'])
+        report = self.assertion('expect_page', 'fits_viewport', mode='page_overflow', viewport=viewport)
+        self.assertFalse(report['passed'])
+        self.assertEqual(report['failed_assertion']['check'], 'fits_viewport')
+        observed = report['failed_assertion']['observed']
+        self.assertEqual((observed['viewport_width'], observed['scroll_width']), (390, 450))
+        self.assertEqual(observed['selector'], '#overflow')
+        self.assertEqual(observed['rect'], {'x': 350, 'y': 10, 'width': 100, 'height': 32})
+
+    def test_page_hidden_rule_detects_css_overriding_hidden_without_reading_contents(self):
+        self.assertTrue(self.assertion('expect_page', 'respects_hidden')['passed'])
+        report = self.assertion('expect_page', 'respects_hidden', mode='css_override')
+        self.assertFalse(report['passed'])
+        self.assertEqual(report['failed_assertion']['observed']['selector'], '#retry')
+        self.assertNotIn('text', report['failed_assertion']['observed'])
+        self.assertEqual(len(report['failed_assertion']['observed']['rect']), 4)
+
+    def test_page_hidden_rule_respects_until_found_while_contents_remain_hidden(self):
+        self.assertTrue(self.assertion('expect_page', 'respects_hidden', mode='until_found')['passed'])
+        report = self.assertion('expect_page', 'respects_hidden', mode='until_found_override')
+        self.assertFalse(report['passed'])
+        self.assertEqual(report['failed_assertion']['observed']['selector'], '#retry')
+
+    def test_page_rules_preserve_operational_health_distinction(self):
+        with self.assertRaises(web_regression.RegressionOperationalError) as raised:
+            self.assertion('expect_page', 'fits_viewport', mode='console')
+        self.assertEqual(raised.exception.diagnostic['category'], 'page')
+
+    def test_missing_hidden_or_disabled_start_are_action_diagnostics(self):
+        for mode, fault in (('missing_start', 'control_missing'), ('hidden_start', 'control_hidden'),
+                            ('disabled_start', 'control_disabled')):
+            with self.subTest(mode=mode), self.assertRaises(web_regression.RegressionOperationalError) as raised:
+                self.execute(mode)
+            diagnostic = raised.exception.diagnostic
+            self.assertEqual((diagnostic['category'], diagnostic['fault'], diagnostic['step']), ('action', fault, 0))
+            self.assertEqual(diagnostic['observed']['found'], mode != 'missing_start')
+            if mode != 'missing_start':
+                self.assertEqual(diagnostic['observed']['rect']['width'], 100)
+
+    def test_diagnostics_identify_safe_resource_and_failed_step_without_page_text(self):
+        for mode, category, fault, step in [
+            ('resource', 'resource', 'http_failure', None),
+            ('pageerror', 'page', 'page_error', 0),
+            ('navigation', 'navigation', 'navigation_failed', None),
+            ('unexpected', 'navigation', 'unexpected_origin', 1),
+            ('action', 'action', 'action_failed', 0),
+            ('external', 'navigation', 'unsafe_control', 0),
+            ('ambiguous', 'action', 'selector_ambiguous', 0)]:
+            with self.subTest(mode=mode), self.assertRaises(web_regression.RegressionOperationalError) as raised:
+                self.execute(mode)
+            diagnostic = raised.exception.diagnostic
+            self.assertEqual((diagnostic['category'], diagnostic['fault'], diagnostic['step']), (category, fault, step))
+            self.assertNotIn('secret', json.dumps(diagnostic))
+            self.assertNotIn('outside.invalid', str(raised.exception))
+            if mode == 'resource':
+                self.assertEqual(diagnostic['resource'], 'index.html')
 
     def test_operational_errors_never_count_as_reproduction(self):
         for mode in ('resource', 'pageerror', 'console', 'navigation', 'external', 'action', 'lateerror',

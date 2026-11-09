@@ -165,6 +165,118 @@ def _check(project, relative, case):
     return result
 
 
+def _diagnostic(error, accepted):
+    diagnostic = getattr(error, 'diagnostic', None)
+    if not isinstance(diagnostic, dict):
+        return None
+    categories = {'setup', 'navigation', 'resource', 'page', 'action', 'runner', 'transport', 'export'}
+    category, fault, step = diagnostic.get('category'), diagnostic.get('fault'), diagnostic.get('step')
+    if not isinstance(category, str) or category not in categories or not isinstance(fault, str) or not re.fullmatch('[a-z_]{1,64}', fault):
+        return None
+    result = {'category': category, 'fault': fault,
+              'step': step if type(step) is int and 0 <= step < 16 else None}
+    resource = diagnostic.get('resource')
+    if isinstance(resource, str) and accepted is not None:
+        try:
+            resource = _relative(resource)
+            if accepted['directory'] + '/' + resource in accepted['pins']:
+                result['resource'] = resource
+        except ValueError:
+            pass
+    observed = diagnostic.get('observed')
+    if isinstance(observed, dict):
+        state = {key: observed[key] for key in ('found', 'visible', 'enabled', 'disabled', 'connected')
+                 if type(observed.get(key)) is bool}
+        if type(observed.get('count')) is int and 0 <= observed['count'] <= 10000:
+            state['count'] = observed['count']
+        rect = observed.get('rect')
+        if isinstance(rect, dict) and set(rect) == {'x', 'y', 'width', 'height'} and all(
+                type(value) in (int, float) and abs(value) <= 10000000 for value in rect.values()):
+            state['rect'] = dict(rect)
+        if state:
+            result['observed'] = state
+    return result
+
+
+def _next_steps(report):
+    if report['passed']:
+        return []
+    diagnostic = report.get('diagnostic')
+    failure = report['checks'].get('after', report['checks'].get('before', {})).get('failed_assertion')
+    if diagnostic:
+        category, fault, step = diagnostic['category'], diagnostic['fault'], diagnostic['step']
+    elif failure:
+        action = failure.get('action')
+        observed = failure.get('observed', {})
+        if action == 'expect_page':
+            fault = failure.get('check')
+        elif action in {'expect_control', 'expect_layout'}:
+            other = observed.get('other', {})
+            if observed.get('found') is False or other.get('found') is False:
+                fault = 'control_missing'
+            elif action == 'expect_control':
+                fault = 'control_state_mismatch'
+            elif observed.get('visible') is False or other.get('visible') is False:
+                fault = 'control_hidden'
+            else:
+                fault = 'layout_overlap' if failure.get('relation') == 'separate' else 'outside_viewport'
+        else:
+            fault = 'text_mismatch'
+        category, step = 'assertion', failure.get('step')
+    else:
+        category, fault, step = 'export' if report['phase'] in {'admission', 'final-pins'} else 'runner', 'verification_incomplete', None
+    instructions = {
+        'control_missing': 'Inspect the declared selector and the preceding step that should create this control.',
+        'control_hidden': 'Inspect the control visibility and recorded rectangle; make the intended screen visible before this action.',
+        'control_disabled': 'Inspect the disabled state and the preceding prerequisite action before enabling this control.',
+        'control_state_mismatch': 'Compare the expected control state with observed visibility and enabled state; inspect hidden/display rules or disabled attributes and the preceding screen transition.',
+        'layout_overlap': 'Compare both recorded rectangles; inspect their shared layout, absolute positioning, spacing and wrapping at this viewport width to separate the controls.',
+        'outside_viewport': 'Compare the recorded rectangle with the viewport width; inspect fixed widths, min-width, horizontal offsets and container padding.',
+        'selector_ambiguous': 'Use a selector that identifies exactly one intended control.',
+        'action_failed': 'Inspect the recorded control state and rectangle for an overlay or a blocked interaction.',
+        'text_mismatch': 'Compare the expected text with the observed state and trace the preceding action before changing code or the case.',
+        'fits_viewport': 'Inspect the reported overflowing element at this viewport width for fixed widths, min-width, padding and unbroken content; rerun at the same width.',
+        'respects_hidden': 'Inspect the reported [hidden] element and CSS display overrides; preserve its hidden state before rerunning the check.',
+    }
+    fallback = {
+        'setup': 'Restore the browser and requested viewport, then rerun this case before editing game code.',
+        'transport': 'Restore the Stagehand connection and rerun this case; no assertion verdict was obtained.',
+        'navigation': 'Inspect local navigation targets and the selected control before rerunning this case.',
+        'resource': 'Inspect the pinned local resource and its source reference; do not replace the accepted baseline.',
+        'page': 'Inspect the local entry module and initialization for a page error, then rerun the case.',
+        'export': 'Inspect the receipt, graph admission and final byte pins; retain existing exports and use a fresh output path.',
+        'runner': 'Inspect case syntax and runner availability, then rerun the same pinned case.',
+        'action': 'Inspect the declared action and recorded control state, then rerun the case.',
+    }
+    item = {'category': category, 'fault': fault, 'step': step,
+            'instruction': instructions.get(fault, fallback.get(category, fallback['runner']))}
+    steps = report.get('steps', [])
+    if type(step) is int and 0 <= step < len(steps):
+        action = next(iter(steps[step]))
+        value = steps[step][action]
+        item['action'] = action
+        if action == 'expect_page':
+            item['check'] = value
+            observed = failure.get('observed', {}) if failure else {}
+            for name in ('viewport_width', 'scroll_width'):
+                width = observed.get(name)
+                if type(width) in (int, float) and 0 <= width <= 10000000:
+                    item[name] = width
+            if isinstance(observed.get('selector'), str) and len(observed['selector']) <= 240:
+                item['selector'] = observed['selector']
+        else:
+            item['selector'] = value if isinstance(value, str) else value['selector']
+            if action in {'expect_control', 'expect_layout'}:
+                if action == 'expect_control':
+                    item['expected_state'] = value['state']
+                else:
+                    item['relation'] = value['relation']
+                    if 'other' in value:
+                        item['other'] = value['other']
+                item['observed'] = failure.get('observed', {}) if failure else {}
+    return [item]
+
+
 def _report(project, report, used, case_path):
     relative = 'checks/' + report['id'] + '.json'
     data = (json.dumps(report, ensure_ascii=False, indent=2) + '\n').encode()
@@ -201,14 +313,17 @@ def _report(project, report, used, case_path):
         raise RevisionError({'passed': False, 'status': 'report_error', 'error': write_error, 'activity': activity,
                              'inspect': 'Report could not be persisted; inspect checks directory and graph before retry'})
     return {'passed': report['passed'], 'status': report['status'], 'report': relative,
-            'activity': activity, 'changes': report['changes'], 'output': report.get('output')}
+            'activity': activity, 'changes': report['changes'], 'output': report.get('output'),
+            'next_steps': report.get('next_steps', []),
+            **({'diagnostic': report['diagnostic']} if 'diagnostic' in report else {})}
 
 
-def _attempt(project, base, *, out=None, kind=None, reason=None, check=None):
+def _attempt(project, base, *, out=None, kind=None, reason=None, check=None, operation=None):
     project = Path(project).resolve(strict=True)
-    report = {'schema_version': 1, 'id': 'web-revision-' + uuid.uuid4().hex, 'operation': 'build' if out is not None else 'diff',
+    report = {'schema_version': 1, 'id': 'web-revision-' + uuid.uuid4().hex, 'operation': operation or ('build' if out is not None else 'diff'),
               'passed': False, 'status': 'error', 'phase': 'admission', 'changes': [], 'checks': {}}
     used, accepted, current, case_data, case_path, candidate = [], None, None, None, None, None
+    case_root = project
     try:
         base = _relative(base)
         report['base'] = base
@@ -216,8 +331,9 @@ def _attempt(project, base, *, out=None, kind=None, reason=None, check=None):
         used.append(accepted['receipt_artifact'])
         report['base_receipt'] = {'artifact': accepted['receipt_artifact'], **accepted['pins'][base + '/web-game.json']}
         report['plugin'] = _plugin()
-        current = _current(project)
-        report['changes'] = _changes(accepted, current)
+        if operation != 'check':
+            current = _current(project)
+            report['changes'] = _changes(accepted, current)
         if out is not None and not report['changes']:
             raise ValueError('Revision has no source or installed runtime changes')
         if out is not None:
@@ -232,14 +348,28 @@ def _attempt(project, base, *, out=None, kind=None, reason=None, check=None):
             report.update(kind=kind, reason=reason, output=out)
             if kind == 'bugfix' and check is None:
                 raise ValueError('Bugfix requires a comparison check')
-            case = None
-            if check is not None:
-                case_path = _relative(check)
-                case_data = web_game._read(project, case_path)
-                if len(case_data) > 65536:
-                    raise ValueError('Comparison case exceeds limit')
-                case = parse_case(case_data)
-                report['case'] = {'path': case_path, **web_game._pin(case_data)}
+        case = None
+        if check is not None or operation == 'check':
+            installed = check is None
+            case_root = web_game.ROOT if installed else project
+            case_path = 'starter/checks/web-health.json' if installed else _relative(check)
+            report['case'] = {'origin': 'installed-runtime' if installed else 'project-source', 'path': case_path}
+            case_data = web_game._read(case_root, case_path)
+            report['case'].update(web_game._pin(case_data))
+            if len(case_data) > 65536:
+                raise ValueError('Comparison case exceeds limit')
+            case = parse_case(case_data)
+            report['steps'] = case.get('steps', [])
+            if 'viewport' in case:
+                report['viewport'] = case['viewport']
+        if operation == 'check':
+            if case is None:
+                raise ValueError('Check requires a case')
+            report['phase'] = 'baseline-check'
+            result = _check(project, base, case)
+            report['checks']['before'] = result
+            report.update(passed=result['passed'], status=result['status'])
+        elif out is not None:
             if kind == 'bugfix':
                 report['phase'] = 'baseline-check'
                 report['checks']['before'] = _check(project, base, case)
@@ -257,10 +387,14 @@ def _attempt(project, base, *, out=None, kind=None, reason=None, check=None):
                 report['checks']['after'] = _check(project, out, case)
                 if not report['checks']['after']['passed']:
                     raise ValueError('Candidate failed comparison assertion')
-        report.update(passed=True, status='verified', phase='verified')
+        if operation != 'check':
+            report.update(passed=True, status='verified', phase='verified')
     except Exception as error:
         report['error'] = {'type': type(error).__name__, 'phase': report['phase']}
-        report['status'] = 'operational_error' if report['phase'] in {'baseline-check', 'candidate-check'} and (
+        diagnostic = _diagnostic(error, candidate or accepted)
+        if diagnostic:
+            report['diagnostic'] = diagnostic
+        report['status'] = 'operational_error' if operation == 'check' or report['phase'] in {'baseline-check', 'candidate-check'} and (
             'before' if report['phase'] == 'baseline-check' else 'after') not in report['checks'] else 'rejected'
     final_pins = []
     if accepted is not None:
@@ -270,7 +404,7 @@ def _attempt(project, base, *, out=None, kind=None, reason=None, check=None):
     if candidate is not None:
         final_pins.append(('candidate', lambda: accept_export(project, out)['pins'] == candidate['pins']))
     if case_data is not None:
-        final_pins.append(('case', lambda: web_game._read(project, case_path) == case_data))
+        final_pins.append(('case', lambda: web_game._read(case_root, case_path) == case_data))
     if 'plugin' in report:
         final_pins.append(('plugin', lambda: _plugin() == report['plugin']))
     report['pin_checks'] = {}
@@ -281,9 +415,11 @@ def _attempt(project, base, *, out=None, kind=None, reason=None, check=None):
             report['pin_checks'][name] = {'passed': True}
         except Exception as error:
             report['pin_checks'][name] = {'passed': False, 'error': type(error).__name__}
-            report.update(passed=False, status='rejected', phase='final-pins')
+            report.update(passed=False, status='operational_error' if operation == 'check' else 'rejected', phase='final-pins')
             report.setdefault('error', {'type': type(error).__name__, 'phase': 'final-pins'})
-    result = _report(project, report, used, case_path if case_data is not None else None)
+    report['next_steps'] = _next_steps(report)
+    result = _report(project, report, used, case_path if case_data is not None and
+                     report.get('case', {}).get('origin') == 'project-source' else None)
     if not report['passed']:
         raise RevisionError(result)
     return result
@@ -297,10 +433,14 @@ def build(project, base, out, kind, reason, check=None):
     return _attempt(project, base, out=out, kind=kind, reason=reason, check=check)
 
 
+def check(project, base, check=None):
+    return _attempt(project, base, check=check, operation='check')
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest='command', required=True)
-    for name in ('diff', 'build'):
+    for name in ('diff', 'build', 'check'):
         command = commands.add_parser(name)
         command.add_argument('--project', type=Path, required=True)
         command.add_argument('--base', required=True)
@@ -309,10 +449,12 @@ def main(argv=None):
             command.add_argument('--kind', choices=('change', 'bugfix'), required=True)
             command.add_argument('--reason', required=True)
             command.add_argument('--check')
+        elif name == 'check':
+            command.add_argument('--check')
     args = vars(parser.parse_args(argv))
     command = args.pop('command')
     try:
-        result = diff(**args) if command == 'diff' else build(**args)
+        result = {'diff': diff, 'build': build, 'check': check}[command](**args)
     except RevisionError as error:
         print(json.dumps(error.result, ensure_ascii=False))
         return 2
