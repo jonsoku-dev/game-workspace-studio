@@ -40,6 +40,29 @@ const campaign = await loadCampaign();
 
 `stage`는 현재 단계의 고정된 정의, `index`는 0부터 시작하는 번호다. 게임이 승리를 판정하면 `finishStage()`가 `phase`를 `between` 또는 마지막 판의 `complete`로 바꾼다. 플레이어가 계속을 선택할 때 `advance()`로 다음 판에 들어간다. 패배 시 `failStage()`, 해당 판부터 재도전할 때 `retry()`, 처음부터 다시 할 때 `restart()`를 쓴다. 상태가 허용하지 않는 전환은 `false`를 반환한다. 목숨·점수·장비의 인계와 복구는 게임 규칙에서 구현한다. 게시 영수증에는 단계 정의, 런타임 및 소스 해시가 들어간다. [연출 가이드북](PLAYBOOK.md)
 
+## 웹 게임 수정과 버그픽스
+
+기준판은 프로젝트 그래프에 등록된 실제 웹 배포본이다. 아래 명령은 기준판을 보존하며 현재 게임 소스와 설치 런타임에서 달라진 파일을 찾아낸다. 소스 수정은 Codex 채팅에서 수행한다. 새 기믹과 같은 기능 변경은 `--kind change`, 재현 가능한 결함은 `--kind bugfix`로 검증한다.
+
+```sh
+python3 "$STUDIO_ROOT/tools/web_revision.py" diff --project "$PROJECT" --base play/first
+python3 "$STUDIO_ROOT/tools/web_revision.py" build --project "$PROJECT" --base play/first \
+  --out play/updated --kind change --reason "승리 뒤 두 번째 판으로 진행"
+python3 "$STUDIO_ROOT/tools/web_revision.py" build --project "$PROJECT" --base play/updated \
+  --out play/fixed --kind bugfix --reason "다시 시작 키가 현재 판 재시도로 잘못 표시됨" \
+  --check checks/restart-label.json
+```
+
+경로는 실제 프로젝트에 맞춰 선택한다. 예를 들어 혜성 궤도의 키 설명은 `.notes > div`에 있다. 아래 검사는 그 요소에서 올바른 안내를 읽는다. `click`과 `press` 단계는 선택 사항이다. 마지막 단계는 `expect_text`여야 한다.
+
+```json
+{"schema_version":1,"steps":[{"expect_text":{"selector":".notes > div","contains":"R 처음부터"}}]}
+```
+
+검사에는 설치된 Stagehand 로컬 MCP가 필요하다. 버그픽스는 같은 검사의 기준판 실패와 수정판 통과를 요구한다. 실행 또는 리소스 장애, 잘못된 기준판, 수정 중 바뀐 파일은 성공 처리하지 않는다. 명령은 새 보고서와 프로젝트 그래프를 기록한다. 실패한 후보가 이미 생성되었으면 그 출력을 보존하고 새 출력 경로로 재시도한다. 재현 검사는 브라우저에서 보이는 텍스트를 다루며, 미술 품질·오디오 청취·프레임 비용은 별도 관찰이 필요하다.
+
+여러 캠페인의 종료 화면에는 `campaign.confirmResult()`를 사용할 수 있다. 승리 후 계속은 `advance`, 패배 시 재도전은 `retry`, 최종 완료 후 처음부터는 `restart`를 반환한다. 하나의 결과를 처리한 뒤 같은 버튼이 한 번 더 활성화돼도 진행 중이면 `null`을 반환한다. 게임은 반환된 행동에 맞춰 진입 점수나 기술을 복원한다.
+
 ## 실행
 
 설치된 `pixel-asset` 명령과 활성 `model-assets` 플러그인이 필요하다. Blender·컴파일러 의존성은 3D 제작기가 소유한다.
@@ -111,10 +134,10 @@ python3 tools/graph.py history --project examples/forest-camp
 로컬 Codex에 스튜디오를 설치하는 절차다. 아래는 이 버전의 새 설치 경로 예시다.
 
 ```sh
-python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.11.0"
-codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.11.0"
+python3 tools/stage.py --out "$HOME/.local/share/codex-local-plugins/game-studio/0.12.0"
+codex plugin marketplace add "$HOME/.local/share/codex-local-plugins/game-studio/0.12.0"
 codex plugin add game-studio@game-studio
-STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.11.0"
+STUDIO_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/game-studio/game-studio/0.12.0"
 ```
 
 프로젝트에서 `$game-studio`로 기획·씬 제작을 요청한다. 예를 들어 “Forest Camp의 30cm 등불 통풍구에 입체 불티를 붙이고 제작 과정을 보여 줘”라고 지시한다.

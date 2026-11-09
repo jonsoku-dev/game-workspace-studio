@@ -16,7 +16,7 @@ FILES = (
     "starter/identity/LOGO.md", "starter/identity/a-moon-strike.svg",
     "starter/identity/b-target-cut.svg", "starter/identity/c-robot-guard.svg",
     "visualizer/compare.mjs", "visualizer/compare-messages.mjs",
-    "tools/runtime_inputs.py", "tools/export_game.py", "tools/web_game.py", "engines/HTML-ENGINES.md",
+    "tools/runtime_inputs.py", "tools/export_game.py", "tools/web_game.py", "tools/web_revision.py", "tools/web_regression.py", "engines/HTML-ENGINES.md",
     "engines/web/README.md", "engines/web/export.py", "engines/web/index.html",
     "engines/web/feedback.mjs", "engines/web/campaign.mjs", "engines/web/game-state.mjs", "engines/web/game.mjs", "engines/web/style.css",
     "engines/web/three-lock.json", "engines/web/MESHOPT-LICENSE.txt", "engines/web/evidence/meshopt.json", "engines/web/evidence/browser.json", "engines/web/evidence/mobile-win.jpg",

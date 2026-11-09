@@ -16,7 +16,7 @@ export function createCampaign(stages) {
     return Object.freeze({id: stage.id, title: stage.title, objective: stage.objective, tactic: stage.tactic});
   }));
   let index = 0, phase = 'playing';
-  return Object.freeze({
+  const campaign = Object.freeze({
     get index() { return index; },
     get stage() { return ordered[index]; },
     get phase() { return phase; },
@@ -46,7 +46,23 @@ export function createCampaign(stages) {
       phase = 'playing';
       return true;
     },
+    confirmResult() {
+      if (phase === 'between') {
+        campaign.advance();
+        return 'advance';
+      }
+      if (phase === 'failed') {
+        campaign.retry();
+        return 'retry';
+      }
+      if (phase === 'complete') {
+        campaign.restart();
+        return 'restart';
+      }
+      return null;
+    },
   });
+  return campaign;
 }
 
 export async function loadCampaign() {

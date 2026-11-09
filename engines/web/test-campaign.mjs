@@ -63,6 +63,20 @@ const maximum = Array.from({length: 32}, (_, index) => ({...valid[0], id: `stage
 assert.equal(createCampaign(maximum).index, 0);
 assert.equal(createCampaign([{...valid[0], id: 'a'.repeat(64), title: '😀'.repeat(4000)}, valid[1]]).index, 0);
 
+const terminal = createCampaign(valid);
+assert.equal(terminal.confirmResult(), null);
+terminal.finishStage();
+assert.equal(terminal.confirmResult(), 'advance');
+assert.equal(terminal.confirmResult(), null);
+assert.equal(terminal.index, 1);
+terminal.failStage();
+assert.equal(terminal.confirmResult(), 'retry');
+assert.equal(terminal.confirmResult(), null);
+assert.equal(terminal.index, 1);
+terminal.finishStage();
+assert.equal(terminal.confirmResult(), 'restart');
+assert.equal(terminal.index, 0);
+
 const originalFetch = globalThis.fetch;
 try {
   globalThis.fetch = async url => {

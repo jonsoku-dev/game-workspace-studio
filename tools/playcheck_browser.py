@@ -82,7 +82,7 @@ class MCP:
 STATE = "const s=window.scoutGame?.scene?.scenes[0]; return s?.actor ? {hits:s.hits,finished:s.finished,x:s.actor.x,facing:s.actor.facing,actor_elapsed_ms:s.actor.elapsed,effects:s.actor.effects.map(f=>({start_ms:f.event.start_ms,elapsed_ms:f.elapsed,frame:String(f.image.frame.name)})),contactEvents:s.contactEvents,status:document.querySelector('#status').textContent}:null;"
 
 
-def inventory_server(export, pins):
+def inventory_server(export, pins, *, inline=False):
     """Serve only verified immutable bytes, never a live filesystem directory."""
     export = Path(export).resolve()
     files = {}
@@ -128,7 +128,8 @@ def inventory_server(export, pins):
             self.send_header('X-Content-Type-Options', 'nosniff')
             self.send_header('Cross-Origin-Resource-Policy', 'same-origin')
             self.send_header('Referrer-Policy', 'no-referrer')
-            self.send_header('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'")
+            local = "'self' 'unsafe-inline'" if inline else "'self'"
+            self.send_header('Content-Security-Policy', "default-src 'self'; script-src " + local + "; style-src " + local + "; img-src 'self' blob: data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'" + ("; worker-src 'none'; form-action 'self'; sandbox allow-scripts allow-same-origin" if inline else ""))
             self.end_headers()
             if not head:
                 self.wfile.write(data)

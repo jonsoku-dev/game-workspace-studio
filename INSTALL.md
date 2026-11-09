@@ -68,7 +68,7 @@ INSTALL_TEST_WHEELHOUSE="$INPUTS/wheels" INSTALL_TEST_NPM_CACHE="$INPUTS/npm-cac
 
 셸이나 작업 폴더를 바꾸면 `python3`가 다른 버전으로 해석될 수 있다. wheel을 준비한 인터프리터의 절대 경로를 설치에도 사용한다. 예를 들어 `cp313` macOS arm64 Pillow wheel은 CPython 3.15 환경에서 거부된다. 확인 명령은 `"$PYTHON" -c "import sys,sysconfig; print(sys.executable, sys.version, sysconfig.get_platform())"`이다.
 
-이력: 0.5.x에서 Phaser 3.90.0과 eventemitter3의 오프라인 캐시 준비가 추가됐다. 현재 0.11.0에도 적용되며 위 준비 절차에 포함했다. 런타임은 패키지 무결성과 배포 파일·라이선스의 고정 SHA-256을 검사한다.
+이력: 0.5.x에서 Phaser 3.90.0과 eventemitter3의 오프라인 캐시 준비가 추가됐다. 현재 0.12.0에도 적용되며 위 준비 절차에 포함했다. 런타임은 패키지 무결성과 배포 파일·라이선스의 고정 SHA-256을 검사한다.
 
 
 ## 0.9.1 첫 실행과 재개
@@ -98,7 +98,7 @@ python3 "$STUDIO_ROOT/tools/playcheck.py" run \
 
 ## 배포 파일 스테이징
 
-`python3 "$WORKSPACE/studio/tools/stage.py" --out /새/플러그인/폴더`는 명시된 설치 파일만 새 폴더로 복사한다. 0.11.0은 시작 템플릿, start/revise/review, browser playcheck, 읽기 전용 A/B 화면을 포함한다. 이 명령만으로 Python CLI·npm 의존성·Codex 등록이 설치되지는 않는다. 실제 사용은 위 `install_workspace.py`의 설치·검증 결과와 설치된 명령으로 확인한다. 기존 설치를 갱신할 때는 변경된 소스에 맞는 새 목적지를 선택한다.
+`python3 "$WORKSPACE/studio/tools/stage.py" --out /새/플러그인/폴더`는 명시된 설치 파일만 새 폴더로 복사한다. 0.12.0은 시작 템플릿, start/revise/review, browser playcheck, 읽기 전용 A/B 화면을 포함한다. 이 명령만으로 Python CLI·npm 의존성·Codex 등록이 설치되지는 않는다. 실제 사용은 위 `install_workspace.py`의 설치·검증 결과와 설치된 명령으로 확인한다. 기존 설치를 갱신할 때는 변경된 소스에 맞는 새 목적지를 선택한다.
 
 ## 0.9.1 상태별 작화 → Rive 실행
 
@@ -123,3 +123,7 @@ python3 "$STUDIO_ROOT/tools/character.py" --project "$PROJECT" \
 ## 0.11.0 제작 인터뷰와 웹 캠페인
 
 설치된 스킬은 재미와 아트에서 열려 있는 결정을 사용자와 먼저 정한다. `PLAYBOOK.md`의 이벤트별 연출 설계와 `starter/campaign/`의 두 단계 예시를 함께 설치한다. [새 프로젝트 생성과 게시](README.md#다음-판이-있는-웹-게임)를 따라 실제 승리, 계속, 재도전을 점검한다.
+
+## 0.12.0 수정판 제작과 버그 회귀 검사
+
+설치본의 `tools/web_revision.py`는 같은 프로젝트의 등록된 기준판을 검사하고 변경 요약·새 후보·검증 기록을 만든다. `--kind bugfix`에는 로컬 Stagehand가 필요하다. [명령과 검사 예시](README.md#웹-게임-수정과-버그픽스)
