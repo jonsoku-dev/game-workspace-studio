@@ -115,7 +115,7 @@ export async function showScene(canvas, runtime, assetURL) {
   const listeners = [];
   const listen = (target, name, callback, options) => { target.addEventListener(name, callback, options); listeners.push(() => target.removeEventListener(name, callback, options)); };
   const own = resource => { if (disposed) resource.dispose(); else resources.add(resource); };
-  const metrics = { state: 'loading', node_count: 0, positions: [], frame_count: 0,
+  const metrics = { state: 'loading', node_count: 0, positions: [], frame_count: 0, model_animations: [],
     rendered_model_triangles: 0, model_non_background_pixels: 0, effects: [], actions: [],
     review_playback: 'Native mesh particles loop at authored duration; historic sprite one-shots replay after a 1000ms hidden inspection gap. No game controls.' };
   const owner = { metrics, dispose() {
@@ -185,7 +185,7 @@ export async function showScene(canvas, runtime, assetURL) {
         const bytes = await (await fetchFile(asset.files.model)).arrayBuffer();
         const receipt = await json(asset.files.receipt);
         validateReceipt(receipt, bytes.byteLength);
-        const model = await loadModel(bytes, { textures: true });
+        const model = await loadModel(bytes, { textures: true, animated: true });
         // Track resources before a cancellation check so a superseded decode can be released.
         ownObject(model.gltf.scene);
         current();
@@ -281,7 +281,7 @@ export async function showScene(canvas, runtime, assetURL) {
     scene.add(key, key.target);
     const fill = new THREE.DirectionalLight(0xcbdcff, 1.4);
     scene.add(fill);
-    const playback = [], particlePlayback = [], actionPlayback = [], pixelProofs = [];
+    const playback = [], particlePlayback = [], actionPlayback = [], modelPlayback = [], pixelProofs = [];
     let needsPixelProof = false;
     const sprite = (group, bitmap, metadata, size, proof) => {
       const texture = new THREE.Texture(bitmap);
@@ -330,6 +330,13 @@ export async function showScene(canvas, runtime, assetURL) {
         model.traverse(child => { if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; } });
         group.add(model);
         models.push(model);
+        if (asset.gltf.animations?.length) {
+          // Rigid part animations (spinning blades, opening shells) replay on the shared review clock.
+          const mixer = new THREE.AnimationMixer(model);
+          for (const clip of asset.gltf.animations) mixer.clipAction(clip).play();
+          modelPlayback.push({ mixer });
+          metrics.model_animations.push({ node: node.id, clips: asset.gltf.animations.map(clip => ({ name: clip.name, duration_s: clip.duration })) });
+        }
       } else if (asset.producer === 'pixel-action-set') {
         if (!Number.isFinite(node.size_m) || node.size_m <= 0) throw new Error('Action size_m must be positive');
         const name = node.action ?? 'idle', action = asset.metadata.actions[name];
@@ -591,7 +598,7 @@ export async function showScene(canvas, runtime, assetURL) {
     renderer.shadowMap.needsUpdate = !all2D;
     const motion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)');
     let paused = Boolean(motion?.matches), elapsed = 0, previousTime = null, inViewport = true;
-    const animated = playback.length + actionPlayback.length + particlePlayback.length > 0;
+    const animated = playback.length + actionPlayback.length + particlePlayback.length + modelPlayback.length > 0;
     const draw = now => {
       animation = 0;
       if (disposed) return;
@@ -604,6 +611,7 @@ export async function showScene(canvas, runtime, assetURL) {
       for (const effect of playback) setFrame(effect, effectFrameAt(effect.metadata.frames, effect.metadata.loop, elapsed));
       updateActions(elapsed);
       updateParticles(elapsed / 1000);
+      for (const { mixer } of modelPlayback) mixer.setTime(elapsed / 1000);
       if (needsPixelProof || metrics.frame_count % 60 === 0) sampleEffects();
       renderer.render(scene, camera);
       metrics.frame_count++;

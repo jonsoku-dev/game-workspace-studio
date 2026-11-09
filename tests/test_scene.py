@@ -520,6 +520,27 @@ class SceneTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             scene.verify_bundle(bundle, result, "model-assets")
 
+    def test_assembly_bundle_needs_review_sheet_and_passing_checks(self):
+        bundle = self.project / "assembly"
+        bundle.mkdir()
+        files = {key: key for key in scene.PRODUCERS["model-assets"]}
+        files["model"] = "model.glb"
+        for value in files.values():
+            (bundle / value).write_text("{}")
+        checks = {"animations_preserved": True, "every_animation_moves": True}
+        (bundle / "validation").write_text(json.dumps({"passed": True, "assembly_checks": checks}))
+        result = {"schema_version": 2, "status": "ready", "files": files}
+        with self.assertRaisesRegex(ValueError, "review sheet"):
+            scene.verify_bundle(bundle, result, "model-assets")
+        files["review"] = "review.png"
+        (bundle / "review.png").write_bytes(b"png")
+        scene.verify_bundle(bundle, result, "model-assets")
+        (bundle / "validation").write_text(json.dumps({"passed": True, "assembly_checks": dict(checks, every_animation_moves=False)}))
+        with self.assertRaises(ValueError):
+            scene.verify_bundle(bundle, result, "model-assets")
+        with self.assertRaises(ValueError):
+            scene.verify_bundle(bundle, dict(result, schema_version=2), "pixel-effect")
+
     def test_interrupted_build_records_failure(self):
         self.pixel_only()
         with patch.object(scene, "run_json", side_effect=KeyboardInterrupt()):

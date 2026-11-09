@@ -304,7 +304,8 @@ def pixel_producer():
 def model_implementation(root):
     paths = ["tools/build.py", "tools/blender_worker.py", "three/inspect.mjs",
              "three/loader.mjs", "three/package-lock.json"]
-    for path in ("tools/lantern.py", "tools/ember.py", "tools/decode_image.py", "three/decode.mjs"):
+    for path in ("tools/lantern.py", "tools/ember.py", "tools/decode_image.py", "three/decode.mjs",
+                 "tools/assembly.py", "tools/assembly_worker.py"):
         if (root / path).is_file():
             paths.append(path)
     return implementation("model-assets", root, paths)
@@ -357,8 +358,9 @@ def verify_effect(effect):
 
 
 def verify_bundle(bundle, result, producer, *, require_effect=False):
-    if not isinstance(result, dict) or result.get("schema_version") != 1 or result.get("status") != "ready":
-        raise ValueError("producer must return schema_version 1 status ready")
+    versions = (1, 2) if producer == "model-assets" else (1,)
+    if not isinstance(result, dict) or result.get("schema_version") not in versions or result.get("status") != "ready":
+        raise ValueError("producer must return a supported schema_version with status ready")
     files = result.get("files")
     if not isinstance(files, dict) or any(key not in files for key in PRODUCERS[producer]):
         raise ValueError(f"incomplete {producer} bundle")
@@ -372,6 +374,11 @@ def verify_bundle(bundle, result, producer, *, require_effect=False):
             raise ValueError("3D producer validation did not pass")
         if Path(files["model"]).suffix.lower() != ".glb":
             raise ValueError("3D runtime model must be compiled GLB")
+        if result["schema_version"] == 2:
+            # Parametric assemblies must ship their lit review sheet and pass every compiled assembly check.
+            checks = validation.get("assembly_checks")
+            if "review" not in files or not isinstance(checks, dict) or not checks or not all(v is True for v in checks.values()):
+                raise ValueError("3D assembly bundle requires a review sheet and passing assembly checks")
         if require_effect and "effect" not in files:
             raise ValueError("embers bundle requires files.effect")
         if "effect" in files:

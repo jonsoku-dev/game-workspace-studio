@@ -19,6 +19,12 @@
 | `graph.py record/query/export/history`, `workspace_graph.py`, `visualize.py` | 원본·실행·검증 기록, 프로젝트 그래프 합치기, 읽기 전용 검수. |
 | `install_workspace.py` | 격리된 환경·로컬 패키지 설치. 소스 저장소의 `stage.py`는 배포 제작용이다. |
 
+## 품질 측정과 3D 조립 소품
+
+프레임 수·JSON 형식 통과를 미술 평가로 대신하지 않는다. 그려진 키 포즈는 설치된 `pixel-asset pose-qa`로 공구 끝 이동, 접촉 뒤 역방향 휘두르기, 바닥 관통, 공구 길이 변동, 발 미끄러짐을 측정하고 `breakdowns.json`의 목표 좌표로 중간 포즈를 그린다. 불꽃·불티는 `pixel-asset fx-qa`로 실제 표면 위의 흰 심·밝기·색상 묻힘을 측정한다.
+
+새 3D 소품은 model-assets의 `schema_version: 2` 조립 요청으로 만든다. 부품·피벗·재질·애니메이션을 선언하면 PBR 아틀라스, LOD, 메시·접합·회전축 게이트, 조명 검수 시트가 생긴다. `scene.py build`는 검수 시트와 모든 조립 검사가 통과한 번들만 받아들이고, Three 런타임과 visualizer는 부품 애니메이션을 재생한다. 웹 엔진은 시작과 끝 자세가 같은 클립만 스스로 반복하고 1회성 클립은 `window.__modelClips[노드].<이름>`으로 게임이 호출한다. Godot·Unity 내보내기는 아직 정적 메시만 받는다.
+
 ## 접촉 연출
 
 프레임별 무기 소켓은 `combat_motion.py`가 픽셀 변환을 적용해 저장한다. 독립 게임은 `genre.json`의 `contact:true`로 원형 도구와 표면의 접촉점·방향·미끄럼 속도를 받는다. [연출과 검증](CONTACT.md)

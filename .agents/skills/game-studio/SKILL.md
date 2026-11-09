@@ -121,6 +121,8 @@ python3 "$STUDIO_ROOT/tools/scene.py" validate --project "$PROJECT"
 python3 "$STUDIO_ROOT/tools/scene.py" build --project "$PROJECT" --out build/run-new
 ```
 
+새 기계·소품은 model-assets의 `schema_version: 2` 조립 요청(부품·피벗·재질·애니메이션)으로 만들고, 결과의 `review` 시트를 열어 실루엣·재질 구분·접합부를 확인한다. 2D 키 포즈와 불꽃을 납품하기 전에 `pixel-asset pose-qa`·`fx-qa`로 측정하고, 오류가 있으면 측정값과 중간 포즈 계획을 근거로 다시 그린다. 측정 통과는 미술 승인이 아니다. [기능 지도](../../../CAPABILITIES.md)
+
 씬은 미터·+Y 위·오른손 좌표, 회전은 XYZ 도 단위다. 픽셀 `size_m`는 scale 전 정사각형 폭이다. 3D 소품 효과는 model-assets의 메시 효과를 사용하며 Forest Camp 불티는 등불의 `parent`로 부착한다. 배치만 바꿀 때는 성공 실행의 `reuse:{run_id,asset}`를 선택한다. 일반 납품은 `export_game.py --engine <godot|three|phaser|unity> --project <등록된 프로젝트> --workspace <workspace.json> --source <등록된 프로젝트> <ready runtime> --out <새 상대경로>`다. 타깃별 지원 범위는 [엔진 문서](../../../engines/HTML-ENGINES.md)를 따른다.
 
 이력·에셋·씬·A/B 비교는 `visualize.py --project "$PROJECT"`로 읽는다. 등록 workspace를 볼 때만 `--workspace ... --browse-workspace`를 추가한다. 화면은 읽기 전용이며 제작·수정·판정은 이 채팅에서 수행한다. 한국어 링크는 `lang=ko`, 일본어는 `lang=ja`; 기존 project 쿼리는 유지한다. 모든 제작·개발·검증은 프로젝트 그래프에 실제 사용·생성·관찰 관계로 연결한다. 배포·구매·기존 파일 삭제 등은 사용자의 명시적 권한 범위를 따른다.

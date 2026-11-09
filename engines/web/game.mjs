@@ -170,7 +170,7 @@ try {
       shard.vx = Math.cos(angle) * speed; shard.vz = Math.sin(angle) * speed; shard.vy = feedback.reducedMotion ? .3 : 2 + i % 4 * .4;
     }
   };
-  const loader=new GLTFLoader().setMeshoptDecoder(MeshoptDecoder), groups=new Map(), particles=[];
+  const loader=new GLTFLoader().setMeshoptDecoder(MeshoptDecoder), groups=new Map(), particles=[], mixers=[];
   const forest=new THREE.Group();forest.scale.setScalar(5);scene.add(forest);
   const modelNode=product.scene.nodes.find(n=> product.assets[n.asset].model && !product.assets[n.asset].effect);
   if (!modelNode) throw Error('The forest has no lantern model.');
@@ -179,7 +179,7 @@ try {
     const asset=product.assets[node.asset]; if (!asset.model) continue;
     const group=new THREE.Group();group.position.fromArray(node.position);group.rotation.set(...node.rotation_degrees.map(THREE.MathUtils.degToRad));group.scale.fromArray(node.scale);
     groups.set(node.id,group);
-    const model=(await loader.loadAsync(asset.model)).scene;
+    const gltf=await loader.loadAsync(asset.model), model=gltf.scene;
     model.updateMatrixWorld(true);
     if (asset.effect) {
       const descriptor=await json(asset.effect);
@@ -192,7 +192,21 @@ try {
       });
       if (!parts.length) throw Error('Mesh particle GLB is empty.');
       particles.push({group,descriptor,parts});
-    } else { model.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true;}});group.add(model); }
+    } else {
+      model.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true;}});group.add(model);
+      // Rigid part animations from model-assets assemblies (blade spin, shell open) follow the game clock.
+      // Only seamless clips (end pose equals start pose, e.g. whole-turn spins) loop on their own;
+      // one-shot clips (shell open, guard detach) wait for game logic via window.__modelClips.
+      if (gltf.animations.length) {
+        const mixer=new THREE.AnimationMixer(model), named={};
+        for (const clip of gltf.animations) {
+          const action=mixer.clipAction(clip), seamless=clip.tracks.every(t=>{const n=t.getValueSize(),v=t.values,same=s=>v.slice(0,n).every((x,i)=>Math.abs(x-s*v[v.length-n+i])<1e-4);return same(1)||(n===4&&same(-1));});
+          if (seamless) action.play(); else { action.setLoop(THREE.LoopOnce); action.clampWhenFinished=true; }
+          named[clip.name]=action;
+        }
+        mixers.push(mixer); (window.__modelClips??={})[node.id]=named;
+      }
+    }
   }
   for (const node of product.scene.nodes) { const group=groups.get(node.id);if(group)(groups.get(node.parent)||forest).add(group); }
   let previous=performance.now();const transform=new THREE.Object3D(),matrix=new THREE.Matrix4();
@@ -200,7 +214,7 @@ try {
   // Read-only telemetry makes actual rendering and input observable to verification.
   window.woodsAlight = () => ({ready, ...JSON.parse(JSON.stringify(game)), paused, feedback:{enabled:feedback.enabled,sound:feedback.sound,reducedMotion:feedback.reducedMotion,cues:{...cueCounts},activeShards:shards.filter(s=>s.mesh.visible).length}, modelLoaded:true, meshParticleCount:particles.reduce((n,p)=>n+p.descriptor.particles.length,0), depthWriting:particles.every(p=>p.parts.every(part=>(Array.isArray(part.mesh.material)?part.mesh.material:[part.mesh.material]).every(m=>m.depthTest&&m.depthWrite&&!m.transparent))), frames, drawCalls:renderer.info.render.calls, triangles:renderer.info.render.triangles});
   function frame(now) {
-    const dt=Math.min((now-previous)/1000,.05);previous=now; if (!paused) animationTime += dt; const time=animationTime;
+    const dt=Math.min((now-previous)/1000,.05);previous=now; if (!paused) animationTime += dt; const time=animationTime; for (const mixer of mixers) mixer.update(paused?0:dt);
     const x=Number(keys.has('ArrowRight')||keys.has('KeyD'))-Number(keys.has('ArrowLeft')||keys.has('KeyA'));
     const z=Number(keys.has('ArrowDown')||keys.has('KeyS'))-Number(keys.has('ArrowUp')||keys.has('KeyW'));
     if (!paused) travel(x,z,dt);
