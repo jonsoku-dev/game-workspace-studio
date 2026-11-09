@@ -4,11 +4,16 @@ import argparse
 from pathlib import Path
 import shutil
 
+import combat_starter
+
 
 FILES = (
     ".codex-plugin/plugin.json", ".agents/plugins/marketplace.json",
     ".agents/skills/game-studio/SKILL.md", "README.md", "GRAPH.md", "FEEDBACK.md", "PLAYBOOK.md", "REFERENCES.md", "reference-materials.json",
-    "INSTALL.md", "tools/install_workspace.py",
+    "starter/combat-brief/bell-knight.json","starter/combat-brief/bell-knight.webp",
+    "starter/combat-brief/knight-motion.json","starter/combat-brief/knight-poses.webp","starter/combat-brief/knight-stride.webp","starter/combat-brief/knight-walk.webp",
+    "starter/combat-brief/clip.json", "starter/combat-brief/resonance.gif","starter/combat-brief/ORIGIN","starter/combat-brief/NOTICE", "starter/combat-brief/choir.json","starter/combat-brief/resonance.webp",
+    "INSTALL.md", "tools/install_workspace.py", "tools/combat_starter.py", "tools/combat_motion.py", "tools/combat_review.py", "COMBAT.md", "CAPABILITIES.md",
     "tools/character.py", "tools/start.py", "tools/revise.py", "tools/review.py", "tools/playcheck.py", "tools/playcheck_browser.py", "tools/courier_playcheck.py",
     "starter/checks/web-health.json", "starter/campaign/checks/first-play.json", "starter/campaign/genre.json", "starter/campaign/game/index.html", "starter/campaign/game/game.mjs",
     "starter/2d/master.png", "starter/2d/motion.json", "starter/2d/LICENSE.txt", "starter/2d/NOTICE.md",
@@ -35,7 +40,7 @@ FILES = (
     "visualizer/i18n.mjs", "visualizer/shell-i18n.mjs", "visualizer/app-messages.mjs", "visualizer/view-messages.mjs",
     "examples/forest-camp/scene.json",
     "examples/forest-camp/requests/lantern.json", "examples/forest-camp/requests/embers.json",
-)
+) + tuple(combat_starter.ROOT + path for path in combat_starter.inventory())
 
 
 def stage(output):

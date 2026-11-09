@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "source": "resonance.gif",
+  "license": "ORIGIN",
+  "notice": "NOTICE",
+  "actor_cell_size": [
+    192,
+    192
+  ],
+  "effect_size": [
+    192,
+    192
+  ],
+  "pivot_px_from_top_left": [
+    96,
+    96
+  ],
+  "background": {
+    "mode": "preserve"
+  },
+  "phases": {
+    "charge": [
+      {
+        "frame": 0,
+        "duration_ms": 260
+      }
+    ],
+    "travel": [
+      {
+        "frame": 1,
+        "duration_ms": 220
+      }
+    ],
+    "impact": [
+      {
+        "frame": 2,
+        "duration_ms": 65
+      },
+      {
+        "frame": 3,
+        "duration_ms": 110
+      },
+      {
+        "frame": 4,
+        "duration_ms": 140
+      },
+      {
+        "frame": 5,
+        "duration_ms": 180
+      }
+    ]
+  }
+}

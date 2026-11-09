@@ -1,0 +1,1462 @@
+{
+  "schema_version": 1,
+  "request_sha256": "0c5e476ea334bdc62abb5e5ea875829a241b7c4a286906f2bb853e45362cff1d",
+  "kinds": {
+    "blade": {
+      "producer": "pixel_asset_pipeline.cli sheet",
+      "cli_stdout": "{\"schema_version\": 1, \"status\": \"ready\", \"files\": {\"sheet\": \"sheet.png\", \"metadata\": \"sheet.json\", \"preview\": \"preview.gif\"}}",
+      "pixel_sheet_sha256": "f1337d33411fc0bb2c2408a7c55fba783e334933a628b0994c1450bf4ed30bee",
+      "webp_sha256": "2c4f13d7f090109af1a9840a2e7435a9f3f7c4abdf5fb887e49447e4560571e6",
+      "metadata_sha256": "485337f23956d98ce3554f4edcb3ada9ede76e378ad626f32c5fd81757647078",
+      "action_ms": {
+        "windup": [
+          35,
+          65
+        ],
+        "heavy": [
+          35,
+          65
+        ],
+        "recover": [
+          140,
+          60
+        ],
+        "evade": [
+          150,
+          50
+        ]
+      },
+      "exact_rgba_round_trip": true,
+      "unique_rgba_frames": 14,
+      "frames": [
+        {
+          "id": "windupA",
+          "source": "blade-windupA.png",
+          "source_sha256": "4c88cfea4fe9d811a9937a89f1d4935e97763f391ba47863831f873b32cc8775",
+          "crop": null,
+          "source_foot": [
+            260,
+            480
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "45255da7fc58a3d98ced16c0885ae9d12931d0aa379ac41520426639ce447b18",
+          "rgba_sha256": "d2f59fb012d66607dfa9e4cccbcfd31cfbd3a1b10f369a319be344ae8a652575",
+          "bounds": [
+            130,
+            154,
+            369,
+            454
+          ]
+        },
+        {
+          "id": "windupB",
+          "source": "blade-windupB.png",
+          "source_sha256": "f1f31dc4b685ff8cc081fd9cf389c39ddf76986fdaee3b0991753c08b9c09066",
+          "crop": null,
+          "source_foot": [
+            270,
+            480
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "2fdd3fedddf8d8041e26743cf2da4ee38b4a03b591b5018e9a64d49789c5c421",
+          "rgba_sha256": "89ba243eae384407c80de24c7d170ff10e3def03a49002c1d8e412ba1eeeb08c",
+          "bounds": [
+            98,
+            180,
+            377,
+            454
+          ]
+        },
+        {
+          "id": "release",
+          "source": "blade-release.png",
+          "source_sha256": "19a553795a5fa1941762c61fbed056f788b26b95946bd346b1566add15adfafc",
+          "crop": null,
+          "source_foot": [
+            246,
+            480
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "c608639ab2dd5feceed81e4b74600eecc8969f3f354d072937eef4f266db95d2",
+          "rgba_sha256": "f8a126be26852d4fbf1e23ad0eb647bb5624072c52b4672de3873662ed29c882",
+          "bounds": [
+            103,
+            201,
+            420,
+            454
+          ]
+        },
+        {
+          "id": "follow",
+          "source": "blade-follow.png",
+          "source_sha256": "df34adc58a96b9021d2730cbd8485409cd55f963ebb1502c630b7ec94760d1e1",
+          "crop": null,
+          "source_foot": [
+            260,
+            473
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "6283726bfcc2074e0c03e9e444ca4ea15b212ccac1c8731a1d1f799c01fb5042",
+          "rgba_sha256": "abbcae9f7e6fbbb4116767b95354772000f8547cb24a1b57993c0abb5bebf214",
+          "bounds": [
+            100,
+            191,
+            451,
+            455
+          ]
+        },
+        {
+          "id": "recover",
+          "source": "blade-recover.png",
+          "source_sha256": "5b36e002b6d5a5001915543cc471efea89b72de14133932e8b99fd51f406272f",
+          "crop": null,
+          "source_foot": [
+            258,
+            473
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "33de731794d327854340a5dec836fae6bf7e548ab5e7e68aa1446427b1a90330",
+          "rgba_sha256": "a309f8b07d25c7142599de2395bb952199a0dae6ca210d30c582cae8118d38b7",
+          "bounds": [
+            121,
+            197,
+            390,
+            455
+          ]
+        },
+        {
+          "id": "hurt",
+          "source": "blade-hurt.png",
+          "source_sha256": "dc96296afcc7efec399a0ef115b4b618c0f17228774086d5a15d44c867e92ddf",
+          "crop": null,
+          "source_foot": [
+            256,
+            473
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "7cd64ab5a89bd6058b67cf899cb840fd1ea5d80af3ebbe760513413552cf49f7",
+          "rgba_sha256": "670f1d3284195adcb6543e780133eec50f672e63561289eaf9941718b1d1efc0",
+          "bounds": [
+            109,
+            174,
+            394,
+            455
+          ]
+        },
+        {
+          "id": "idle",
+          "source": "blade-idle.webp",
+          "source_sha256": "e8516bb5d3d3d5cd4a4dd5591a92f21cb055a7505a8a60a62773d391fc054506",
+          "crop": null,
+          "source_foot": [
+            246,
+            586
+          ],
+          "source_scale": 0.45,
+          "frame_sha256": "83787d22c70616c0adf5ff97e1ea9f77297598cdd7d4456cdf87f2ce8d26fdd0",
+          "rgba_sha256": "bae66c117b9c146baa435445bc5d1580d48eb57fd730f237da3e5ea2a415080e",
+          "bounds": [
+            145,
+            186,
+            358,
+            451
+          ]
+        },
+        {
+          "id": "air",
+          "source": "blade-air.webp",
+          "source_sha256": "9c7177c544e088b6f0c60dc5258d907024c4f4fbcd783fd1433f306e77149235",
+          "crop": null,
+          "source_foot": [
+            287,
+            508
+          ],
+          "source_scale": 0.51,
+          "frame_sha256": "48bdb0e7ae90a35b4ef32ffede0a07ed666c6d5dd56a06737740d97b337152e3",
+          "rgba_sha256": "974a07c95eeb84c14e68f7ad46b85063d5faf6f723e605aad9748ca38040da31",
+          "bounds": [
+            110,
+            191,
+            392,
+            451
+          ]
+        },
+        {
+          "id": "strideA",
+          "source": "blade-strideA.png",
+          "source_sha256": "4bd68076fd28a7bd29e05528978647bf4fc0cb970bec1a5dc8dad0d283f5bce1",
+          "crop": null,
+          "source_foot": [
+            260,
+            462
+          ],
+          "source_scale": 0.55,
+          "frame_sha256": "d5cc0e2d17a2bf06baa12c02d3acf53f36cfcf74db93ffc34e5998abf2af44e2",
+          "rgba_sha256": "205cfc775752892e5afa876900530bc1bed7851527e9fb6b5aea11a57b6c472d",
+          "bounds": [
+            122,
+            202,
+            390,
+            453
+          ]
+        },
+        {
+          "id": "strideB",
+          "source": "blade-strideB.png",
+          "source_sha256": "d2518aaab8a509b8c727d739bac87e4ead7155afc05c34af98f70a3d26a2c502",
+          "crop": null,
+          "source_foot": [
+            260,
+            461
+          ],
+          "source_scale": 0.55,
+          "frame_sha256": "42dd2ffdfa2a4055e2520e5c1f1f6fcc4ecddb685d471bc0b411b5ca978aef3a",
+          "rgba_sha256": "355588f519e18c1e29607a5a42aed5f07dcae94d11e49dd1e5dfbbbbaded995d",
+          "bounds": [
+            138,
+            202,
+            358,
+            453
+          ]
+        },
+        {
+          "id": "strideC",
+          "source": "blade-strideC.png",
+          "source_sha256": "c3ccf7205d8385880a96cc5c95de7de9b148ccff6c478a7f76ddab9b43816f50",
+          "crop": null,
+          "source_foot": [
+            260,
+            462
+          ],
+          "source_scale": 0.55,
+          "frame_sha256": "1efdbcb1ccc22c164b5e955885a7d881f918960b0e3c93509d10dcd41462e832",
+          "rgba_sha256": "9a1f295d760706aa5e4ed1137184e76758869aab1ae90c9576ee66243e50d9d9",
+          "bounds": [
+            113,
+            202,
+            388,
+            453
+          ]
+        },
+        {
+          "id": "strideD",
+          "source": "blade-strideD.png",
+          "source_sha256": "e7b8cab58a2133507546b3a036809264d81a264074f440a559817e0ab102880c",
+          "crop": null,
+          "source_foot": [
+            260,
+            468
+          ],
+          "source_scale": 0.55,
+          "frame_sha256": "eacc21e568f73c82a8208d18427106ad97653f8ee419699ef958765161006706",
+          "rgba_sha256": "01c061f81452503fb3bdc729653d41e168b454423571f5224c2be1664a84e870",
+          "bounds": [
+            132,
+            193,
+            362,
+            453
+          ]
+        },
+        {
+          "id": "breath",
+          "source": "blade-breath.png",
+          "source_sha256": "80c03e642dd867b2efd7d964b4e5c55d0eba3eccbd11b6b1edb723df38fa3784",
+          "crop": null,
+          "source_foot": [
+            260,
+            468
+          ],
+          "source_scale": 0.55,
+          "frame_sha256": "b74117b83b9bce6ef2df8ff51ccc965f571bdabb78a5c43fd05b45f20f568bb4",
+          "rgba_sha256": "2ccc9fe77d08d16adf17b385746a280e805055913d254961d06dd9f427736398",
+          "bounds": [
+            124,
+            193,
+            340,
+            453
+          ]
+        },
+        {
+          "id": "dodge",
+          "source": "blade-dodge.png",
+          "source_sha256": "a511cd6d8220565d22c09377c5e1a05f49841dc33d2c4b9fd500540def9cf916",
+          "crop": null,
+          "source_foot": [
+            334,
+            468
+          ],
+          "source_scale": 0.55,
+          "frame_sha256": "1ac0f8e9a975b35c3d6f4670c56dc5725d1ab9e57fd9d9701d39e34680f4d469",
+          "rgba_sha256": "63babe49d0927f6e2583ba8626a915357b12a5e4151af3183a1c047a2dc1ebf1",
+          "bounds": [
+            75,
+            237,
+            389,
+            454
+          ]
+        }
+      ]
+    },
+    "brawler": {
+      "producer": "pixel_asset_pipeline.cli sheet",
+      "cli_stdout": "{\"schema_version\": 1, \"status\": \"ready\", \"files\": {\"sheet\": \"sheet.png\", \"metadata\": \"sheet.json\", \"preview\": \"preview.gif\"}}",
+      "pixel_sheet_sha256": "1fea12170822921b05c60283d14efb8c8e780a961ad26db41bb0e0ee25391238",
+      "webp_sha256": "9badccd6651bad82631cfadeecbfe1857a2e9e8d77d790c733922e72afa532f7",
+      "metadata_sha256": "c72b7eedc7a18305b0fffee39d9d4a3a091ec6e9639a2d4a257a0eeecf9e3b80",
+      "action_ms": {
+        "windup": [
+          35,
+          65
+        ],
+        "heavy": [
+          35,
+          65
+        ],
+        "recover": [
+          140,
+          60
+        ],
+        "evade": [
+          150,
+          50
+        ]
+      },
+      "exact_rgba_round_trip": true,
+      "unique_rgba_frames": 14,
+      "frames": [
+        {
+          "id": "windupA",
+          "source": "brawler-windupA.png",
+          "source_sha256": "e6f9e69cc101e63acd6bf788dc71c4d6461d14804e3d3bb6616c42435df3d18a",
+          "crop": null,
+          "source_foot": [
+            255,
+            488
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "e9aa9304cb7f1f3a379a714051a4f9d5742b12691198a879a0dfea0d121cec97",
+          "rgba_sha256": "05a7f320a0cc01c76ac8b426a06cb18e9e1842db64bc1e478a700e4a35ae0c4f",
+          "bounds": [
+            141,
+            158,
+            346,
+            456
+          ]
+        },
+        {
+          "id": "windupB",
+          "source": "brawler-windupB.png",
+          "source_sha256": "a79a623e7260567553bb4e0fff72e071b3bebd63db91c64648503208543f4b5e",
+          "crop": null,
+          "source_foot": [
+            243,
+            488
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "ac325f05d81480ae0b19db1b3df50b2e0484de9db5d993e884f94f53f89892b4",
+          "rgba_sha256": "082d65401eb6a6a96840effae7b1639da743bc9f9f532c497b1361985f9b776b",
+          "bounds": [
+            137,
+            187,
+            364,
+            455
+          ]
+        },
+        {
+          "id": "release",
+          "source": "brawler-release.png",
+          "source_sha256": "d6d59ef36dbeda1076ed559639c3e035adf10ae701a888662d8843c243b8f778",
+          "crop": null,
+          "source_foot": [
+            256,
+            488
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "19e1251de94a58c010a4f7af6ef8818d4d4a1783bd2757c1207d77ac703ab0b5",
+          "rgba_sha256": "fd6bc55459489da418e923ad905ca5dc4626471c320cb26c6a778a58a906fe03",
+          "bounds": [
+            131,
+            149,
+            342,
+            455
+          ]
+        },
+        {
+          "id": "follow",
+          "source": "brawler-follow.png",
+          "source_sha256": "4f4b73c7f7c7cd16b521e63dac3499944ff4f6ff8379c132ac0157df5219a040",
+          "crop": null,
+          "source_foot": [
+            260,
+            488
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "7c41f264b52d6d525a7faf606684690cdcf9886c6b99f6ab6361c836ad66d214",
+          "rgba_sha256": "f36af2d1b549b016b2322592bea14d4b3f142d1aacf65cc9b7f1b733dec54706",
+          "bounds": [
+            127,
+            149,
+            358,
+            457
+          ]
+        },
+        {
+          "id": "recover",
+          "source": "brawler-recover.png",
+          "source_sha256": "fa072e4b22ab83481490a940e0d60d9f36f7c592cf2ec91062cf6796acb83b54",
+          "crop": null,
+          "source_foot": [
+            243,
+            488
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "2913f3230d46fb78d39939dca70902a6af80798ee5ca066725ce0688c64374ba",
+          "rgba_sha256": "0d22c47d9f0b4e9ad8c1ca7301650f1a7ea710571ec40939328ae9cc0eee5c75",
+          "bounds": [
+            138,
+            157,
+            362,
+            456
+          ]
+        },
+        {
+          "id": "hurt",
+          "source": "brawler-hurt.png",
+          "source_sha256": "18ce3b2ad4d65fed520aca54d6a9548d5dfdb351d46c076a3d41baf07f73e31a",
+          "crop": null,
+          "source_foot": [
+            256,
+            488
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "d957ffb19bbb7f00dc0d4e0706ccc4cf1ca9fdcf47e54d44ec80a638e1897721",
+          "rgba_sha256": "fb96a76032cbc6b61bedd34c62725b5bd515bd4d9bf6372cf47510ac2f004a02",
+          "bounds": [
+            103,
+            166,
+            372,
+            457
+          ]
+        },
+        {
+          "id": "idle",
+          "source": "brawler-idle.webp",
+          "source_sha256": "3e5ad40ea5b9b735c8c915f3f50cf881244563a996557096510b6c5f0136c67d",
+          "crop": null,
+          "source_foot": [
+            229,
+            816
+          ],
+          "source_scale": 0.35,
+          "frame_sha256": "afb34857169973f4ad3df2552457a8176573e3cb7390575f3ec008d1297a97c3",
+          "rgba_sha256": "68a05ac6c7c97a2ec67d809a7df07852683807da2afb880cd9354dcfa31a58e3",
+          "bounds": [
+            176,
+            164,
+            330,
+            450
+          ]
+        },
+        {
+          "id": "air",
+          "source": "brawler-air.webp",
+          "source_sha256": "db56c399688bc0cc43be8b84b23123c8bbc6bf8a68f1cbdf3eb9b8ced5c025d4",
+          "crop": null,
+          "source_foot": [
+            253,
+            605
+          ],
+          "source_scale": 0.43,
+          "frame_sha256": "6bab054aa1e7cecc7eb82a2240c997d63309922db1dd3b6cc1b3871aee018c87",
+          "rgba_sha256": "6a8de3d251825d903df3c5bc9f9492ab3083a827e94cc2f5403e3022ab434a6a",
+          "bounds": [
+            147,
+            190,
+            356,
+            451
+          ]
+        },
+        {
+          "id": "strideA",
+          "source": "brawler-strideA.png",
+          "source_sha256": "d31198aa828c7755e60d08c487a8116b0b9f490573e8005a81e1855836ea3ca9",
+          "crop": null,
+          "source_foot": [
+            260,
+            478
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "714362111e35f21befe6f1340f217f915e54a6953b27bfb6d39b27c7fc3e6544",
+          "rgba_sha256": "ba04f495bdf2ad08e9b37769c210a1503fe0ad4d471611263e5f1a731826131c",
+          "bounds": [
+            121,
+            157,
+            395,
+            453
+          ]
+        },
+        {
+          "id": "strideB",
+          "source": "brawler-strideB.png",
+          "source_sha256": "66b24344753e20d2f0f61eca381fd60d5f2f4be10a122b185724ca9a99556a7b",
+          "crop": null,
+          "source_foot": [
+            260,
+            478
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "0a8181e44fdd599e0abe9c0af9766be999f9009e68f5e814e3659f22794c3ff8",
+          "rgba_sha256": "814b7eee469e83319ce01e823ba06609938b240981e2bf36374eac0d4323f96e",
+          "bounds": [
+            154,
+            158,
+            325,
+            453
+          ]
+        },
+        {
+          "id": "strideC",
+          "source": "brawler-strideC.png",
+          "source_sha256": "73938156cb4b39a08557614141f781dc52929f143eb5e5987f521edf2ae90c51",
+          "crop": null,
+          "source_foot": [
+            260,
+            476
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "d02d8aa9503576e07d8bc2557077da024aa4d649c54667bfe412e8b40b805bbd",
+          "rgba_sha256": "cb774b25d1f47c49a9d84289b0abf2088cad4f5340b843da65d386452a17372f",
+          "bounds": [
+            99,
+            161,
+            391,
+            453
+          ]
+        },
+        {
+          "id": "strideD",
+          "source": "brawler-strideD.png",
+          "source_sha256": "c8e498b88c60acc9fb37bb0c39ad20964a51742aedeb4b0fa4fdfef26ae35265",
+          "crop": null,
+          "source_foot": [
+            260,
+            488
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "207cb2c3959d7619dc787340c01bc2fae6414ddd79f7f101d31c30388b9bead3",
+          "rgba_sha256": "9c8df87488244649c56767c206e0bfec2ec3c3aad7eb5770c6c4671e4c1c4549",
+          "bounds": [
+            145,
+            147,
+            355,
+            452
+          ]
+        },
+        {
+          "id": "breath",
+          "source": "brawler-breath.png",
+          "source_sha256": "2c19f40e93ae87d2addfbe911c7310cc895123123cb86e746145906d68ee07c5",
+          "crop": null,
+          "source_foot": [
+            260,
+            490
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "baa4caade8d3c5e872d07e909367bdf585e86a9f592eab92d34ae67833094781",
+          "rgba_sha256": "1acd2b462f3854fcf3a09953fd19140dd0182541b9dd308837f428ece2962121",
+          "bounds": [
+            145,
+            146,
+            335,
+            452
+          ]
+        },
+        {
+          "id": "dodge",
+          "source": "brawler-dodge.png",
+          "source_sha256": "39616e6d2a3ebc1f6c7dbeec4bf2e1c943e475fb83ed12b931c4781ae9598d91",
+          "crop": null,
+          "source_foot": [
+            260,
+            485
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "7cf32bcb4e8678eeb71dbf13992bd81bcdc63ff7a86f6a0e58dd6e6e8c6f8796",
+          "rgba_sha256": "c68a9f8a0c21d6e7806f6f7f51b9ed40b1d55594716dbce52e50ee6264aa4b0d",
+          "bounds": [
+            95,
+            210,
+            404,
+            452
+          ]
+        }
+      ]
+    },
+    "astral": {
+      "producer": "pixel_asset_pipeline.cli sheet",
+      "cli_stdout": "{\"schema_version\": 1, \"status\": \"ready\", \"files\": {\"sheet\": \"sheet.png\", \"metadata\": \"sheet.json\", \"preview\": \"preview.gif\"}}",
+      "pixel_sheet_sha256": "e0f4c7ee840994032cdbe5b1c3833eaf2836d5fd4853ee48db3e559f50a79c7e",
+      "webp_sha256": "cf265e7cf3101ca3ae136bcea4ed85033fe4820f7d2d745e612cb774f328a57f",
+      "metadata_sha256": "cb1f07ede3cf2523d78a93dfc27333b769d4e075c80de46800ba80a35918af61",
+      "action_ms": {
+        "windup": [
+          35,
+          65
+        ],
+        "heavy": [
+          35,
+          65
+        ],
+        "recover": [
+          140,
+          60
+        ],
+        "evade": [
+          150,
+          50
+        ]
+      },
+      "exact_rgba_round_trip": true,
+      "unique_rgba_frames": 14,
+      "frames": [
+        {
+          "id": "windupA",
+          "source": "astral-windupA.png",
+          "source_sha256": "9cbc1159e48be310f6155b2c79dbb6b49aef05822ee8685637e3af778bb6d417",
+          "crop": null,
+          "source_foot": [
+            285,
+            488
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "4294b364d4e51be69f3a751b2eab3788cd81c0b0b9ae7f44e571a1f83aa38899",
+          "rgba_sha256": "dcc0b97d7a48517664aa4df4b9370e265521cb5c16a00eda780c8bd1ca8e49ab",
+          "bounds": [
+            107,
+            184,
+            333,
+            454
+          ]
+        },
+        {
+          "id": "windupB",
+          "source": "astral-windupB.png",
+          "source_sha256": "d308f473cd84d806f9da1d812a6299d7ae17644427b0187c78222a2e851d9280",
+          "crop": null,
+          "source_foot": [
+            270,
+            488
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "829d34f17347e2d696762e0820538d1dcd29ba137b7e59dcdf8de8bfd2f1ff89",
+          "rgba_sha256": "03506649912ec2eb3de9a54c0e2096efa90a342cad828b9fa839707137c38d24",
+          "bounds": [
+            92,
+            151,
+            359,
+            453
+          ]
+        },
+        {
+          "id": "release",
+          "source": "astral-release.png",
+          "source_sha256": "1923b7736b998681fa08612434b2e57738cd27a2038129b897a104d1dea34fa4",
+          "crop": null,
+          "source_foot": [
+            275,
+            488
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "f7b464b56944c050cd1dd74e1bbc4bc92d69ba825f0a44ad85108d35b650ad98",
+          "rgba_sha256": "844289b8be85c036da7ca9d22b6bd14739f2cbb737ceb779ee5db1f8fe0acb47",
+          "bounds": [
+            89,
+            197,
+            445,
+            453
+          ]
+        },
+        {
+          "id": "follow",
+          "source": "astral-follow.png",
+          "source_sha256": "679e1097d5202291ec50660c32fac0ab14b78a7a120639d57eec99aeb75d9391",
+          "crop": null,
+          "source_foot": [
+            250,
+            473
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "3401f4b456cde044b29c186ef2ab771c5468b5eb8ac6b4c59cfe053fee8dd2c2",
+          "rgba_sha256": "d53f0a7e82c6fbd3c80aba7f27fd22822d1ae865e2fc4de858cb0a68825ce22a",
+          "bounds": [
+            105,
+            192,
+            456,
+            453
+          ]
+        },
+        {
+          "id": "recover",
+          "source": "astral-recover.png",
+          "source_sha256": "fbdeadf32fc3ea04f8d1d53b5d62c87367ada09944b6578d29a4bdf30519ce95",
+          "crop": null,
+          "source_foot": [
+            248,
+            473
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "5ef2f64690fc0588413cd8e7e0b48d733033e16da1c2a12bc59ec3bd6d9a535c",
+          "rgba_sha256": "7a1285b74c75770eedf6c77e09e255b4321e534e9fc577781735f00d25362589",
+          "bounds": [
+            109,
+            177,
+            370,
+            454
+          ]
+        },
+        {
+          "id": "hurt",
+          "source": "astral-hurt.png",
+          "source_sha256": "4527caab1f8c45d1d760acfdd6b57fee7652ee35491b7bf1eadd37cbb7cdc99e",
+          "crop": null,
+          "source_foot": [
+            270,
+            473
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "08bf52cc7a08a669028dd07084738f9c3422dcbad63ad2a03c755f1ea3df90ab",
+          "rgba_sha256": "99b7775d0731e7328b909b1e64dc495dfcca73da05232d7de1b80bcf5353c12d",
+          "bounds": [
+            96,
+            175,
+            389,
+            453
+          ]
+        },
+        {
+          "id": "idle",
+          "source": "astral-idle.webp",
+          "source_sha256": "e69e6df80e6e57e6d2486716c12ce001989925516e3399c6827453a6a82b9349",
+          "crop": null,
+          "source_foot": [
+            232,
+            677
+          ],
+          "source_scale": 0.4,
+          "frame_sha256": "2e381eb2b475a96ab4e353cb3252a6b64e9d8927c3622138f70ba36873da1cc0",
+          "rgba_sha256": "0d4b60d9d820b008775e7d924473e35946aa3aa59ebebed1bc278d78f568fc3c",
+          "bounds": [
+            163,
+            179,
+            342,
+            451
+          ]
+        },
+        {
+          "id": "air",
+          "source": "astral-air.webp",
+          "source_sha256": "cda067531b83551f7ebede13f719d24423d97fca7934f2795e1390e8e388656e",
+          "crop": null,
+          "source_foot": [
+            269,
+            534
+          ],
+          "source_scale": 0.5,
+          "frame_sha256": "184c6519468a13cad9c62a5f38669290524171ca95b56c416d86d786d5a22856",
+          "rgba_sha256": "b8180cb500cb639ec0d6528854668cf7b643143b769198148106044571b9e9cd",
+          "bounds": [
+            122,
+            183,
+            381,
+            451
+          ]
+        },
+        {
+          "id": "strideA",
+          "source": "astral-strideA.png",
+          "source_sha256": "9b3ab6b4211ff886967eda17af734c93619bedb57b084afaf5e12f38b69bf881",
+          "crop": null,
+          "source_foot": [
+            260,
+            460
+          ],
+          "source_scale": 0.57,
+          "frame_sha256": "e2460090dee3dbaaaa9667cf9928ea7adc285eda846d4a6253ebc7ff8c3d6593",
+          "rgba_sha256": "5399b4ea9d84d18ab0e24b59c00e94b16659ea5e8c06a45e92e96a36731ec778",
+          "bounds": [
+            115,
+            192,
+            377,
+            453
+          ]
+        },
+        {
+          "id": "strideB",
+          "source": "astral-strideB.png",
+          "source_sha256": "f3cb9eb4af56f1e1ef6fdbbcc2b4546e7867f403e283a2a52e6651058559a30a",
+          "crop": null,
+          "source_foot": [
+            260,
+            461
+          ],
+          "source_scale": 0.57,
+          "frame_sha256": "5f906c0d16b6c2fd31ee3e66fd826147e66a035c19454b34edde65ff93db18d8",
+          "rgba_sha256": "1fd348a753e61baeddfc072088bbeec2ae164b4d5716c6637953a8e43fa0c697",
+          "bounds": [
+            124,
+            195,
+            363,
+            453
+          ]
+        },
+        {
+          "id": "strideC",
+          "source": "astral-strideC.png",
+          "source_sha256": "8484809991456a65ca9229c6d332148b7b3e7194ab055b02b12f18205bbf160d",
+          "crop": null,
+          "source_foot": [
+            284,
+            460
+          ],
+          "source_scale": 0.57,
+          "frame_sha256": "85f539a805aa4fdcf07a0ca5410122b97fbd3d5cf57520841c4ecde1ee069ced",
+          "rgba_sha256": "e76c0caa499b0676b5c63a9ac3b8379d9926ba585efc2ef9a523b9dc6ba8ae7e",
+          "bounds": [
+            102,
+            192,
+            374,
+            453
+          ]
+        },
+        {
+          "id": "strideD",
+          "source": "astral-strideD.png",
+          "source_sha256": "eda963b323e28b42b3f87da1e727849cb12af10333f0cd69272de830278b1a23",
+          "crop": null,
+          "source_foot": [
+            260,
+            474
+          ],
+          "source_scale": 0.57,
+          "frame_sha256": "32759969de385a494f2f8056fc8c8822d86243cc0abd535d5068f32c8f40c067",
+          "rgba_sha256": "120e42590b7b1ed95cffc291ae8690dff132675280603ba54431f355aef9141e",
+          "bounds": [
+            136,
+            180,
+            374,
+            453
+          ]
+        },
+        {
+          "id": "breath",
+          "source": "astral-breath.png",
+          "source_sha256": "289cd2a025aabc4f0b2084c9857f1056f70e68c234cfdf6a65c560f5a07b8260",
+          "crop": null,
+          "source_foot": [
+            260,
+            476
+          ],
+          "source_scale": 0.57,
+          "frame_sha256": "ae392838af3df37774862bb6cfd56e46c4ed5bb299e4ed246273f8c5ed66296b",
+          "rgba_sha256": "ffd2fb3241e6f957610c0b646e124f7ec4dc7e89df619e705d29ccf49d3d4285",
+          "bounds": [
+            129,
+            179,
+            337,
+            453
+          ]
+        },
+        {
+          "id": "dodge",
+          "source": "astral-dodge.png",
+          "source_sha256": "16f17db4a881bf1182f13110c03eac4ce20474b354854607590b62c294a97db1",
+          "crop": null,
+          "source_foot": [
+            329,
+            446
+          ],
+          "source_scale": 0.57,
+          "frame_sha256": "4025676e5084fc1202d696b4ea5412cf3084c0e6cc2587c0800d2efb960f58bf",
+          "rgba_sha256": "5467ed2ff86cfeda3f18cd0095cfdbb0a95fa6beb8fb339f0f9f466d5f3d847c",
+          "bounds": [
+            76,
+            226,
+            389,
+            453
+          ]
+        }
+      ]
+    },
+    "rail": {
+      "producer": "pixel_asset_pipeline.cli sheet",
+      "cli_stdout": "{\"schema_version\": 1, \"status\": \"ready\", \"files\": {\"sheet\": \"sheet.png\", \"metadata\": \"sheet.json\", \"preview\": \"preview.gif\"}}",
+      "pixel_sheet_sha256": "2f9436040018a9468d77f8ae819eeab4921b82bc37afe22f0e3011976508f0ac",
+      "webp_sha256": "e283cc78885c1a6313d714513f5df5021d6139cf234d9bcfe5801f6dc906cdef",
+      "metadata_sha256": "d4ecec473ad595e92b79187f6160239f506503c9829d504912a85c9b4bee99da",
+      "action_ms": {
+        "windup": [
+          35,
+          65
+        ],
+        "heavy": [
+          35,
+          65
+        ],
+        "recover": [
+          140,
+          60
+        ],
+        "evade": [
+          150,
+          50
+        ]
+      },
+      "exact_rgba_round_trip": true,
+      "unique_rgba_frames": 14,
+      "frames": [
+        {
+          "id": "windupA",
+          "source": "rail-windupA.png",
+          "source_sha256": "08bbc0ffa137514635a2112a7741201ca63d180b562bf8bd6b950b32492896d7",
+          "crop": null,
+          "source_foot": [
+            275,
+            488
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "7bcfef890277318fd57a636ec518e2a306385331f95d7f9aa38ebf6c8f4c18db",
+          "rgba_sha256": "8159e497f71f8d64a6df846632d54c73f71d50079b4871d0baf3a1d1c606dc03",
+          "bounds": [
+            143,
+            148,
+            347,
+            454
+          ]
+        },
+        {
+          "id": "windupB",
+          "source": "rail-windupB.png",
+          "source_sha256": "b3faa0cb34cdd755c6a84c0fbf9c761011dca56f889b0d846ac638f1507656c2",
+          "crop": null,
+          "source_foot": [
+            248,
+            488
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "aa5e94f396d0973fe3255ba1018ac0d7edfa1ef92a61860fbe8e25cfa8d1e824",
+          "rgba_sha256": "e0f18674be121027aa8353f24b680881d6702adea20499c26979ea76486fdb89",
+          "bounds": [
+            107,
+            148,
+            411,
+            454
+          ]
+        },
+        {
+          "id": "release",
+          "source": "rail-release.png",
+          "source_sha256": "295f6e7839c86297baa4a1864bd5eb2ba4c3921461920beb32c3e79740a31320",
+          "crop": null,
+          "source_foot": [
+            236,
+            488
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "f8b4786910d5906bfd3d3118fc81d8f6b05ea46673af358781663b4932048fbb",
+          "rgba_sha256": "bb79c6653c5a601e2817395c98e62d1a62ceb31f29fb769e020bd8a78c681519",
+          "bounds": [
+            110,
+            161,
+            416,
+            454
+          ]
+        },
+        {
+          "id": "follow",
+          "source": "rail-follow.png",
+          "source_sha256": "86a76be3e6891e5f548eba4185620d11ec8e2bf8b0bff3c4bef70b10c08df6f1",
+          "crop": null,
+          "source_foot": [
+            260,
+            488
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "24eb981ad51aaaae4a61f48ac3efdf2f0d5753ec8c5e8e263c9df41cff96c2e2",
+          "rgba_sha256": "b23a588fb4aad1c1daecdf24dbdf85ac0d7e24478de33da2b14f791bba26cb48",
+          "bounds": [
+            110,
+            147,
+            382,
+            456
+          ]
+        },
+        {
+          "id": "recover",
+          "source": "rail-recover.png",
+          "source_sha256": "0945504a4cc8afc70e4d0c938d4b9400fefe8f673cec864fb8d66e57a83074c4",
+          "crop": null,
+          "source_foot": [
+            258,
+            488
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "10c66835658ea747098f93e3a705be6151705577c0bce4dc196669fdfddec364",
+          "rgba_sha256": "1fefd8f5114714046d176d9bdbf235671fb87c751781ff25625eb589c7aaa6a0",
+          "bounds": [
+            105,
+            159,
+            373,
+            456
+          ]
+        },
+        {
+          "id": "hurt",
+          "source": "rail-hurt.png",
+          "source_sha256": "658f0de04f11af5d2a0443af554efdb3af74d69bd5fee34fda0a5ce1bdfcc1d8",
+          "crop": null,
+          "source_foot": [
+            256,
+            488
+          ],
+          "source_scale": 0.62,
+          "frame_sha256": "5a22197b82ab40095768017f44b6c15b39b3eb98e329b553a635012445d6f898",
+          "rgba_sha256": "e6d62a32af52137324daf444f6d7f2611652a57aa3ee52feefde31eeab4c483d",
+          "bounds": [
+            103,
+            163,
+            373,
+            456
+          ]
+        },
+        {
+          "id": "idle",
+          "source": "rail-idle.webp",
+          "source_sha256": "f7f75adc19f34b7feccc101c70b0ab91d1d9b45c8ab3cd2e0602922f3f8f80a3",
+          "crop": null,
+          "source_foot": [
+            220,
+            804
+          ],
+          "source_scale": 0.36,
+          "frame_sha256": "3e577cd504373e01bda8208e2cdea85eae68eb2a7a83a37909d1bc3e686a2399",
+          "rgba_sha256": "4ce51c48d9a8c65ef2b62efe6c6259463bf8b5f0d542bd5cb3a635ac10194bed",
+          "bounds": [
+            177,
+            161,
+            330,
+            451
+          ]
+        },
+        {
+          "id": "air",
+          "source": "rail-air.webp",
+          "source_sha256": "836f11bba6e8ac460361f4d3cd4545316abc07bb1bb49e532f046ee1a7b2e744",
+          "crop": null,
+          "source_foot": [
+            278,
+            454
+          ],
+          "source_scale": 0.48,
+          "frame_sha256": "14602f2edd329b9c917150fdd97c12865887dd7932d48d54e2bdd1cdc8bac226",
+          "rgba_sha256": "d2d38660ee28f08423de88aadc153bd381b73eebc5374b50943ef6853eaaa66e",
+          "bounds": [
+            123,
+            232,
+            379,
+            451
+          ]
+        },
+        {
+          "id": "strideA",
+          "source": "rail-strideA.png",
+          "source_sha256": "86d4d69394d460f209854a8de5ad92b560ad6c2ec2645469c09398ad078e52d5",
+          "crop": null,
+          "source_foot": [
+            260,
+            470
+          ],
+          "source_scale": 0.6,
+          "frame_sha256": "f8642728038b3a987f4c472fc9d4b8dd1a80d67ef6248e458c24f325bd507187",
+          "rgba_sha256": "758cb3ab14caf05b3f1da87e37eefd216c0e92b957d35f2e94017f6ef375fecc",
+          "bounds": [
+            112,
+            172,
+            373,
+            453
+          ]
+        },
+        {
+          "id": "strideB",
+          "source": "rail-strideB.png",
+          "source_sha256": "c3232095b0b2992aec182b7c3072d805f9dc498be04a225a8638bdfcb1e6f817",
+          "crop": null,
+          "source_foot": [
+            260,
+            472
+          ],
+          "source_scale": 0.6,
+          "frame_sha256": "089ddc744898878c57a610b07abc30cf437b546221b23fad81d778114f0bb95c",
+          "rgba_sha256": "00a1b7ae1e0c4871ca51270793dd92db0846655505329373eef81c8545e7a8a4",
+          "bounds": [
+            127,
+            171,
+            336,
+            453
+          ]
+        },
+        {
+          "id": "strideC",
+          "source": "rail-strideC.png",
+          "source_sha256": "bae2d8c388371cbbb5e16a138e47984e274a35eea750897d1f3d07864f0745de",
+          "crop": null,
+          "source_foot": [
+            260,
+            469
+          ],
+          "source_scale": 0.6,
+          "frame_sha256": "7b3fa7a400f12ee05e17f5189d5a3e715e32218d71b9646a399c1acba790d817",
+          "rgba_sha256": "9442ea59f7c75961e8d3f4eaf519229c4f9e7f7433e4687c0f5f84a9c8bdcf7b",
+          "bounds": [
+            108,
+            173,
+            393,
+            453
+          ]
+        },
+        {
+          "id": "strideD",
+          "source": "rail-strideD.png",
+          "source_sha256": "46b2d94bfb6c1a5c73f69ba2bbd66e37ef826c0553c849e7d10eff021964fa39",
+          "crop": null,
+          "source_foot": [
+            260,
+            495
+          ],
+          "source_scale": 0.6,
+          "frame_sha256": "735cdd883423a176dcd27354a98efab4520ca56af923f812fa942fdd9bfbd30c",
+          "rgba_sha256": "d87dbb27a34d7176f4f20a962b9417473f00ae2bb0d885304bf37a2386481f9a",
+          "bounds": [
+            131,
+            153,
+            350,
+            452
+          ]
+        },
+        {
+          "id": "breath",
+          "source": "rail-breath.png",
+          "source_sha256": "c0a729f38d4bf3721c14c8c0a065476ce1d2218ac7df4aa9b43452b1f1ae5a39",
+          "crop": null,
+          "source_foot": [
+            260,
+            496
+          ],
+          "source_scale": 0.6,
+          "frame_sha256": "b12dffbf79d0d5296ce6f5c953cc386cb6fc59f61ee74eb46c5fc51f28cefd55",
+          "rgba_sha256": "4d3cfb9cb1dadd72fb8fe6dc31c31c2ba3d8dac6361e5669493d75dac14bb003",
+          "bounds": [
+            141,
+            152,
+            322,
+            452
+          ]
+        },
+        {
+          "id": "dodge",
+          "source": "rail-dodge.png",
+          "source_sha256": "4e928d93d03f2be3610e15d1655e5f3ce6f41ed82603de5dfdef1c2431933fa8",
+          "crop": null,
+          "source_foot": [
+            299,
+            492
+          ],
+          "source_scale": 0.6,
+          "frame_sha256": "b2b6111029d12ca358b4e6b63536248e61b854286c86f6555ae1c7b00a4274c7",
+          "rgba_sha256": "2f1478eff0abf702b0b75bb2ad0128758f6892bb599c086a8c2fa692344460ca",
+          "bounds": [
+            84,
+            242,
+            394,
+            453
+          ]
+        }
+      ]
+    },
+    "warden": {
+      "producer": "pixel_asset_pipeline.cli sheet",
+      "cli_stdout": "{\"schema_version\": 1, \"status\": \"ready\", \"files\": {\"sheet\": \"sheet.png\", \"metadata\": \"sheet.json\", \"preview\": \"preview.gif\"}}",
+      "pixel_sheet_sha256": "1956d1ef8b39a27f7311e705efeb6f6a296bb71d4fe56f651b4c44942e0bc251",
+      "webp_sha256": "918ceb9332081887e87e17e7f75c2fdeda0cec938b6fd7dec8a96cde094bd1d3",
+      "metadata_sha256": "57b85938860e5dc1fa0f6eb848332c0674170ad9831c5d341bebd98964405897",
+      "action_ms": {
+        "windup": [
+          35,
+          65
+        ],
+        "heavy": [
+          35,
+          65
+        ],
+        "recover": [
+          140,
+          60
+        ],
+        "evade": [
+          150,
+          50
+        ]
+      },
+      "exact_rgba_round_trip": true,
+      "unique_rgba_frames": 13,
+      "frames": [
+        {
+          "id": "windupA",
+          "source": "warden-windupA.png",
+          "source_sha256": "cbad3045f9d9cab4ebb29dedd5e69039281c0ba448ee1415795927a2d10c0185",
+          "crop": null,
+          "source_foot": [
+            280,
+            490
+          ],
+          "source_scale": 0.68,
+          "frame_sha256": "d0048ea921438aa3696002c2b66ed2f0a9c5afe0791d9976b68f88ea0226a95b",
+          "rgba_sha256": "71fc7658696e9b717aaf74a236bfa6621105e613948f4754e584247fca8d63f1",
+          "bounds": [
+            70,
+            216,
+            378,
+            456
+          ]
+        },
+        {
+          "id": "windupB",
+          "source": "warden-windupB.png",
+          "source_sha256": "7f5852d2d49b4dabf4ff20cf3c5a7c0a4f5aeb408d6433ceecf7b4cfd744d00d",
+          "crop": null,
+          "source_foot": [
+            268,
+            490
+          ],
+          "source_scale": 0.68,
+          "frame_sha256": "e461e5fdc971a7b37e74ce711b04309d1e6752ec5d9398c3142bea3bf30beff6",
+          "rgba_sha256": "3bc3bc6ecd12b7d5a7843e7dedd591b3c038f3e8b9bb1c4536c982acde59b12c",
+          "bounds": [
+            74,
+            119,
+            369,
+            456
+          ]
+        },
+        {
+          "id": "release",
+          "source": "warden-release.png",
+          "source_sha256": "0a436b26f53f030b141b0b238c896f861c3e271591aeba61dc4688e5154c13b5",
+          "crop": null,
+          "source_foot": [
+            236,
+            490
+          ],
+          "source_scale": 0.68,
+          "frame_sha256": "868cdd28d6aa5019ea79724f8955dab9abe46035945eed159bb2668d6b098589",
+          "rgba_sha256": "ebd001d289bbc74649aa7068bf8edb73ea58b26ecd9b610f2c3fe3934a75c8e9",
+          "bounds": [
+            96,
+            228,
+            440,
+            456
+          ]
+        },
+        {
+          "id": "follow",
+          "source": "warden-follow.png",
+          "source_sha256": "9e1a73abf86849fabeeb831d4f89b55e7731e713a37d57a8405c4d73683495d2",
+          "crop": null,
+          "source_foot": [
+            260,
+            463
+          ],
+          "source_scale": 0.68,
+          "frame_sha256": "b17188028a3f9ac2695ee4bc7c353f8ef43a8bed2c0c71eca8d6391415f04bd4",
+          "rgba_sha256": "b7d21065e9c5191cda813d9f2bbeb6074e7d37a0c3aed955763ec0141824f8df",
+          "bounds": [
+            83,
+            241,
+            427,
+            453
+          ]
+        },
+        {
+          "id": "recover",
+          "source": "warden-recover.png",
+          "source_sha256": "feea47e394ff58cde75a37cd290f1deebaddf60bb52d0e3e5c8e9f639d15eb7b",
+          "crop": null,
+          "source_foot": [
+            258,
+            463
+          ],
+          "source_scale": 0.68,
+          "frame_sha256": "388cbb2b6b02813a8ee79188f7fd8fc563643674b6ca6b44269f673c1a19efda",
+          "rgba_sha256": "41860daf3bf5529ac21d45660dfe49c5c88da36488005c41d96d8aa6f1798c7f",
+          "bounds": [
+            81,
+            201,
+            416,
+            453
+          ]
+        },
+        {
+          "id": "hurt",
+          "source": "warden-hurt.png",
+          "source_sha256": "9cbab916c9ab7ef8a1bc16009f89beacadae7a2186fde7fab06597cda126ad95",
+          "crop": null,
+          "source_foot": [
+            256,
+            463
+          ],
+          "source_scale": 0.68,
+          "frame_sha256": "1e3ac21b626574858a5989444a815e13eef539d74e72aab4a7dc034861a0488b",
+          "rgba_sha256": "c0a34eefa45ff747aeaeb52479c2556d625944563e06ae55117b4ad688559588",
+          "bounds": [
+            82,
+            172,
+            426,
+            453
+          ]
+        },
+        {
+          "id": "idle",
+          "source": "warden-idle.webp",
+          "source_sha256": "9c1c409e958ee2d3226f82be4fb3fed4de3cacdfbca94e84e4af44d35b316b36",
+          "crop": null,
+          "source_foot": [
+            313,
+            684
+          ],
+          "source_scale": 0.36,
+          "frame_sha256": "e29c836fc01f68eefe202d5cb2b1db12fddb3c4ac35ba5b52f9dc08f2f7c397b",
+          "rgba_sha256": "576ada40bcf87744ab697a0fdc3cbff6690707620a2f0984ab5e7d6963eb00f5",
+          "bounds": [
+            143,
+            204,
+            359,
+            451
+          ]
+        },
+        {
+          "id": "strideA",
+          "source": "warden-strideA.png",
+          "source_sha256": "4b864862b03ae290d6dcdb8578f46361e5cde9438e9dc3355ea608409dadc710",
+          "crop": null,
+          "source_foot": [
+            260,
+            459
+          ],
+          "source_scale": 0.53,
+          "frame_sha256": "4891d5fc0183c81c6686f3e70f99e417d41f165251333ba483a8dbdb251114b8",
+          "rgba_sha256": "20b67a1fdacf24e0ced3386cb44ad1b5a40201bdefd7a9b311644671d6eb6302",
+          "bounds": [
+            127,
+            209,
+            387,
+            453
+          ]
+        },
+        {
+          "id": "strideB",
+          "source": "warden-strideB.png",
+          "source_sha256": "e39e7f1292ee7c0a76632268b5c07c309c7660f399f1af2fb2436fb82cdc2716",
+          "crop": null,
+          "source_foot": [
+            260,
+            459
+          ],
+          "source_scale": 0.53,
+          "frame_sha256": "4db6802af44238446d133d1457d2ec232772649089031a31e3592597739c5dad",
+          "rgba_sha256": "760d6456699c9abc4c9c3778010cbcd1f0b140cec6e4d5449f94e51c76ad03f3",
+          "bounds": [
+            124,
+            212,
+            374,
+            453
+          ]
+        },
+        {
+          "id": "strideC",
+          "source": "warden-strideC.png",
+          "source_sha256": "0d7f40bf15689db47bd0c7ea300cec2642986d33f944d87bf8cd06e2350c8a85",
+          "crop": null,
+          "source_foot": [
+            294,
+            459
+          ],
+          "source_scale": 0.53,
+          "frame_sha256": "39ef9f1684a61f2739c604a7aac17bf1b0c525e7b21b417a2f9095bd34386b15",
+          "rgba_sha256": "ca0df9f2d99d4797bc9ee0ce99b4ef41d76b30a0da4661beb0cd68b364daf6a9",
+          "bounds": [
+            110,
+            209,
+            380,
+            453
+          ]
+        },
+        {
+          "id": "strideD",
+          "source": "warden-strideD.png",
+          "source_sha256": "5ce507b2f7dd8a20f5622b4ea844d7f1fbaa22fcb0263f74f85fb8d4255c1f7c",
+          "crop": null,
+          "source_foot": [
+            260,
+            449
+          ],
+          "source_scale": 0.53,
+          "frame_sha256": "374d09a8cda79baf8ecd08fbe675aa657f8049d648091e8ad763374ddcf8b5f1",
+          "rgba_sha256": "cd1f289ba35224ae7cf2b78b8457ce1d3c66c7b0a751e465911efe17805be797",
+          "bounds": [
+            124,
+            212,
+            381,
+            452
+          ]
+        },
+        {
+          "id": "breath",
+          "source": "warden-breath.png",
+          "source_sha256": "a24bc490c988322f20e7cce87496db40f098a235158c5f2a8fb4f061d31f4cdf",
+          "crop": null,
+          "source_foot": [
+            260,
+            450
+          ],
+          "source_scale": 0.53,
+          "frame_sha256": "ddebf133bb447a7745f9c127390f1b2f30cf2921065758611dd085248edc209b",
+          "rgba_sha256": "5b44019d35890c325dab0aa56338231fe0378646482b57f776c0f4c96a6b39fc",
+          "bounds": [
+            118,
+            212,
+            367,
+            453
+          ]
+        },
+        {
+          "id": "dodge",
+          "source": "warden-dodge.png",
+          "source_sha256": "83fed7d6f5f2e75c161ccca1ef0492bd4213a5296352bc4487437a9e1bfd182a",
+          "crop": null,
+          "source_foot": [
+            260,
+            448
+          ],
+          "source_scale": 0.53,
+          "frame_sha256": "5b54f9d8fb3dd4a9c4a60af67fbb0371d8232423bd9249e6f835b86c681fec0d",
+          "rgba_sha256": "987c74826e8f4c15774dd87e4b9e4e817871115540de8264c7b476768cb0da11",
+          "bounds": [
+            118,
+            263,
+            387,
+            453
+          ]
+        }
+      ]
+    }
+  }
+}

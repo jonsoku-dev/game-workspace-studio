@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#121c26"><title>유리종탑의 결투</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main id="game-state" data-state="select" data-hits="0" data-misses="0" data-parries="0" data-outcome="ready">
+<header class="masthead"><a class="wordmark" href="./">GLASS / BELL</a><span class="edition">공중 회랑 · 일대일 결투</span><div class="settings"><button id="sound" aria-pressed="false">소리 꺼짐</button><button id="motion" aria-pressed="false">움직임 줄이기</button></div></header>
+<section class="intro"><div><p class="eyebrow">THE LAST SENTINEL</p><h1 id="game-title">유리종탑의 결투<span>마지막 종을 울려라.</span></h1></div><p class="premise">구름 위, 부서진 유리 다리.<br>한 번의 빈틈을 읽고 당신의 일격을 새기세요.</p></section>
+<section class="arena" aria-label="종탑 전투장">
+<div class="hud"><div class="health"><div><span id="player-name">도전자</span><strong id="player-hp">100 / 100</strong></div><meter id="player-meter" min="0" max="100" value="100" aria-label="플레이어 체력"></meter></div><div class="round-label">I <span>종의 수호자</span></div><div class="health enemy"><div><span>종탑 파수꾼</span><strong id="enemy-hp">320 / 320</strong></div><meter id="enemy-meter" min="0" max="320" value="320" aria-label="파수꾼 체력"></meter></div></div>
+<canvas id="battle" width="1280" height="620" tabindex="0" aria-label="전투 화면. 방향키 이동, J 약공격, K 강공격, Space 회피, L 받아치기, E 도약, Shift 질주."></canvas>
+<div class="arena-bottom"><span id="enemy-intent">도전자를 기다립니다</span><span id="combat-score">적중 0 · 빗나감 0 · 받아치기 0</span></div>
+<div id="selection" class="overlay"><div class="selection-panel"><p class="eyebrow">CHOOSE YOUR OATH</p><h2 id="selection-title">어떤 일격을 남길 것인가</h2><div id="jobs" class="jobs" aria-label="전투 직업 선택"></div><p id="job-description"></p><button id="start" class="primary">결투 시작 <span>→</span></button><p class="start-hint">지면 충격은 E 도약, 공중 쇄도는 Space 회피. 금색 섬광에는 L 받아치기.</p></div></div>
+<div id="result" class="overlay" hidden><div class="result-panel"><p class="eyebrow" id="result-label"></p><h2 id="result-title"></h2><p id="result-detail"></p><button id="restart" class="primary">다시 결투</button><button id="select">직업 다시 선택</button></div></div>
+</section>
+<div class="below"><p id="combat-log" role="status" aria-live="polite">직업을 선택하고 결투를 시작하세요.</p><span id="cooldown">준비 완료</span></div>
+<section class="controls" aria-label="전투 조작"><div class="dpad" aria-label="이동"><button data-move="up" aria-label="위로 이동">↑</button><button data-move="left" aria-label="왼쪽 이동">←</button><button data-move="down" aria-label="아래로 이동">↓</button><button data-move="right" aria-label="오른쪽 이동">→</button></div><div class="attacks"><button data-action="light"><kbd>J</kbd> 약공격<small>빠른 견제</small></button><button data-action="heavy"><kbd>K</kbd> <span id="skill-name">강공격</span><small>지점 조준 · 큰 피해</small></button><button data-action="jump"><kbd>E</kbd> 도약<small>지면 충격 넘기</small></button><button data-action="sprint" aria-pressed="false"><kbd>SHIFT</kbd> 질주<small>빠르게 이동 · 누르면 유지</small></button><button data-action="evade"><kbd>SPACE</kbd> 회피<small>이동 방향으로 돌진</small></button><button data-action="parry"><kbd>L</kbd> 받아치기<small>섬광 순간 · 적 노출</small></button></div></section>
+<footer><p><b>거리와 방향이 곧 무기.</b> 방향키 / WASD 이동 · E 도약 · Shift 질주 · 좌우 이동으로 바라보기 · 화면을 누르면 강공격 조준 · 조준 취소는 Esc</p><p>약공격은 전방의 적을 추적합니다. 강공격은 발사 시점의 지점을 타격합니다. 받아치기로 노출시키면 피해가 1.8배가 됩니다. 예고 중인 갑주는 타격에도 밀려나지 않습니다.</p><button id="retry-live">결투 초기화</button></footer>
+</main><script type="module" src="./game.mjs"></script>
+</body></html>

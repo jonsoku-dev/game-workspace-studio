@@ -11,6 +11,7 @@ import stat
 import uuid
 
 import graph
+import combat_starter
 import runtime_inputs
 
 
@@ -216,17 +217,47 @@ def initialize_campaign(project):
     return {'project': str(project), 'activity': activity}
 
 
+def initialize_combat(project, brief=None):
+    project = Path(project).absolute()
+    with runtime_inputs.output_stage(project) as stage:
+        for name in combat_starter.inventory():
+            data = _read(ROOT, combat_starter.ROOT + name)
+            target = stage / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(data)
+        if brief:
+            combat_starter.customize(stage, brief.absolute(), _read)
+        _, files = _sources(stage)
+        if brief:
+            files['combat-brief.json'] = _read(stage, 'combat-brief.json')
+        activity = graph.record_work(stage, {'id': 'combat-' + uuid.uuid4().hex, 'agent':'studio-web-game',
+            'label':'Initialize class combat with contact-timed effects', 'status':'complete',
+            'generated':[{'path':name,'sha256':_pin(data)['sha256']} for name,data in files.items()]})
+    return {'project':str(project),'activity':activity}
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--project', required=True, type=Path)
     action = parser.add_mutually_exclusive_group()
     action.add_argument('--out', help='New project-relative export directory (default: build/play)')
     action.add_argument('--init-campaign', action='store_true', help='Create a playable two-stage starter in a new project')
+    action.add_argument('--init-combat', action='store_true', help='New playable class combat project')
+    parser.add_argument('--combat-brief', type=Path, help='Local class definitions and optional six-frame artwork for --init-combat')
     args = parser.parse_args(argv)
+    if args.combat_brief and not args.init_combat:
+        parser.error('--combat-brief requires --init-combat')
     try:
-        result = initialize_campaign(args.project) if args.init_campaign else export(args.project, args.out or 'build/play')
+        if args.init_combat:
+            result = initialize_combat(args.project, args.combat_brief)
+        elif args.init_campaign:
+            result = initialize_campaign(args.project)
+        else:
+            result = export(args.project, args.out or 'build/play')
         print(json.dumps(result))
     except Exception as error:
+        if args.init_combat:
+            parser.exit(2, f'Combat initialization failed: {error}\n')
         if args.init_campaign:
             parser.exit(2, 'Campaign initialization failed (' + type(error).__name__ + '); use a new project path.\n')
         parser.exit(2, 'Web game export failed (' + type(error).__name__ + '); inspect the project graph failure record.\n')

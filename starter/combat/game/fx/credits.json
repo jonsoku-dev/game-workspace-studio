@@ -1,0 +1,132 @@
+{
+  "pixelfx": {
+    "url": "https://github.com/patch-gg/pixelfx",
+    "revision": "a84159688af3ca37a4be05a0d422b94451b2e24e",
+    "license": "MIT License\n\nCopyright (c) 2026 Patch\nCopyright (c) 2026 Hugo Duprez\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n",
+    "notice": "# Notices\n\n**Hugo Duprez.** `src/core/sim.js` and the effects that say so at the top of their file adapt Sprite Fusion's\nopen-source pixel art VFX (https://www.spritefusion.com/pixel-art-vfx), Copyright (c) 2026 Hugo Duprez, MIT License.\n\n**Hollow Crown.** `src/core/act.js` adapts how Hollow Crown plays its skills (poses on 12 fps steps, hit-stops, the springy\nstraw target), from\nhttps://github.com/rehan-remade/hollow-crown, Copyright (c) 2026 rehan-remade, MIT License.\n\n**Patch Pixel.** The font in `gallery/fonts` is Patch's own and is not covered by this repository's MIT license. See\n`gallery/fonts/NOTICE.md`.\n",
+    "render": "Official renderFrames / spriteSheet, RGBA, 20 fps, seed 43, no actor or backdrop; detonation trimmed to first 45 frames (2.25 seconds)",
+    "effects": [
+      {
+        "id": "sword-cut",
+        "source": "melee/sword-slash",
+        "options": "default"
+      },
+      {
+        "id": "sword-wheel",
+        "source": "melee/spin-slash",
+        "options": "default"
+      },
+      {
+        "id": "sword-cleave",
+        "source": "melee/heavy-cleave",
+        "options": {
+          "palette": [
+            "#102944",
+            "#185975",
+            "#2999ad",
+            "#4cdacb",
+            "#9bffee",
+            "#e5fff7",
+            "#ffffff"
+          ]
+        }
+      },
+      {
+        "id": "fist-rise",
+        "source": "melee/uppercut",
+        "options": "default"
+      },
+      {
+        "id": "fist-quake",
+        "source": "melee/hammer-smash",
+        "options": {
+          "palette": [
+            "#331008",
+            "#71200f",
+            "#b74215",
+            "#ec7820",
+            "#ffb23d",
+            "#ffdc83",
+            "#fff4c7",
+            "#ffffff"
+          ]
+        }
+      },
+      {
+        "id": "star-volley",
+        "source": "arcane/arcane-missiles",
+        "options": "default"
+      },
+      {
+        "id": "star-rain",
+        "source": "arcane/star-fall",
+        "options": "default"
+      },
+      {
+        "id": "star-seal",
+        "source": "arcane/magic-circle-cast",
+        "options": "default"
+      },
+      {
+        "id": "gun-flash",
+        "source": "projectiles/muzzle-shotgun",
+        "options": {
+          "palette": [
+            "#152e10",
+            "#306b15",
+            "#62a51c",
+            "#a4d533",
+            "#daed6a",
+            "#f8ffb3",
+            "#ffffff"
+          ]
+        }
+      },
+      {
+        "id": "gun-plasma",
+        "source": "explosions/plasma-explosion",
+        "options": {
+          "palette": [
+            "#102214",
+            "#234c17",
+            "#4b8c1a",
+            "#82c72b",
+            "#c1f55e",
+            "#edffb0",
+            "#ffffff"
+          ],
+          "accent": [
+            "#073831",
+            "#127166",
+            "#2fb39a",
+            "#8affdc",
+            "#e5fff7"
+          ]
+        }
+      },
+      {
+        "id": "storm",
+        "source": "lightning/lightning-strike",
+        "options": "default"
+      },
+      {
+        "id": "detonation",
+        "source": "explosions/big-explosion",
+        "options": "default"
+      }
+    ]
+  },
+  "contact": {
+    "tool": "pixel-asset-pipeline 0.8.0 effect",
+    "presets": [
+      "impact",
+      "land"
+    ],
+    "requests": [
+      "impact.request.json",
+      "land.request.json"
+    ],
+    "license": "Original contact and landing artwork generated for the local Game Studio starter with Pixel Asset Pipeline. These two sheets contain no imported pixelfx frames.",
+    "notice": "Pixel Asset Pipeline 0.8.0 local effect renderer: impact and land presets. The separate pixelfx MIT/NOTICE applies to the listed upstream effects."
+  }
+}

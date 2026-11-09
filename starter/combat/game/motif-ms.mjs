@@ -1,0 +1,1 @@
+export const MOTIF_MS = {"blade":{"light":[70,100,240],"heavy":[220,160,480]},"brawler":{"light":[90,80,280],"heavy":[300,120,550]},"astral":{"light":[140,260,340],"heavy":[380,420,650]},"rail":{"light":[60,70,200],"heavy":[260,130,420]}};

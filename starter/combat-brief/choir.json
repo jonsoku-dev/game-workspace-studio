@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "title": "유리종탑 · 메아리의 서약",
+  "jobs": [
+    {
+      "id": "bell-knight",
+      "name": "공명기사",
+      "skill": "황동 파문",
+      "motif": "astral",
+      "sheet": "resonance.webp",
+      "palette": [
+        "#302348",
+        "#43777b",
+        "#ddb057",
+        "#fff3b8"
+      ],
+      "clip": "clip.json",
+      "actor": "bell-knight.json"
+    },
+    {
+      "id": "clock-ranger",
+      "name": "시계궁수",
+      "skill": "분침 사격",
+      "motif": "rail",
+      "palette": [
+        "#20244c",
+        "#714eba",
+        "#bfc9ff",
+        "#ffefc9"
+      ]
+    }
+  ]
+}
